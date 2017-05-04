@@ -1,0 +1,20 @@
+Project: L2/L3 forwarding preformance toolkit (NFVbench)
+Project Creation Date: May 2nd 2017
+Project Category:
+Lifecycle State:
+Primary Contact: Alec Hothan (ahothan@cisco.com)
+Project Lead: Alec Hothan (ahothan@cisco.com)
+Jira Project Name: L2 L3 forwarding preformance toolkit 
+Jira Project Prefix: NFVBENCH
+Mailing list tag: [nfvbench]
+IRC: Server:
+Repository: nfvbench 
+
+Committers:
+Alec Hothan (ahothan@cisco.com)
+Carsten Rossenhövel (cross@eantc.com)
+Frank Brockners (fbrockne@cisco.com)
+Yichen Wang (yicwang@cisco.com) 
+Al Morton (acmorton@att.com)
+
+Link to TSC approval of the project:

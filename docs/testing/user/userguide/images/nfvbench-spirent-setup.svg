@@ -1,0 +1,170 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xl="http://www.w3.org/1999/xlink" version="1.1" viewBox="169 216 693 327" width="693pt" height="327pt" xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <metadata> Produced by OmniGraffle 7.2.1 
+    <dc:date>2016-12-03 22:53:19 +0000</dc:date>
+  </metadata>
+  <defs>
+    <font-face font-family="Monaco" font-size="10" units-per-em="1000" underline-position="-37.597656" underline-thickness="75.68359" slope="0" x-height="560.5469" cap-height="780.2734" ascent="1e3" descent="-250" font-weight="500">
+      <font-face-src>
+        <font-face-name name="Monaco"/>
+      </font-face-src>
+    </font-face>
+    <font-face font-family="Candara" font-size="12" panose-1="2 14 5 2 3 3 3 2 2 4" units-per-em="1000" underline-position="-64.94141" underline-thickness="9.765625" slope="0" x-height="463.8672" cap-height="638.6719" ascent="952.1484" descent="-268.5547" font-weight="500">
+      <font-face-src>
+        <font-face-name name="Candara"/>
+      </font-face-src>
+    </font-face>
+    <marker orient="auto" overflow="visible" markerUnits="strokeWidth" id="FilledBall_Marker" viewBox="-1 -4 8 8" markerWidth="8" markerHeight="8" color="#847b5a">
+      <g>
+        <circle cx="2.9999986" cy="0" r="2.9999973" fill="currentColor" stroke="currentColor" stroke-width="1"/>
+      </g>
+    </marker>
+    <marker orient="auto" overflow="visible" markerUnits="strokeWidth" id="FilledBall_Marker_2" viewBox="-7 -4 8 8" markerWidth="8" markerHeight="8" color="#847b5a">
+      <g>
+        <circle cx="-2.9999986" cy="0" r="2.9999973" fill="currentColor" stroke="currentColor" stroke-width="1"/>
+      </g>
+    </marker>
+    <font-face font-family="Helvetica" font-size="12" units-per-em="1000" underline-position="-75.68359" underline-thickness="49.316406" slope="0" x-height="522.9492" cap-height="717.28516" ascent="770.0195" descent="-229.98047" font-weight="500">
+      <font-face-src>
+        <font-face-name name="Helvetica"/>
+      </font-face-src>
+    </font-face>
+    <font-face font-family="Helvetica Neue" font-size="12" panose-1="2 0 8 3 0 0 0 9 0 4" units-per-em="1000" underline-position="-100" underline-thickness="50" slope="0" x-height="517" cap-height="714" ascent="975.0061" descent="-216.99524" font-weight="bold">
+      <font-face-src>
+        <font-face-name name="HelveticaNeue-Bold"/>
+      </font-face-src>
+    </font-face>
+    <font-face font-family="Monaco" font-size="18" units-per-em="1000" underline-position="-37.597656" underline-thickness="75.68359" slope="0" x-height="560.5469" cap-height="780.2734" ascent="1e3" descent="-250" font-weight="500">
+      <font-face-src>
+        <font-face-name name="Monaco"/>
+      </font-face-src>
+    </font-face>
+  </defs>
+  <g stroke="none" stroke-opacity="1" stroke-dasharray="none" fill="none" fill-opacity="1">
+    <title>nfvbench-spirent-setup</title>
+    <g>
+      <title>Layer 1</title>
+      <rect x="169.875" y="310.268" width="183.375" height="156.607" fill="#afb2e0"/>
+      <rect x="169.875" y="310.268" width="183.375" height="156.607" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
+      <text transform="translate(174.875 310.268)" fill="black">
+        <tspan font-family="Monaco" font-size="10" font-weight="500" x="32.67871" y="10" textLength="108.01758">Mercury Build Node</tspan>
+      </text>
+      <path d="M 279.875 334.19787 L 335.78906 334.19787 C 341.8642 334.19787 346.78906 339.12274 346.78906 345.19787 L 346.78906 386.125 C 346.78906 392.20013 341.8642 397.125 335.78906 397.125 L 279.875 397.125 C 273.79987 397.125 268.875 392.20013 268.875 386.125 L 268.875 345.19787 C 268.875 339.12274 273.79987 334.19787 279.875 334.19787 Z" fill="#eaf2bf"/>
+      <path d="M 279.875 334.19787 L 335.78906 334.19787 C 341.8642 334.19787 346.78906 339.12274 346.78906 345.19787 L 346.78906 386.125 C 346.78906 392.20013 341.8642 397.125 335.78906 397.125 L 279.875 397.125 C 273.79987 397.125 268.875 392.20013 268.875 386.125 L 268.875 345.19787 C 268.875 339.12274 273.79987 334.19787 279.875 334.19787 Z" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
+      <path d="M 191.01562 334.19787 L 242.14062 334.19787 C 248.21576 334.19787 253.14062 339.12274 253.14062 345.19787 L 253.14062 442.804 C 253.14062 448.87915 248.21576 453.804 242.14062 453.804 L 191.01562 453.804 C 184.9405 453.804 180.01562 448.87915 180.01562 442.804 L 180.01562 345.19787 C 180.01562 339.12274 184.9405 334.19787 191.01562 334.19787 Z" fill="#eaf2bf"/>
+      <path d="M 191.01562 334.19787 L 242.14062 334.19787 C 248.21576 334.19787 253.14062 339.12274 253.14062 345.19787 L 253.14062 442.804 C 253.14062 448.87915 248.21576 453.804 242.14062 453.804 L 191.01562 453.804 C 184.9405 453.804 180.01562 448.87915 180.01562 442.804 L 180.01562 345.19787 C 180.01562 339.12274 184.9405 334.19787 191.01562 334.19787 Z" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
+      <rect x="185.375" y="420.9982" width="62.40625" height="26.889958" fill="#e7d9fe"/>
+      <rect x="185.375" y="420.9982" width="62.40625" height="26.889958" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
+      <text transform="translate(185.375 427.4432)" fill="black">
+        <tspan font-family="Candara" font-size="12" font-weight="500" x="7.416992" y="11" textLength="47.572266">nfvbench</tspan>
+      </text>
+      <rect x="723.375" y="360.661" width="137.25" height="21.375" fill="#dae68e"/>
+      <rect x="723.375" y="360.661" width="137.25" height="21.375" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
+      <text transform="translate(728.375 364.43103)" fill="black">
+        <tspan font-family="Monaco" font-size="10" font-weight="500" x="21.618164" y="10" textLength="84.01367">Compute node 1</tspan>
+      </text>
+      <rect x="507.375" y="344.49533" width="73.125" height="45.305643" fill="#d1d9e6"/>
+      <rect x="507.375" y="344.49533" width="73.125" height="45.305643" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
+      <text transform="translate(512.375 360.23067)" fill="black">
+        <tspan font-family="Monaco" font-size="10" font-weight="500" x="10.559082" y="10" textLength="42.006836">N9K TOR</tspan>
+      </text>
+      <rect x="191.26562" y="343.58694" width="50.625" height="43.69141" fill="#e7d9fe"/>
+      <rect x="191.26562" y="343.58694" width="50.625" height="43.69141" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
+      <text transform="translate(196.26562 358.51517)" fill="black">
+        <tspan font-family="Monaco" font-size="10" font-weight="500" x="5.3100586" y="10" textLength="30.004883">T-rex</tspan>
+      </text>
+      <path d="M 254.78125 434.4432 L 256.78125 434.4432 L 296.8802 434.4432 L 296.8802 395.77836 L 296.8802 393.77836" marker-end="url(#FilledBall_Marker)" marker-start="url(#FilledBall_Marker_2)" stroke="#847b5a" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
+      <rect x="372.67188" y="346.10956" width="62.40625" height="43.69141" fill="#eae9dd"/>
+      <rect x="372.67188" y="346.10956" width="62.40625" height="43.69141" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
+      <text transform="translate(377.67188 361.0378)" fill="black">
+        <tspan font-family="Monaco" font-size="10" font-weight="500" x="5.199707" y="10" textLength="42.006836">Spirent</tspan>
+      </text>
+      <line x1="507.375" y1="359.5972" x2="435.0781" y2="360.67336" stroke="#82645f" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+      <rect x="723.375" y="217.125" width="137.25" height="21.375" fill="#fcc1b3"/>
+      <rect x="723.375" y="217.125" width="137.25" height="21.375" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
+      <text transform="translate(728.375 220.89502)" fill="black">
+        <tspan font-family="Monaco" font-size="10" font-weight="500" x="27.61914" y="10" textLength="72.01172">Control Node</tspan>
+      </text>
+      <rect x="723.375" y="288.893" width="137.25" height="21.375" fill="#bbcee3"/>
+      <rect x="723.375" y="288.893" width="137.25" height="21.375" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
+      <text transform="translate(728.375 292.66303)" fill="black">
+        <tspan font-family="Monaco" font-size="10" font-weight="500" x="42.62158" y="10" textLength="42.006836">Storage</tspan>
+      </text>
+      <line x1="507.375" y1="374.6991" x2="435.0781" y2="375.23717" stroke="#82645f" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+      <rect x="723.375" y="238.5" width="137.25" height="21.375" fill="#fcc1b3"/>
+      <rect x="723.375" y="238.5" width="137.25" height="21.375" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
+      <text transform="translate(728.375 242.27002)" fill="black">
+        <tspan font-family="Monaco" font-size="10" font-weight="500" x="27.61914" y="10" textLength="72.01172">Control Node</tspan>
+      </text>
+      <rect x="723.375" y="259.875" width="137.25" height="21.375" fill="#fcc1b3"/>
+      <rect x="723.375" y="259.875" width="137.25" height="21.375" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
+      <text transform="translate(728.375 263.64502)" fill="black">
+        <tspan font-family="Monaco" font-size="10" font-weight="500" x="27.61914" y="10" textLength="72.01172">Control Node</tspan>
+      </text>
+      <rect x="723.375" y="310.268" width="137.25" height="21.375" fill="#bbcee3"/>
+      <rect x="723.375" y="310.268" width="137.25" height="21.375" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
+      <text transform="translate(728.375 314.03803)" fill="black">
+        <tspan font-family="Monaco" font-size="10" font-weight="500" x="42.62158" y="10" textLength="42.006836">Storage</tspan>
+      </text>
+      <rect x="723.375" y="331.643" width="137.25" height="21.375" fill="#bbcee3"/>
+      <rect x="723.375" y="331.643" width="137.25" height="21.375" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
+      <text transform="translate(728.375 335.41303)" fill="black">
+        <tspan font-family="Monaco" font-size="10" font-weight="500" x="42.62158" y="10" textLength="42.006836">Storage</tspan>
+      </text>
+      <rect x="723.375" y="432.429" width="137.25" height="21.375" fill="#dae68e"/>
+      <rect x="723.375" y="432.429" width="137.25" height="21.375" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
+      <text transform="translate(728.375 436.19904)" fill="black">
+        <tspan font-family="Monaco" font-size="10" font-weight="500" x="21.618164" y="10" textLength="84.01367">Compute node i</tspan>
+      </text>
+      <rect x="507.375" y="286.33736" width="73.125" height="45.305643" fill="#d1d9e6"/>
+      <rect x="507.375" y="286.33736" width="73.125" height="45.305643" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
+      <text transform="translate(512.375 302.0727)" fill="black">
+        <tspan font-family="Monaco" font-size="10" font-weight="500" x="10.559082" y="10" textLength="42.006836">N9K TOR</tspan>
+      </text>
+      <line x1="543.9375" y1="343.99533" x2="543.9375" y2="331.643" stroke="#2370ba" stroke-linecap="round" stroke-linejoin="round" stroke-width="6"/>
+      <path d="M 723.375 227.8125 L 716.875 227.8125 L 651.875 227.8125 L 651.875 308.9902 L 587 308.9902 L 580.5 308.9902" stroke="#2370ba" stroke-linecap="round" stroke-linejoin="round" stroke-width=".5"/>
+      <path d="M 723.375 231.375 L 716.875 231.375 L 657 231.375 L 657 353.018 L 657 359.5972 L 587 359.5972 L 580.5 359.5972" stroke="#2370ba" stroke-linecap="round" stroke-linejoin="round" stroke-width=".5"/>
+      <path d="M 723.375 443.1165 L 715.375 443.1165 L 672 443.1165 L 672 417.66667 L 672 374.6991 L 588.5 374.6991 L 580.5 374.6991" stroke="#82645f" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+      <path d="M 723.375 435.9915 L 715.375 435.9915 L 679.3333 435.9915 L 679.3333 382.036 L 679.3333 315 L 580.5 315" stroke="#82645f" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+      <rect x="723.375" y="482.822" width="137.25" height="21.375" fill="#dae68e"/>
+      <rect x="723.375" y="482.822" width="137.25" height="21.375" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
+      <text transform="translate(728.375 486.59205)" fill="black">
+        <tspan font-family="Monaco" font-size="10" font-weight="500" x="21.618164" y="10" textLength="84.01367">Compute node N</tspan>
+      </text>
+      <path d="M 607.375 328.5 L 638 328.5 C 643.52285 328.5 648 332.97715 648 338.5 L 648 338.5 C 648 344.02285 643.52285 348.5 638 348.5 L 607.375 348.5 C 601.85215 348.5 597.375 344.02285 597.375 338.5 L 597.375 338.5 C 597.375 332.97715 601.85215 328.5 607.375 328.5 Z" fill="#e4e4e4"/>
+      <text transform="translate(607.375 331.5)" fill="#424242">
+        <tspan font-family="Helvetica" font-size="12" font-weight="500" fill="#424242" x="3.977539" y="11" textLength="22.669922">vPC</tspan>
+      </text>
+      <path d="M 463.5 357.95526 L 470.5 357.95526 C 475.47056 357.95526 479.5 361.9847 479.5 366.95526 L 479.5 368.95526 C 479.5 373.92583 475.47056 377.95526 470.5 377.95526 L 463.5 377.95526 C 458.52944 377.95526 454.5 373.92583 454.5 368.95526 L 454.5 366.95526 C 454.5 361.9847 458.52944 357.95526 463.5 357.95526 Z" fill="#c75d5b"/>
+      <text transform="translate(463.5 360.28122)" fill="white">
+        <tspan font-family="Helvetica Neue" font-size="12" font-weight="bold" fill="white" x="0" y="12" textLength="6.672">1</tspan>
+      </text>
+      <path d="M 256.78125 439.875 L 263.78125 439.875 C 268.7518 439.875 272.78125 443.90444 272.78125 448.875 L 272.78125 450.875 C 272.78125 455.84556 268.7518 459.875 263.78125 459.875 L 256.78125 459.875 C 251.8107 459.875 247.78125 455.84556 247.78125 450.875 L 247.78125 448.875 C 247.78125 443.90444 251.8107 439.875 256.78125 439.875 Z" fill="#c75d5b"/>
+      <text transform="translate(256.78125 442.20096)" fill="white">
+        <tspan font-family="Helvetica Neue" font-size="12" font-weight="bold" fill="white" x="0" y="12" textLength="6.672">2</tspan>
+      </text>
+      <text transform="translate(308.75 514.29004)" fill="black">
+        <tspan font-family="Monaco" font-size="10" font-weight="500" x=".48828125" y="10" textLength="144.02344">pull spirent test center</tspan>
+        <tspan font-family="Monaco" font-size="10" font-weight="500" x="3.4887695" y="23.83496" textLength="138.02246">and nfvbench containers</tspan>
+      </text>
+      <line x1="260.28125" y1="459.875" x2="303.75" y2="532.79167" stroke="#847b5a" stroke-linecap="round" stroke-linejoin="round" stroke-width="1" stroke-dasharray="4,4"/>
+      <text transform="translate(472.875 414.775)" fill="black">
+        <tspan font-family="Monaco" font-size="10" font-weight="500" x=".4892578" y="10" textLength="132.02148">connect spirent to TOR</tspan>
+        <tspan font-family="Monaco" font-size="10" font-weight="500" x="9.490723" y="23.83496" textLength="114.01855">with 2 x 10G cables</tspan>
+      </text>
+      <line x1="467" y1="377.95526" x2="493.875" y2="428.61" stroke="#847b5a" stroke-linecap="round" stroke-linejoin="round" stroke-width="1" stroke-dasharray="4,4"/>
+      <text transform="translate(284.875 222.99854)" fill="black">
+        <tspan font-family="Monaco" font-size="18" font-weight="500" x=".18066406" y="18" textLength="237.63867">nfvbench/Spirent setup</tspan>
+      </text>
+      <rect x="276.07812" y="343.58694" width="62.40625" height="43.69141" fill="#e7d9fe"/>
+      <rect x="276.07812" y="343.58694" width="62.40625" height="43.69141" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
+      <text transform="translate(281.07812 344.6802)" fill="black">
+        <tspan font-family="Monaco" font-size="10" font-weight="500" x="5.199707" y="10" textLength="42.006836">Spirent</tspan>
+        <tspan font-family="Monaco" font-size="10" font-weight="500" x="14.201172" y="23.83496" textLength="30.004883">Test </tspan>
+        <tspan font-family="Monaco" font-size="10" font-weight="500" x="8.200195" y="37.66992" textLength="36.00586">Center</tspan>
+      </text>
+      <line x1="342.49312" y1="369.0503" x2="365.6765" y2="368.2091" marker-end="url(#FilledBall_Marker)" marker-start="url(#FilledBall_Marker_2)" stroke="#847b5a" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
+    </g>
+  </g>
+</svg>

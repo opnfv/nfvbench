@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xl="http://www.w3.org/1999/xlink" version="1.1" viewBox="114 61 405 103" width="405pt" height="103pt" xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <metadata> Produced by OmniGraffle 7.2 
+    <dc:date>2016-11-13 19:58:51 +0000</dc:date>
+  </metadata>
+  <defs>
+    <font-face font-family="Futura" font-size="15" panose-1="2 11 6 2 2 2 4 2 3 3" units-per-em="1000" underline-position="-97.65625" underline-thickness="78.125" slope="0" x-height="482.4219" cap-height="761.2305" ascent="1038.5742" descent="-259.76562" font-weight="600">
+      <font-face-src>
+        <font-face-name name="Futura-Medium"/>
+      </font-face-src>
+    </font-face>
+    <filter id="Shadow" filterUnits="userSpaceOnUse">
+      <feGaussianBlur in="SourceAlpha" result="blur" stdDeviation="1.308"/>
+      <feOffset in="blur" result="offset" dx="0" dy="2"/>
+      <feFlood flood-color="black" flood-opacity=".5" result="flood"/>
+      <feComposite in="flood" in2="offset" operator="in"/>
+    </filter>
+    <font-face font-family="Futura" font-size="10" panose-1="2 11 6 2 2 2 4 2 3 3" units-per-em="1000" underline-position="-97.65625" underline-thickness="78.125" slope="0" x-height="482.4219" cap-height="761.2305" ascent="1038.5742" descent="-259.76562" font-weight="600">
+      <font-face-src>
+        <font-face-name name="Futura-Medium"/>
+      </font-face-src>
+    </font-face>
+    <font-face font-family="Futura" font-size="12" panose-1="2 11 6 2 2 2 4 2 3 3" units-per-em="1000" underline-position="-97.65625" underline-thickness="78.125" slope="0" x-height="482.4219" cap-height="761.2305" ascent="1038.5742" descent="-259.76562" font-weight="600">
+      <font-face-src>
+        <font-face-name name="Futura-Medium"/>
+      </font-face-src>
+    </font-face>
+  </defs>
+  <g stroke="none" stroke-opacity="1" stroke-dasharray="none" fill="none" fill-opacity="1">
+    <title>nfvbench-flows 2</title>
+    <g>
+      <title>pvvp-intra</title>
+      <text transform="translate(119.5625 67.15161)" fill="black">
+        <tspan font-family="Futura" font-size="15" font-weight="600" x=".2866211" y="16" textLength="85.89844">single VNF c</tspan>
+        <tspan font-family="Futura" font-size="15" font-weight="600" x="86.57324" y="16" textLength="71.14014">hain (PVP)</tspan>
+      </text>
+    </g>
+    <g>
+      <title>pvp</title>
+      <g>
+        <xl:use xl:href="#id38285_Graphic" filter="url(#Shadow)"/>
+        <xl:use xl:href="#id38287_Graphic" filter="url(#Shadow)"/>
+        <xl:use xl:href="#id38291_Graphic" filter="url(#Shadow)"/>
+      </g>
+      <g id="id38285_Graphic">
+        <rect x="308.6875" y="72.34412" width="205.875" height="85.5" fill="#dae68e"/>
+        <rect x="308.6875" y="72.34412" width="205.875" height="85.5" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
+        <text transform="translate(313.6875 72.34412)" fill="black">
+          <tspan font-family="Futura" font-size="10" font-weight="600" fill="black" x="64.458496" y="10" textLength="20.927734">Com</tspan>
+          <tspan font-family="Futura" font-size="10" font-weight="600" fill="black" x="85.5083" y="10" textLength="14.179688">put</tspan>
+          <tspan font-family="Futura" font-size="10" font-weight="600" fill="black" x="99.77588" y="10" textLength="31.640625">e node</tspan>
+        </text>
+      </g>
+      <rect x="308.6875" y="72.34412" width="29.25" height="85.5" fill="#eae9dd"/>
+      <rect x="308.6875" y="72.34412" width="29.25" height="85.5" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
+      <text transform="translate(313.6875 72.34412)" fill="black">
+        <tspan font-family="Futura" font-size="10" font-weight="600" fill="black" x=".42578125" y="10" textLength="18.398438">NIC</tspan>
+      </text>
+      <g id="id38287_Graphic">
+        <rect x="217.125" y="101.25" width="61.875" height="50.28088" fill="#d1d9e6"/>
+        <rect x="217.125" y="101.25" width="61.875" height="50.28088" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
+        <text transform="translate(222.125 101.25)" fill="black">
+          <tspan font-family="Futura" font-size="10" font-weight="600" fill="black" x="9.506836" y="10" textLength="22.27539">DC-S</tspan>
+          <tspan font-family="Futura" font-size="10" font-weight="600" fill="black" x="31.762695" y="10" textLength="10.605469">W</tspan>
+        </text>
+      </g>
+      <path d="M 360.4375 99.73456 L 399 99.73456 C 403.97056 99.73456 408 103.764 408 108.73456 L 408 141.01544 C 408 145.986 403.97056 150.01544 399 150.01544 L 360.4375 150.01544 C 355.46694 150.01544 351.4375 145.986 351.4375 141.01544 L 351.4375 108.73456 C 351.4375 103.764 355.46694 99.73456 360.4375 99.73456 Z" fill="#bbcee3"/>
+      <path d="M 360.4375 99.73456 L 399 99.73456 C 403.97056 99.73456 408 103.764 408 108.73456 L 408 141.01544 C 408 145.986 403.97056 150.01544 399 150.01544 L 360.4375 150.01544 C 355.46694 150.01544 351.4375 145.986 351.4375 141.01544 L 351.4375 108.73456 C 351.4375 103.764 355.46694 99.73456 360.4375 99.73456 Z" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
+      <text transform="translate(356.4375 99.73456)" fill="black">
+        <tspan font-family="Futura" font-size="10" font-weight="600" fill="black" x="7.0043945" y="10" textLength="26.811523">vswitc</tspan>
+        <tspan font-family="Futura" font-size="10" font-weight="600" fill="black" x="34.074707" y="10" textLength="5.4833984">h</tspan>
+      </text>
+      <ellipse cx="475.26203" cy="126.39044" rx="30.93755" ry="25.14048" fill="#eaf2bf"/>
+      <ellipse cx="475.26203" cy="126.39044" rx="30.93755" ry="25.14048" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
+      <text transform="translate(455.51203 119.74152)" fill="black">
+        <tspan font-family="Futura" font-size="10" font-weight="600" fill="black" x="9.605957" y="10" textLength="20.288086">VNF</tspan>
+      </text>
+      <path d="M 182.62498 119.31252 L 452.75 119.31252 C 455.8221 119.31252 458.3125 121.80293 458.3125 124.875 L 458.3125 124.875 C 458.3125 127.94707 455.8221 130.43748 452.75 130.43748 L 182.62498 130.43748 C 179.5529 130.43748 177.0625 127.94707 177.0625 124.875 L 177.0625 124.875 C 177.0625 121.80293 179.5529 119.31252 182.62498 119.31252 Z" stroke="#aaa" stroke-linecap="round" stroke-linejoin="round" stroke-width="3"/>
+      <g id="id38291_Graphic">
+        <rect x="125.0625" y="101.25" width="68.5" height="50.28088" fill="#f0f0f0"/>
+        <rect x="125.0625" y="101.25" width="68.5" height="50.28088" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
+        <text transform="translate(130.0625 111.03302)" fill="black">
+          <tspan font-family="Futura" font-size="12" font-weight="600" fill="black" x="13.983398" y="12" textLength="7.769531">tr</tspan>
+          <tspan font-family="Futura" font-size="12" font-weight="600" fill="black" x="21.670898" y="12" textLength="17.126953">affi</tspan>
+          <tspan font-family="Futura" font-size="12" font-weight="600" fill="black" x="38.79785" y="12" textLength="5.71875">c</tspan>
+          <tspan font-family="Futura" font-size="12" font-weight="600" fill="black" x="2.3964844" y="27.357422" textLength="31.529297">gener</tspan>
+          <tspan font-family="Futura" font-size="12" font-weight="600" fill="black" x="33.84375" y="27.357422" textLength="10.476562">at</tspan>
+          <tspan font-family="Futura" font-size="12" font-weight="600" fill="black" x="44.402344" y="27.357422" textLength="11.701172">or</tspan>
+        </text>
+      </g>
+    </g>
+  </g>
+</svg>

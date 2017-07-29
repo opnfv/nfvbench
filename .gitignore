@@ -1,0 +1,11 @@
+.DS_store
+*.pyc
+.idea
+.tox
+.cache
+.eggs
+venv
+nfvbench.egg-info
+docs/_build
+nfvbenchvm/dib/
+*.qcow2

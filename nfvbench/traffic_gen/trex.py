@@ -139,7 +139,10 @@ class TRex(AbstractTrafficGenerator):
         if stream_cfg['vlan_tag'] is not None:
             pkt_base /= Dot1Q(vlan=stream_cfg['vlan_tag'])
 
-        pkt_base /= IP() / UDP()
+        sport = stream_cfg['udp_src_port']
+        dport = stream_cfg['udp_dst_port']
+        pkt_base /= IP() / UDP(sport=int(sport), dport=int(dport)) \
+            if sport and dport else IP() / UDP()
 
         if stream_cfg['ip_addrs_step'] == 'random':
             src_fv = STLVmFlowVarRepetableRandom(

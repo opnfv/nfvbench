@@ -84,7 +84,8 @@ class Device(object):
 
     def __init__(self, port, pci, switch_port=None, vtep_vlan=None, ip=None, tg_gateway_ip=None,
                  gateway_ip=None, ip_addrs_step=None, tg_gateway_ip_addrs_step=None,
-                 gateway_ip_addrs_step=None, chain_count=1, flow_count=1, vlan_tagging=False):
+                 gateway_ip_addrs_step=None, udp_src_port=None, udp_dst_port=None,
+                 chain_count=1, flow_count=1, vlan_tagging=False):
         self.chain_count = chain_count
         self.flow_count = flow_count
         self.dst = None
@@ -111,6 +112,8 @@ class Device(object):
         self.tg_gateway_ip_list = self.expand_ip(self.tg_gateway_ip,
                                                  self.tg_gateway_ip_addrs_step,
                                                  self.chain_count)
+        self.udp_src_port = udp_src_port
+        self.udp_dst_port = udp_dst_port
 
     def set_mac(self, mac):
         if mac is None:
@@ -151,6 +154,8 @@ class Device(object):
                 'ip_dst_addr_max': self.dst.ip_list[max_idx],
                 'ip_dst_count': ip_dst_count,
                 'ip_addrs_step': self.ip_addrs_step,
+                'udp_src_port': self.udp_src_port,
+                'udp_dst_port': self.udp_dst_port,
                 'mac_discovery_gw': self.gateway_ip_list[chain_idx],
                 'ip_src_tg_gw': self.tg_gateway_ip_list[chain_idx],
                 'ip_dst_tg_gw': self.dst.tg_gateway_ip_list[chain_idx],
@@ -253,6 +258,8 @@ class RunningTrafficProfile(object):
             'gateway_ip_addrs_step': self.gateway_ip_addrs_step,
             'tg_gateway_ip': generator_config.tg_gateway_ip_addrs[0],
             'tg_gateway_ip_addrs_step': self.tg_gateway_ip_addrs_step,
+            'udp_src_port': generator_config.udp_src_port,
+            'udp_dst_port': generator_config.udp_dst_port,
             'vlan_tagging': self.vlan_tagging
         }
         dst_config = {
@@ -264,6 +271,8 @@ class RunningTrafficProfile(object):
             'gateway_ip_addrs_step': self.gateway_ip_addrs_step,
             'tg_gateway_ip': generator_config.tg_gateway_ip_addrs[1],
             'tg_gateway_ip_addrs_step': self.tg_gateway_ip_addrs_step,
+            'udp_src_port': generator_config.udp_src_port,
+            'udp_dst_port': generator_config.udp_dst_port,
             'vlan_tagging': self.vlan_tagging
         }
 

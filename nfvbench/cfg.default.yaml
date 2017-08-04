@@ -152,12 +152,16 @@ traffic_generator:
     # `tg_gateway_ip_addrs__step`: step for generating traffic generator gateway sequences. default is 0.0.0.1
     # `gateway_ip_addrs`: base IPs of router gateways on both networks, quantity depends on chain count
     # `gateway_ip_addrs_step`: step for generating router gateway sequences. default is 0.0.0.1
+    # `udp_src_port`: the source port for sending UDP traffic, default is picked by TRex (53)
+    # `udp_dst_port`: the destination port for sending UDP traffic, default is picked by TRex (53)
     ip_addrs: ['10.0.0.0/8', '20.0.0.0/8']
     ip_addrs_step: 0.0.0.1
     tg_gateway_ip_addrs: ['1.1.0.100', '2.2.0.100']
     tg_gateway_ip_addrs_step: 0.0.0.1
     gateway_ip_addrs: ['1.1.0.2', '2.2.0.2']
     gateway_ip_addrs_step: 0.0.0.1
+    udp_src_port:
+    udp_dst_port:
 
     # Traffic Generator Profiles
     # In case you have multiple testbeds or traffic generators,

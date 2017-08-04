@@ -100,7 +100,7 @@ Used parameters:
 * ``--interval 15`` : stats are checked and shown periodically (in seconds) in this interval when traffic is flowing
 * ``--json results.json`` : collected data are stored in this file after run is finished
 
-.. note:: It is your responsibility to clean up resources if needed when ``--no-cleanup`` parameter is used.
+.. note:: It is your responsibility to clean up resources if needed when ``--no-cleanup`` parameter is used. You can use the nfvbench_cleanup helper script for that purpose
 
 The ``--json`` parameter makes it easy to store NFVbench results. To display collected results in a table form, do:
 
@@ -315,4 +315,48 @@ MAC Addresses
 NFVbench will dicover the MAC addresses to use for generated frames using:
 - either OpenStack discovery (find the MAC of an existing VM) if the loopback VM is configured to run L2 forwarding
 - or using dynamic ARP discovery (find MAC from IP) if the loopback VM is configured to run L3 routing or in the case of external chains.
+
+Cleanup Script
+--------------
+
+The nfvbench_cleanup script will cleanup resources created by NFVbench. You need to pass the OpenStack RC file in order to connect to
+OpenStack.
+Example of run:
+
+.. code-block:: bash
+
+    nfvbench_9425 [root@c45-build /]# nfvbench_cleanup -r /tmp/nfvbench/openrc
+    Discovering Storage resources...
+    Discovering Compute resources...
+    Discovering Network resources...
+    Discovering Keystone resources...
+
+    SELECTED RESOURCES:
+    +-----------+-------------------+--------------------------------------+
+    | Type      | Name              | UUID                                 |
+    |-----------+-------------------+--------------------------------------|
+    | flavors   | nfvbench.medium   | 362b2215-89d1-4f46-8b89-8e58165ff5bc |
+    | instances | nfvbench-loop-vm0 | f78dfb74-1b8e-4c5c-8d83-652a7571da95 |
+    | networks  | nfvbench-net0     | 57d7e6c9-325f-4c13-9b1b-929344cc9c39 |
+    | networks  | nfvbench-net1     | 2d429bcd-33fa-4aa4-9f2e-299a735177c9 |
+    +-----------+-------------------+--------------------------------------+
+
+    Warning: You didn't specify a resource list file as the input. The script will delete all resources shown above.
+    Are you sure? (y/n) y
+    *** STORAGE cleanup
+    *** COMPUTE cleanup
+        . Waiting for 1 instances to be fully deleted...
+        . INSTANCE 1 left to be deleted, retries left=5...
+        . INSTANCE 1 left to be deleted, retries left=4...
+        + INSTANCE nfvbench-loop-vm0 is successfully deleted
+        + FLAVOR nfvbench.medium is successfully deleted
+    *** NETWORK cleanup
+        + Network port 075d91f3-fa6a-428c-bd3f-ebd40cd935e1 is successfully deleted
+        + Network port 3a7ccd8c-53a6-43d0-a823-4b5ca762d06e is successfully deleted
+        + NETWORK nfvbench-net0 is successfully deleted
+        + Network port 5b5a75bd-e0b5-4f81-91b9-9e216d194f48 is successfully deleted
+        + Network port cc2d8f1b-49fe-491e-9e44-6990fc57e891 is successfully deleted
+        + NETWORK nfvbench-net1 is successfully deleted
+    *** KEYSTONE cleanup
+    nfvbench_9425 [root@c45-build /]#
 

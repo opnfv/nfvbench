@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "da33351e_2362a9d8",
+        "filename": "nfvbench/traffic_gen/trex.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 145,
+      "author": {
+        "id": 5807
+      },
+      "writtenOn": "2017-08-04T01:00:47Z",
+      "side": 1,
+      "message": "does not cover the case were only 1 port is specified, since these are optional args, simplest might be to create a dict of args\nAlso assumes ports cannot be set to 0 (which is OK)\nudp_args \u003d {}\nif sport:\n    udp_args[\u0027sport\u0027] \u003d sport\nif dport:\n    udp_args[\u0027dport\u0027] \u003d dport\n\nthen...\n\n    UDP(**udp_args)",
+      "revId": "dee60524e105d23ed638460b50b157ed05f18f46",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": false
+    }
+  ]
+}

@@ -36,6 +36,14 @@ class ConfigPluginBase(object):
     def get_config(self):
         """Returns updated default configuration file."""
 
+    def set_config(self, config):
+        """This method is called when the config has changed after this instance was initialized.
+
+        This is needed in teh frequent case where the main config is changed in a copy and to
+        prevent this instance to keep pointing to the old copy of the config
+        """
+        self.config = config
+
     @abc.abstractmethod
     def get_openstack_spec(self):
         """Returns OpenStack specs for host."""

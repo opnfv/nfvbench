@@ -32,6 +32,7 @@ from nfvbenchd import WebSocketIoServer
 import os
 import pbr.version
 from pkg_resources import resource_string
+from specs import ChainType
 from specs import Specs
 from summarizer import NFVBenchSummarizer
 import sys
@@ -394,6 +395,13 @@ def override_custom_traffic(config, frame_sizes, unidir):
         "profile": traffic_profile_name
     }
 
+def check_physnet(name, netattrs):
+    if not netattrs.physical_network:
+        raise Exception("SRIOV requires physical_network to be specified for the {n} network"
+                            .format(n=name))
+    if not netattrs.segmentation_id:
+        raise Exception("SRIOV requires segmentation_id to be specified for the {n} network"
+                            .format(n=name))
 
 def main():
     try:
@@ -434,10 +442,11 @@ def main():
             # override default config options with start config at path parsed from CLI
             # check if it is an inline yaml/json config or a file name
             if os.path.isfile(opts.config):
-                print opts.config
+                LOG.info('Loading configuration file: ' + opts.config)
                 config = config_load(opts.config, config)
                 config.name = os.path.basename(opts.config)
             else:
+                LOG.info('Loading configuration string: ' + opts.config)
                 config = config_loads(opts.config, config)
 
         # traffic profile override options
@@ -445,11 +454,25 @@ def main():
 
         # copy over cli options that are used in config
         config.generator_profile = opts.generator_profile
+        if opts.sriov:
+            config.sriov = True
 
         # show running config in json format
         if opts.show_config:
             print json.dumps(config, sort_keys=True, indent=4)
             sys.exit(0)
+
+        if config.sriov and config.service_chain != ChainType.EXT:
+            # if sriov is requested (does not apply to ext chains)
+            # make sure the physnet names are specified
+            check_physnet("left", config.internal_networks.left)
+            check_physnet("right", config.internal_networks.right)
+            if config.service_chain == ChainType.PVVP:
+                check_physnet("middle", config.internal_networks.middle)
+
+        # update the config in the config plugin as it might have changed
+        # in a copy of the dict (config plugin still holds the original dict)
+        config_plugin.set_config(config)
 
         nfvbench = NFVBench(config, openstack_spec, config_plugin, factory)
 
@@ -480,11 +503,12 @@ def main():
                 if 'result' in result and result['status']:
                     nfvbench.save(result['result'])
                     nfvbench.print_summary(result['result'])
-    except Exception:
+    except Exception as exc:
         LOG.error({
             'status': NFVBench.STATUS_ERROR,
             'error_message': traceback.format_exc()
         })
+        print str(exc)
         sys.exit(1)
 
 if __name__ == '__main__':

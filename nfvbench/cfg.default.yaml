@@ -207,30 +207,53 @@ generic_poll_sec: 2
 # name of the loop VM
 loop_vm_name: 'nfvbench-loop-vm'
 
-# Default names, subnets and CIDRs for internal networks used by the script.
+# Default names, subnets and CIDRs for PVP/PVVP networks
 # If a network with given name already exists it will be reused.
+# - PVP only uses left and right
+# - PVVP uses left, middle and right
+# - for EXT chains, this structure is not relevant - refer to external_networks
 # Otherwise a new internal network will be created with that name, subnet and CIDR.
+# 
+# segmentation_id can be set to enforce a specific VLAN id - by default (empty) the VLAN id 
+#                 will be assigned by Neutron.
+#                 Must be unique for each network
+# physical_network can be set to pick a specific phsyical network - by default (empty) the
+#                   default physical network will be picked
+# In the case of SR-IOV, both physical_network and segmentation ID must be provided
+# For example to setup PVP using 2 different SR-IOV ports, you must put the appropriate physnet
+# names under left.physical_network and right.physical_network.
+# Example of override configuration to force PVP to run on 2 SRIOV ports (phys_sriov0 and phys_sriov1)
+# using VLAN ID 2000 and 2001:
+# internal_networks:
+#    left:
+#        segmentation_id: 2000
+#        physical_network: phys_sriov0
+#    right:
+#        segmentation_id: 2001
+#        physical_network: phys_sriov1
+
 internal_networks:
-    # Required only when segmentation_id specified
-    physical_network:
     left:
         name: 'nfvbench-net0'
         subnet: 'nfvbench-subnet0'
         cidr: '192.168.1.0/24'
         network_type: 'vlan'
         segmentation_id:
+        physical_network:
     right:
         name: 'nfvbench-net1'
         subnet: 'nfvbench-subnet1'
         cidr: '192.168.2.0/24'
         network_type: 'vlan'
         segmentation_id:
+        physical_network:
     middle:
         name: 'nfvbench-net2'
         subnet: 'nfvbench-subnet2'
         cidr: '192.168.3.0/24'
         network_type: 'vlan'
         segmentation_id:
+        physical_network:
 
 # EXT chain only. Names of edge networks which will be used to send traffic via traffic generator.
 external_networks:

@@ -78,11 +78,12 @@ class BasicStageClient(object):
         networks = self.neutron.list_networks(name=network_name)
         return networks['networks'][0] if networks['networks'] else None
 
-    def _create_net(self, name, subnet, cidr, network_type=None, segmentation_id=None):
+    def _create_net(self, name, subnet, cidr, network_type=None, segmentation_id=None, physical_network=None):
         network = self._lookup_network(name)
         if network:
-            phys_net = self.config.internal_networks.physical_network
-            if segmentation_id is not None and phys_net is not None:
+            # a network of same name already exists, we need to verify it has the same
+            # characteristics
+            if segmentation_id:
                 if network['provider:segmentation_id'] != segmentation_id:
                     raise StageClientException("Mismatch of 'segmentation_id' for reused "
                                                "network '{net}'. Network has id '{seg_id1}', "
@@ -91,13 +92,14 @@ class BasicStageClient(object):
                                                        seg_id1=network['provider:segmentation_id'],
                                                        seg_id2=segmentation_id))
 
-                if network['provider:physical_network'] != phys_net:
+            if physical_network:
+                if network['provider:physical_network'] != physical_network:
                     raise StageClientException("Mismatch of 'physical_network' for reused "
                                                "network '{net}'. Network has '{phys1}', "
                                                "configuration requires '{phys2}'."
                                                .format(net=name,
                                                        phys1=network['provider:physical_network'],
-                                                       phys2=phys_net))
+                                                       phys2=physical_network))
 
             LOG.info('Reusing existing network: ' + name)
             network['is_reuse'] = True
@@ -112,10 +114,10 @@ class BasicStageClient(object):
 
         if network_type:
             body['network']['provider:network_type'] = network_type
-            phys_net = self.config.internal_networks.physical_network
-            if segmentation_id is not None and phys_net is not None:
+            if segmentation_id:
                 body['network']['provider:segmentation_id'] = segmentation_id
-                body['network']['provider:physical_network'] = phys_net
+            if physical_network:
+                body['network']['provider:physical_network'] = physical_network
 
         network = self.neutron.create_network(body)['network']
         body = {

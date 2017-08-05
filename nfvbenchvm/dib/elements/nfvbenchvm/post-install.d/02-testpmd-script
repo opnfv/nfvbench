@@ -1,0 +1,25 @@
+#!/bin/bash
+
+DPDK=dpdk-17.05
+DPDK_UNTAR=dpdk-17.05
+
+# pick up the kernel version for the target image
+kernel_version=`ls -t /lib/modules | awk 'NR==1 {print}'`
+
+mkdir dpdk
+wget http://fast.dpdk.org/rel/$DPDK.tar.xz
+tar xfJ $DPDK.tar.xz
+cd $DPDK_UNTAR
+
+export RTE_KERNELDIR=/lib/modules/$kernel_version/build
+export ARCH=x86
+make -j4 install T=x86_64-native-linuxapp-gcc
+
+cp usertools/dpdk-devbind.py ../dpdk
+# cp tools/dpdk_nic_bind.py ../dpdk/dpdk-devbind.py
+cp x86_64-native-linuxapp-gcc/app/testpmd ../dpdk
+cp x86_64-native-linuxapp-gcc/kmod/igb_uio.ko ../dpdk
+
+cd ..
+rm -f $DPDK.tar.xz
+rm -rf $DPDK_UNTAR

@@ -1,0 +1,3 @@
+#!/bin/bash
+
+yum erase -y python-devel libyaml-devel kernel-devel kernel-headers kernel-ml-headers kernel-ml-devel gcc

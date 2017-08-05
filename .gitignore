@@ -7,7 +7,6 @@
 venv
 nfvbench.egg-info
 docs/_build
-nfvbenchvm/dib/
 *.qcow2
 docs/conf.py
 docs/_static

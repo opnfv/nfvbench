@@ -1,0 +1,3 @@
+#!/bin/bash
+
+grubby --update-kernel=ALL --args="vga=792"

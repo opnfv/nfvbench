@@ -1,0 +1,13 @@
+bc:
+gcc:
+tuna:
+wget:
+screen:
+telnet:
+python-devel:
+libyaml-devel:
+vpp:
+vpp-plugins:
+kernel-firmware:
+kernel-headers:
+kernel-devel:

@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "da33351e_9981664d",
+        "filename": "docs/testing/user/userguide/sriov.rst",
+        "patchSetId": 1
+      },
+      "lineNbr": 57,
+      "author": {
+        "id": 6909
+      },
+      "writtenOn": "2017-08-05T00:39:44Z",
+      "side": 1,
+      "message": "Actually only this line is needed. Maybe we can remove the above two to have less confusion?",
+      "revId": "2d66234fe3b8b3e104e63218b5120a35ca400ea5",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": false
+    }
+  ]
+}

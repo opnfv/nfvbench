@@ -4,7 +4,7 @@
 .. (c) Cisco Systems, Inc
 
 .. toctree::
-   :maxdepth: 1
+   :maxdepth: 3
 
    overview/index
    design/index

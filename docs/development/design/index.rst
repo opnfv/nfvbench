@@ -5,6 +5,7 @@ OPNFV NFVbench Euphrates Design
 =============================================
 
 .. toctree::
-   :maxdepth: 1
+   :maxdepth: 2
 
    design
+   ndrpdr

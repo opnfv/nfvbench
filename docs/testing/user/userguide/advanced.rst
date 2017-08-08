@@ -323,9 +323,9 @@ The nfvbench_cleanup script will cleanup resources created by NFVbench. You need
 OpenStack.
 Example of run:
 
-.. code-block:: bash
+.. code-block:: none
 
-    nfvbench_9425 [root@c45-build /]# nfvbench_cleanup -r /tmp/nfvbench/openrc
+    # nfvbench_cleanup -r /tmp/nfvbench/openrc
     Discovering Storage resources...
     Discovering Compute resources...
     Discovering Network resources...
@@ -358,5 +358,4 @@ Example of run:
         + Network port cc2d8f1b-49fe-491e-9e44-6990fc57e891 is successfully deleted
         + NETWORK nfvbench-net1 is successfully deleted
     *** KEYSTONE cleanup
-    nfvbench_9425 [root@c45-build /]#
-
+    #

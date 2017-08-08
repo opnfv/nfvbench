@@ -15,7 +15,8 @@ You will also need to know:
 - the name of the physical networks associated to your SR-IOV interfaces (this is a configuration in Nova compute)
 - the VLAN range that can be used on the switch ports that are wired to the SR-IOV ports. Such switch ports are normally configured in trunk mode with a range of VLAN ids enabled on that port
 
-For example, in the case of 2 SR-IOV ports per compute node, 2 physical networks are generally configured in OpenStack with a distinct name. The VLAN range to use is is also allocated and reserved by the network administrator and in coordination with the corresponding top of rack switch port configuration.
+For example, in the case of 2 SR-IOV ports per compute node, 2 physical networks are generally configured in OpenStack with a distinct name.
+The VLAN range to use is is also allocated and reserved by the network administrator and in coordination with the corresponding top of rack switch port configuration.
 
 
 Configuration
@@ -24,7 +25,7 @@ To enable SR-IOV test, you will need to provide the following configuration opti
 This example instructs NFVbench to create the left and right networks of a PVP packet flow to run on 2 SRIOV ports named "phys_sriov0" and "phys_sriov1" using resp. segmentation_id 2000 and 2001:
 
 .. code-block:: bash
-    
+
     internal_networks:
        left:
            segmentation_id: 2000
@@ -56,5 +57,7 @@ If the 2 selected ports reside on NICs that are on different NUMA sockets, you w
           "hw:mem_page_size": large
           "hw:numa_nodes": 2
 
-Failure to do so might cause the VM creation to fail with the Nova error "Instance creation error: Insufficient compute resources: Requested instance NUMA topology together with requested PCI devices cannot fit the given host NUMA topology."
+Failure to do so might cause the VM creation to fail with the Nova error
+"Instance creation error: Insufficient compute resources:
+Requested instance NUMA topology together with requested PCI devices cannot fit the given host NUMA topology."
 

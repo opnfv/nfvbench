@@ -330,7 +330,7 @@ duration_sec: 60
 # Can be overridden by --interval
 interval_sec: 10
 
-# NDR / PDR configuration ZZ
+# NDR / PDR configuration
 measurement:
     # Drop rates represent the ratio of dropped packet to the total number of packets sent.
     # Values provided here are percentages. A value of 0.01 means that at most 0.01% of all
@@ -340,8 +340,13 @@ measurement:
     NDR: 0.001
     # Partial Drop Rate in percentage; NDR should always be less than PDR
     PDR: 0.1
-    # The accuracy of NDR and PDR load percentiles; The actual load percentile that match NDR
-    # or PDR should be within `load_epsilon` difference than the one calculated.
+    # The accuracy of NDR and PDR as a percnetage of line rate; The exact NDR
+    # or PDR should be within `load_epsilon` line rate % from the one calculated.
+    # For example, with a value 0.1, and a line rate of 10Gbps, the accuracy
+    # of NDR and PDR will be within 0.1% Of 10Gbps or 10Kbps.
+    # The lower the value the more iterations and the longer it will take to find the NDR/PDR.
+    # In practice, due to the precision of the traffic generator it is not recommended to
+    # set it to lower than 0.1
     load_epsilon: 0.1
 
 # Location where to store results in a JSON format. Must be container specific path.

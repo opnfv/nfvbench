@@ -11,7 +11,9 @@ The NFVi full stack does not have to be supported by the OPNFV ecosystem and can
 It is designed to be easy to install and easy to use by non experts (no need to be an expert in traffic generators and data plane performance testing).
 
 
+Contact Information
+-------------------
+Inquiries and questions: send an email to opnfv-tech-discuss@lists.opnfv.org with a Subject line starting with "[nfvbench]".
 
-
-
+Open issues or submit an issue or enhancement request: https://jira.opnfv.org/projects/NFVBENCH/issues (this requires an OPNFV Linux Foundation login).
 

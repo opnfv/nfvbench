@@ -260,9 +260,10 @@ external_networks:
     left: 'nfvbench-net0'
     right: 'nfvbench-net1'
 
-# Use 'true' to enable VLAN tagging of packets coming from traffic generator
-# Leave empty if VLAN tagging is enabled on switch or if you want to hook directly to a NIC
-# Else by default is set to true (which is the nominal use case with TOR and trunk mode to Trex)
+# Use 'true' to enable VLAN tagging of packets generated and sent by the traffic generator
+# Leave empty you do not want the traffic generator to insert the VLAN tag. This is 
+# needed for example if VLAN tagging is enabled on switch (trunk mode) or if you want to hook directly to a NIC
+# By default is set to true (which is the nominal use case with TOR and trunk mode to Trex)
 vlan_tagging: true
 
 # Specify only when you want to override VLAN IDs used for tagging with own values (exactly 2).
@@ -343,7 +344,7 @@ measurement:
     # The accuracy of NDR and PDR as a percnetage of line rate; The exact NDR
     # or PDR should be within `load_epsilon` line rate % from the one calculated.
     # For example, with a value 0.1, and a line rate of 10Gbps, the accuracy
-    # of NDR and PDR will be within 0.1% Of 10Gbps or 10Kbps.
+    # of NDR and PDR will be within 0.1% Of 10Gbps or 10Mbps.
     # The lower the value the more iterations and the longer it will take to find the NDR/PDR.
     # In practice, due to the precision of the traffic generator it is not recommended to
     # set it to lower than 0.1

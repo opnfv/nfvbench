@@ -134,5 +134,7 @@ class ServiceChain(object):
         return self.stats_manager.get_version()
 
     def close(self):
-        self.stage_manager.close()
-        self.stats_manager.close()
+        if self.stage_manager:
+            self.stage_manager.close()
+        if self.stats_manager:
+            self.stats_manager.close()

@@ -21,6 +21,7 @@ from chain_runner import ChainRunner
 from collections import defaultdict
 from config import config_load
 from config import config_loads
+import copy
 import credentials
 import datetime
 from factory import BasicFactory
@@ -87,7 +88,7 @@ class NFVBench(object):
                     "vswitch": self.specs.openstack.vswitch,
                     "encaps": self.specs.openstack.encaps
                 },
-                "config": self.config_plugin.prepare_results_config(dict(self.config)),
+                "config": self.config_plugin.prepare_results_config(copy.deepcopy(self.config)),
                 "benchmarks": {
                     "network": {
                         "service_chain": self.chain_runner.run(),

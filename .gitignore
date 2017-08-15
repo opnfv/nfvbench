@@ -6,7 +6,9 @@
 .eggs
 venv
 nfvbench.egg-info
-docs/_build
+nfvbenchvm/dib/dib-venv
+nfvbenchvm/dib/nfvbenchvm_centos-*.d/
 *.qcow2
+docs/_build
 docs/conf.py
 docs/_static

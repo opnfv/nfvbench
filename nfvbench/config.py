@@ -48,6 +48,16 @@ def config_loads(cfg_text, from_cfg=None):
     return cfg
 
 
+def is_subset_conf(subset, superset):
+    if set(subset).issubset(set(superset)):
+        for x in set(subset):
+            if isinstance(subset[x], dict):
+                return is_subset_conf(subset[x], superset[x])
+        return True
+
+    return False
+
+
 def test_config():
     cfg = config_load('a1.yaml')
     cfg = config_load('a2.yaml', cfg)

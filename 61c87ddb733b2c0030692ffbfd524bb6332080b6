@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "da33351e_03a5ce52",
+        "filename": "nfvbench/config.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 58,
+      "author": {
+        "id": 5807
+      },
+      "writtenOn": "2017-08-15T22:48:44Z",
+      "side": 1,
+      "message": "best would be to return the full path of the first invalid entry. The error message should say that the full path a.b.c... is invalid.\n\n\ntest code:\ndefaultcfg\u003d{\u0027a\u0027:0, \u0027b\u0027:{\u0027b1\u0027:0}}\n\ncfg\u003d{\u0027a\u0027:1) \u003d\u003e OK\ncfg\u003d{\u0027b\u0027:{\u0027b1\u0027:100}} \u003d\u003e OK\nFail:\n{\u0027c\u0027:0} \u003d\u003e invalid property: \u0027c\u0027 \n{\u0027b\u0027:{\u0027b11\u0027:3}} \u003d\u003e invalid property \u0027b.b11\u0027\n\nYou can use set subtraction to get the list of non matching properties.\nThe recursive descent can reconstruct the faulty path to be returned on the way up or down.",
+      "revId": "61c87ddb733b2c0030692ffbfd524bb6332080b6",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": false
+    }
+  ]
+}

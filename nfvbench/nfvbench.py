@@ -493,7 +493,9 @@ def main():
         else:
             with utils.RunLock():
                 if unknown_opts:
-                    LOG.warning('Unknown options: ' + ' '.join(unknown_opts))
+                    err_msg = 'Unknown options: ' + ' '.join(unknown_opts)
+                    LOG.error(err_msg)
+                    raise Exception(err_msg)
 
                 # remove unfilled values
                 opts = {k: v for k, v in vars(opts).iteritems() if v is not None}

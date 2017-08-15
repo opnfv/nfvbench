@@ -609,7 +609,8 @@ class TrafficClient(object):
                 indicating the rate to send on each interface
         right   the right side of the range to search as a % of line rate
                 indicating the rate to send on each interface
-        targets a dict of drop rates to search (0.1 = 0.1%), indexed by the DR name or "tag" ('ndr', 'pdr')
+        targets a dict of drop rates to search (0.1 = 0.1%), indexed by the DR name or "tag"
+                ('ndr', 'pdr')
         results a dict to store results
         '''
         if len(targets) == 0:

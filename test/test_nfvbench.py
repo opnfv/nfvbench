@@ -15,6 +15,7 @@
 #
 
 from attrdict import AttrDict
+from nfvbench.config import get_err_config
 from nfvbench.connection import SSH
 from nfvbench.credentials import Credentials
 from nfvbench.network import Interface
@@ -638,3 +639,16 @@ def test_no_credentials():
         assert False
     else:
         assert True
+
+def test_config():
+    refcfg = {1: 100, 2: {21: 100, 22: 200}, 3: None}
+    assert(get_err_config({}, refcfg) is None)
+    assert(get_err_config({1: 10}, refcfg) is None)
+    assert(get_err_config({2: {21: 1000}}, refcfg) is None)
+    assert(get_err_config({3: "abc"}, refcfg) is None)
+    # correctly fails
+    assert(get_err_config({4: 0}, refcfg) == {4: 0})
+    assert(get_err_config({2: {0: 1, 1: 2}}, refcfg) == {2: {0: 1}})
+    # invalid value type
+    assert(get_err_config({1: 'abc', 2: {21: 0}}, refcfg) == {1: 'abc'})
+    assert(get_err_config({2: 100, 5: 10}, refcfg) == {2: 100})

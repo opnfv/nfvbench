@@ -48,6 +48,20 @@ def config_loads(cfg_text, from_cfg=None):
     return cfg
 
 
+def get_err_config(subset, superset):
+    for k, v in subset.items():
+        if k not in superset:
+            return {k: v}
+        if v is not None and superset[k] is not None:
+            if not isinstance(v, type(superset[k])):
+                return {k: v}
+        if isinstance(v, dict):
+            res = get_err_config(v, superset[k])
+            if res:
+                return {k: res}
+    return None
+
+
 def test_config():
     cfg = config_load('a1.yaml')
     cfg = config_load('a2.yaml', cfg)

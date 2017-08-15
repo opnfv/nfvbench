@@ -78,7 +78,8 @@ class BasicStageClient(object):
         networks = self.neutron.list_networks(name=network_name)
         return networks['networks'][0] if networks['networks'] else None
 
-    def _create_net(self, name, subnet, cidr, network_type=None, segmentation_id=None, physical_network=None):
+    def _create_net(self, name, subnet, cidr, network_type=None,
+                    segmentation_id=None, physical_network=None):
         network = self._lookup_network(name)
         if network:
             # a network of same name already exists, we need to verify it has the same

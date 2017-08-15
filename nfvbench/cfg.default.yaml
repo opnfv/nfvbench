@@ -365,6 +365,10 @@ std_json:
 # Can be overriden by --debug
 debug: false
 
+# Set to a valid path name if logging to file is to be enabled
+# Defaults to disabled
+log_file:
+
 # Module and class name of factory which will be used to provide classes dynamically for other components.
 factory_module: 'nfvbench.factory'
 factory_class: 'BasicFactory'

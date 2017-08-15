@@ -121,8 +121,8 @@ class NFVBench(object):
 
     def print_summary(self, result):
         """Print summary of the result"""
-        print NFVBenchSummarizer(result)
-        sys.stdout.flush()
+        summary = NFVBenchSummarizer(result)
+        LOG.info(str(summary))
 
     def save(self, result):
         """Save results in json format file."""
@@ -365,6 +365,11 @@ def parse_opts_from_cli():
                         default=None,
                         help='Override traffic profile direction (requires -fs)')
 
+    parser.add_argument('--log-file', '--logfile', dest='log_file',
+                        action='store',
+                        help='Filename for saving logs',
+                        metavar='<log_file>')
+
     opts, unknown_opts = parser.parse_known_args()
     return opts, unknown_opts
 
@@ -406,7 +411,7 @@ def check_physnet(name, netattrs):
 
 def main():
     try:
-        log.setup('nfvbench')
+        log.setup()
         # load default config file
         config, default_cfg = load_default_config()
         # create factory for platform specific classes
@@ -422,7 +427,7 @@ def main():
         openstack_spec = config_plugin.get_openstack_spec()
 
         opts, unknown_opts = parse_opts_from_cli()
-        log.set_level('nfvbench', debug=opts.debug)
+        log.set_level(debug=opts.debug)
 
         if opts.version:
             print pbr.version.VersionInfo('nfvbench').version_string_with_vcs()
@@ -457,6 +462,8 @@ def main():
         config.generator_profile = opts.generator_profile
         if opts.sriov:
             config.sriov = True
+        if opts.log_file:
+            config.log_file = opts.log_file
 
         # show running config in json format
         if opts.show_config:
@@ -474,6 +481,10 @@ def main():
         # update the config in the config plugin as it might have changed
         # in a copy of the dict (config plugin still holds the original dict)
         config_plugin.set_config(config)
+
+        # add file log if requested
+        if config.log_file:
+            log.add_file_logger(config.log_file)
 
         nfvbench = NFVBench(config, openstack_spec, config_plugin, factory)
 

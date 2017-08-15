@@ -14,27 +14,33 @@
 
 import logging
 
+_product_name = 'nfvbench'
 
-def setup(product_name):
+def setup():
     # logging.basicConfig()
     formatter_str = '%(asctime)s %(levelname)s %(message)s'
     handler = logging.StreamHandler()
     handler.setFormatter(logging.Formatter(formatter_str))
 
     # Add handler to logger
-    logger = logging.getLogger(product_name)
+    logger = logging.getLogger(_product_name)
     logger.addHandler(handler)
 
+def add_file_logger(logfile):
+    if logfile:
+        file_formatter_str = '%(asctime)s %(levelname)s %(message)s'
+        file_handler = logging.FileHandler(logfile, mode='w')
+        file_handler.setFormatter(logging.Formatter(file_formatter_str))
+        logger = logging.getLogger(_product_name)
+        logger.addHandler(file_handler)
 
-def set_level(product, debug=False):
+def set_level(debug=False):
     log_level = logging.DEBUG if debug else logging.INFO
-    logger = logging.getLogger(product)
+    logger = logging.getLogger(_product_name)
     logger.setLevel(log_level)
 
-
-def getLogger(product):
-    logger = logging.getLogger(product)
-
+def getLogger():
+    logger = logging.getLogger(_product_name)
     return logger
 
-LOG = getLogger('nfvbench')
+LOG = getLogger()

@@ -21,6 +21,7 @@ from chain_runner import ChainRunner
 from collections import defaultdict
 from config import config_load
 from config import config_loads
+from config import get_err_config
 import copy
 import credentials
 import datetime
@@ -450,6 +451,13 @@ def main():
                 LOG.info('Loading configuration string: ' + opts.config)
                 config = config_loads(opts.config, config)
 
+        # Making sure no unknown option is given
+        err_config = get_err_config(config, default_cfg)
+        if err_config:
+            err_msg = 'Unknown options found in config file/string: ' + err_config
+            LOG.error(err_msg)
+            raise Exception(err_msg)
+
         # traffic profile override options
         override_custom_traffic(config, opts.frame_sizes, opts.unidir)
 
@@ -493,7 +501,9 @@ def main():
         else:
             with utils.RunLock():
                 if unknown_opts:
-                    LOG.warning('Unknown options: ' + ' '.join(unknown_opts))
+                    err_msg = 'Unknown options: ' + ' '.join(unknown_opts)
+                    LOG.error(err_msg)
+                    raise Exception(err_msg)
 
                 # remove unfilled values
                 opts = {k: v for k, v in vars(opts).iteritems() if v is not None}

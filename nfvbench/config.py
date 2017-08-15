@@ -48,6 +48,18 @@ def config_loads(cfg_text, from_cfg=None):
     return cfg
 
 
+def get_err_config(subset, superset):
+    error_list = list(set(subset).difference(set(superset)))
+    if set(subset).issubset(set(superset)):
+        for x in set(subset):
+            if isinstance(subset[x], dict):
+                diff = get_err_config(subset[x], superset[x])
+                if diff:
+                    error_list.append({x: diff})
+
+    return error_list
+
+
 def test_config():
     cfg = config_load('a1.yaml')
     cfg = config_load('a2.yaml', cfg)

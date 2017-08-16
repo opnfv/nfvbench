@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "da33351e_0c417b5a",
+        "filename": "nfvbench/config.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 60,
+      "author": {
+        "id": 5807
+      },
+      "writtenOn": "2017-08-16T15:52:58Z",
+      "side": 1,
+      "message": "def test_config():\n    refcfg \u003d {1:100, 2:{21:100, 22:200}}\n    print get_err_config({}, refcfg)\n    print get_err_config({1:10}, refcfg)\n    print get_err_config({2:{21:1000}}, refcfg)\n    # correctly fails\n    print get_err_config({4:0}, refcfg)\n    print get_err_config({2:{0:1}}, refcfg)\n\n    # should fail but does not\n    # invalid value type\n    print get_err_config({1:\u0027abc\u0027}, refcfg)\n    print get_err_config({2:100}, refcfg)\n\noutput:\n[]\n[]\n[]\n[4]\n[{2: [0]}]\n[]\n[]\n\nThe returned string is ugly\n\nHere is a version that passes the test:\n\nPlease add this test to test/test_nfvbench.py (use tox to execute)\n\ndef get_err_config(subset, superset):\n    for k,v in subset.items():\n        if k not in superset or type(v) !\u003d type(superset[k]):\n            return {k: v}\n        if isinstance(v, dict):\n            res \u003d get_err_config(v, superset[k])\n            if res:\n                return {k: res}\n    return None\n\ndef test_config():\n    refcfg \u003d {1:100, 2:{21:100, 22:200}}\n    assert(get_err_config({}, refcfg) \u003d\u003d None)\n    assert(get_err_config({1:10}, refcfg) \u003d\u003d None)\n    assert(get_err_config({2:{21:1000}}, refcfg) \u003d\u003d None)\n\n    # correctly fails\n    assert(get_err_config({4:0}, refcfg) \u003d\u003d {4:0})\n    assert(get_err_config({2:{0:1,1:2}}, refcfg) \u003d\u003d {2:{0:1}})\n\n    # invalid value type\n    assert(get_err_config({1:\u0027abc\u0027, 2:{21:0}}, refcfg) \u003d\u003d {1:\u0027abc\u0027})\n    assert(get_err_config({2:100, 5:10}, refcfg) \u003d\u003d {2:100})\n\nEror display should be something like\n\"Invalid configuration option:  {2:{0:1}}",
+      "revId": "38846423ec195fe2e735d53118cd0882393674d6",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": false
+    }
+  ]
+}

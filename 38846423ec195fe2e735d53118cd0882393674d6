@@ -16,6 +16,23 @@
       "revId": "38846423ec195fe2e735d53118cd0882393674d6",
       "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "da33351e_d72ba080",
+        "filename": "nfvbench/config.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 61,
+      "author": {
+        "id": 5807
+      },
+      "writtenOn": "2017-08-16T15:59:14Z",
+      "side": 1,
+      "message": "A better version that handles None values\ndef get_err_config(subset, superset):\n    for k,v in subset.items():\n        if k not in superset:\n            return {k: v}\n        if v is not None and superset[k] is not None:\n            if type(v) !\u003d type(superset[k]):\n                return {k: v}\n        if isinstance(v, dict):\n            res \u003d get_err_config(v, superset[k])\n            if res:\n                return {k: res}\n    return None\n\ndef test_config():\n    refcfg \u003d {1:100, 2:{21:100, 22:200}, 3: None}\n    assert(get_err_config({}, refcfg) \u003d\u003d None)\n    assert(get_err_config({1:10}, refcfg) \u003d\u003d None)\n    assert(get_err_config({2:{21:1000}}, refcfg) \u003d\u003d None)\n    assert(get_err_config({3:\"abc\"}, refcfg) \u003d\u003d None)\n\n    # correctly fails\n    assert(get_err_config({4:0}, refcfg) \u003d\u003d {4:0})\n    assert(get_err_config({2:{0:1,1:2}}, refcfg) \u003d\u003d {2:{0:1}})\n\n    # invalid value type\n    assert(get_err_config({1:\u0027abc\u0027, 2:{21:0}}, refcfg) \u003d\u003d {1:\u0027abc\u0027})\n    assert(get_err_config({2:100, 5:10}, refcfg) \u003d\u003d {2:100})",
+      "revId": "38846423ec195fe2e735d53118cd0882393674d6",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": false
     }
   ]
 }

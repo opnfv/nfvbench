@@ -90,7 +90,7 @@ class Compute(object):
     def delete_image(self, img_name):
         try:
             LOG.log("Deleting image %s...", img_name)
-            img = self.glance_client.images.find(name=img_name)
+            img = self.find_image(image_name=img_name)
             self.glance_client.images.delete(img.id)
         except Exception:
             LOG.error("Failed to delete the image %s.", img_name)

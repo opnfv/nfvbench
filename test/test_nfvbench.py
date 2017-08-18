@@ -648,7 +648,11 @@ def test_config():
     assert(get_err_config({3: "abc"}, refcfg) is None)
     # correctly fails
     assert(get_err_config({4: 0}, refcfg) == {4: 0})
-    assert(get_err_config({2: {0: 1, 1: 2}}, refcfg) == {2: {0: 1}})
+    assert(get_err_config({2: {21: 100, 30: 50}}, refcfg) == {2: {30: 50}})
+    assert(get_err_config({2: {0: 1, 1: 2}}, refcfg) == {2: {0: 1, 1: 2}})
+    assert(get_err_config({2: {0: 1, 1: 2}, 5: 5}, refcfg) == {2: {0: 1, 1: 2}, 5: 5})
     # invalid value type
     assert(get_err_config({1: 'abc', 2: {21: 0}}, refcfg) == {1: 'abc'})
-    assert(get_err_config({2: 100, 5: 10}, refcfg) == {2: 100})
+    assert(get_err_config({2: 100}, refcfg) == {2: 100})
+    # both correctly fail and invalid value type
+    assert(get_err_config({2: 100, 5: 10}, refcfg) == {2: 100, 5: 10})

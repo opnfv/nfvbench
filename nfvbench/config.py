@@ -49,17 +49,21 @@ def config_loads(cfg_text, from_cfg=None):
 
 
 def get_err_config(subset, superset):
+    result = {}
     for k, v in subset.items():
         if k not in superset:
-            return {k: v}
-        if v is not None and superset[k] is not None:
+            result.update({k: v})
+        elif v is not None and superset[k] is not None:
             if not isinstance(v, type(superset[k])):
-                return {k: v}
+                result.update({k: v})
+                continue
         if isinstance(v, dict):
             res = get_err_config(v, superset[k])
             if res:
-                return {k: res}
-    return None
+                result.update({k: res})
+    if not result:
+        return None
+    return result
 
 
 def test_config():

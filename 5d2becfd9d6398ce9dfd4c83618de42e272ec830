@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "da33351e_90e75940",
+        "filename": "nfvbench/config.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 51,
+      "author": {
+        "id": 6943
+      },
+      "writtenOn": "2017-08-18T18:07:31Z",
+      "side": 1,
+      "message": "This version of the function returns all errors on the configuration\n(Actually empty dictionary evaluates as false, so if test cases for correct configurations are written as \u003d\u003d {}, then there is no need to if check for returning None)\n\n def get_err_config(subset, superset):\n    result \u003d {}\n    for k, v in subset.items():\n        if k not in superset:\n            result.update({k: v})\n        elif v is not None and superset[k] is not None:\n            if not isinstance(v, type(superset[k])):\n                result.update({k: v})\n                continue\n        if isinstance(v, dict):\n            res \u003d get_err_config(v, superset[k])\n            if res:\n                result.update({k: res})\n    if not result:\n        return None\n    return result",
+      "revId": "5d2becfd9d6398ce9dfd4c83618de42e272ec830",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "da33351e_70e4553b",
+        "filename": "test/test_nfvbench.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 643,
+      "author": {
+        "id": 6943
+      },
+      "writtenOn": "2017-08-18T18:07:31Z",
+      "side": 1,
+      "message": "Test cases for proposed get_err_config function \n\n def test_config():\n    refcfg \u003d {1: 100, 2: {21: 100, 22: 200}, 3: None}\n    assert(get_err_config({}, refcfg) is None)\n    assert(get_err_config({1: 10}, refcfg) is None)\n    assert(get_err_config({2: {21: 1000}}, refcfg) is None)\n    assert(get_err_config({3: \"abc\"}, refcfg) is None)\n    # correctly fails\n    assert(get_err_config({4: 0}, refcfg) \u003d\u003d {4: 0})\n    assert(get_err_config({2: {21: 100, 30: 50}}, refcfg) \u003d\u003d {2: {30: 50}})\n    assert(get_err_config({2: {0: 1, 1: 2}}, refcfg) \u003d\u003d {2: {0: 1, 1: 2}})\n    assert(get_err_config({2: {0: 1, 1: 2}, 5: 5}, refcfg) \u003d\u003d {2: {0: 1, 1: 2}, 5: 5})\n    # invalid value type\n    assert(get_err_config({1: \u0027abc\u0027, 2: {21: 0}}, refcfg) \u003d\u003d {1: \u0027abc\u0027})\n    assert(get_err_config({2: 100}, refcfg) \u003d\u003d {2: 100})\n    # both correctly fail and invalid value type\n    assert(get_err_config({2: 100, 5: 10}, refcfg) \u003d\u003d {2: 100, 5: 10})",
+      "revId": "5d2becfd9d6398ce9dfd4c83618de42e272ec830",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": false
+    }
+  ]
+}

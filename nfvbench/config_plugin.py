@@ -53,7 +53,7 @@ class ConfigPluginBase(object):
         """Returns RunSpec for given platform."""
 
     @abc.abstractmethod
-    def validate_config(self, cfg):
+    def validate_config(self, cfg, openstack_spec):
         """Validate config file."""
 
     @abc.abstractmethod
@@ -85,7 +85,7 @@ class ConfigPlugin(ConfigPluginBase):
         """Returns RunSpec for given platform."""
         return specs.RunSpec(self.config.no_vswitch_access, openstack_spec)
 
-    def validate_config(self, config):
+    def validate_config(self, config, openstack_spec):
         pass
 
     def prepare_results_config(self, cfg):

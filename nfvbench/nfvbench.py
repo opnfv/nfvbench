@@ -206,7 +206,7 @@ class NFVBench(object):
                 raise Exception('Please provide existing path for storing results in JSON file. '
                                 'Path used: {path}'.format(path=self.config.std_json_path))
 
-        self.config_plugin.validate_config(self.config)
+        self.config_plugin.validate_config(self.config, self.specs.openstack)
 
 
 def parse_opts_from_cli():

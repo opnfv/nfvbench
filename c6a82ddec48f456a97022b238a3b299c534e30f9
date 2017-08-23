@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "da33351e_f7bb31c2",
+        "filename": "nfvbench/cfg.default.yaml",
+        "patchSetId": 1
+      },
+      "lineNbr": 201,
+      "author": {
+        "id": 5807
+      },
+      "writtenOn": "2017-08-23T00:59:28Z",
+      "side": 1,
+      "message": "it is actually for all VMs to pass traffic in both directions",
+      "revId": "c6a82ddec48f456a97022b238a3b299c534e30f9",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "da33351e_57b13de0",
+        "filename": "nfvbench/chain_clients.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 51,
+      "author": {
+        "id": 5807
+      },
+      "writtenOn": "2017-08-23T00:59:28Z",
+      "side": 1,
+      "message": "best to round to next integer second\n\n(s + p - 1) / p",
+      "revId": "c6a82ddec48f456a97022b238a3b299c534e30f9",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": false
+    }
+  ]
+}

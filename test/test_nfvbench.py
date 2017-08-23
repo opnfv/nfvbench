@@ -16,7 +16,7 @@
 
 from attrdict import AttrDict
 import logging
-from nfvbench.config import get_err_config
+from nfvbench.config import config_loads
 from nfvbench.connection import SSH
 from nfvbench.credentials import Credentials
 from nfvbench.fluentd import FluentLogHandler
@@ -648,20 +648,32 @@ def test_no_credentials():
 
 def test_config():
     refcfg = {1: 100, 2: {21: 100, 22: 200}, 3: None}
-    assert(get_err_config({}, refcfg) is None)
-    assert(get_err_config({1: 10}, refcfg) is None)
-    assert(get_err_config({2: {21: 1000}}, refcfg) is None)
-    assert(get_err_config({3: "abc"}, refcfg) is None)
+    res1 = {1: 10, 2: {21: 100, 22: 200}, 3: None}
+    res2 = {1: 100, 2: {21: 1000, 22: 200}, 3: None}
+    res3 = {1: 100, 2: {21: 100, 22: 200}, 3: "abc"}
+    assert(config_loads("{}", refcfg) == refcfg)
+    assert(config_loads("{1: 10}", refcfg) == res1)
+    assert(config_loads("{2: {21: 1000}}", refcfg) == res2)
+    assert(config_loads('{3: "abc"}', refcfg) == res3)
+
     # correctly fails
-    assert(get_err_config({4: 0}, refcfg) == {4: 0})
-    assert(get_err_config({2: {21: 100, 30: 50}}, refcfg) == {2: {30: 50}})
-    assert(get_err_config({2: {0: 1, 1: 2}}, refcfg) == {2: {0: 1, 1: 2}})
-    assert(get_err_config({2: {0: 1, 1: 2}, 5: 5}, refcfg) == {2: {0: 1, 1: 2}, 5: 5})
-    # invalid value type
-    assert(get_err_config({1: 'abc', 2: {21: 0}}, refcfg) == {1: 'abc'})
-    assert(get_err_config({2: 100}, refcfg) == {2: 100})
-    # both correctly fail and invalid value type
-    assert(get_err_config({2: 100, 5: 10}, refcfg) == {2: 100, 5: 10})
+    # pairs of input string and expected subset (None if identical)
+    fail_pairs = [
+        ["{4: 0}", None],
+        ["{2: {21: 100, 30: 50}}", "{2: {30: 50}}"],
+        ["{2: {0: 1, 1: 2}, 5: 5}", None],
+        ["{1: 'abc', 2: {21: 0}}", "{1: 'abc'}"],
+        ["{2: 100}", None]
+    ]
+    for fail_pair in fail_pairs:
+        with pytest.raises(Exception) as e_info:
+            config_loads(fail_pair[0], refcfg)
+        expected = fail_pair[1]
+        if expected is None:
+            expected = fail_pair[0]
+        assert expected in e_info.value.message
+
+
 
 def test_fluentd():
     logger = logging.getLogger('fluent-logger')

@@ -14,6 +14,7 @@
 #
 
 from attrdict import AttrDict
+from log import LOG
 import yaml
 
 
@@ -30,6 +31,7 @@ def config_load(file_name, from_cfg=None):
                         .format(file_name))
 
     if from_cfg:
+        _validate_config(cfg, from_cfg)
         cfg = from_cfg + cfg
 
     return cfg
@@ -44,11 +46,12 @@ def config_loads(cfg_text, from_cfg=None):
         # empty string
         cfg = AttrDict()
     if from_cfg:
+        _validate_config(cfg, from_cfg)
         return from_cfg + cfg
     return cfg
 
 
-def get_err_config(subset, superset):
+def _get_err_config(subset, superset):
     result = {}
     for k, v in subset.items():
         if k not in superset:
@@ -58,17 +61,16 @@ def get_err_config(subset, superset):
                 result.update({k: v})
                 continue
         if isinstance(v, dict):
-            res = get_err_config(v, superset[k])
+            res = _get_err_config(v, superset[k])
             if res:
                 result.update({k: res})
     if not result:
         return None
     return result
 
-
-def test_config():
-    cfg = config_load('a1.yaml')
-    cfg = config_load('a2.yaml', cfg)
-    cfg = config_loads('color: 500', cfg)
-    config_loads('')
-    config_loads('#')
+def _validate_config(subset, superset):
+    err_cfg = _get_err_config(subset, superset)
+    if err_cfg:
+        err_msg = 'Unknown options found in config file/string: ' + str(err_cfg)
+        LOG.error(err_msg)
+        raise Exception(err_msg)

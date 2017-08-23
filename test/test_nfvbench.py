@@ -15,9 +15,12 @@
 #
 
 from attrdict import AttrDict
+import logging
 from nfvbench.config import get_err_config
 from nfvbench.connection import SSH
 from nfvbench.credentials import Credentials
+from nfvbench.fluentd import FluentLogHandler
+import nfvbench.log
 from nfvbench.network import Interface
 from nfvbench.network import Network
 from nfvbench.specs import Encaps
@@ -632,6 +635,9 @@ def test_ndr_pdr_search(traffic_client):
 # Other tests
 # =========================================================================
 
+def setup_module(module):
+    nfvbench.log.setup(mute_stdout=True)
+
 def test_no_credentials():
     cred = Credentials('/completely/wrong/path/openrc', None, False)
     if cred.rc_auth_url:
@@ -656,3 +662,15 @@ def test_config():
     assert(get_err_config({2: 100}, refcfg) == {2: 100})
     # both correctly fail and invalid value type
     assert(get_err_config({2: 100, 5: 10}, refcfg) == {2: 100, 5: 10})
+
+def test_fluentd():
+    logger = logging.getLogger('fluent-logger')
+    handler = FluentLogHandler('nfvbench', fluentd_port=7081)
+    logger.addHandler(handler)
+    logger.setLevel(logging.INFO)
+    logger.info('test')
+    logger.warning('test %d', 100)
+    try:
+        raise Exception("test")
+    except Exception:
+        logger.exception("got exception")

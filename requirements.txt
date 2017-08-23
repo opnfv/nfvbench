@@ -24,3 +24,4 @@ flask_socketio>=2.8.3
 backports.ssl-match-hostname==3.5.0.1  # via websocket-client
 socketIO-client==0.7.2
 websocket-client==0.40.0  # via socketio-client
+fluent-logger>=0.5.2

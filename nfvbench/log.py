@@ -16,15 +16,22 @@ import logging
 
 _product_name = 'nfvbench'
 
-def setup():
+def setup(mute_stdout=False):
     # logging.basicConfig()
-    formatter_str = '%(asctime)s %(levelname)s %(message)s'
-    handler = logging.StreamHandler()
-    handler.setFormatter(logging.Formatter(formatter_str))
+    if mute_stdout:
+        handler = logging.NullHandler()
+    else:
+        formatter_str = '%(asctime)s %(levelname)s %(message)s'
+        handler = logging.StreamHandler()
+        handler.setFormatter(logging.Formatter(formatter_str))
 
     # Add handler to logger
     logger = logging.getLogger(_product_name)
     logger.addHandler(handler)
+    # disable unnecessary information capture
+    logging.logThreads = 0
+    logging.logProcesses = 0
+    logging._srcfile = None
 
 def add_file_logger(logfile):
     if logfile:

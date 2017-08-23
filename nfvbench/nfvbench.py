@@ -26,6 +26,7 @@ import copy
 import credentials
 import datetime
 from factory import BasicFactory
+from fluentd import FluentLogHandler
 import importlib
 import json
 import log
@@ -42,6 +43,7 @@ import traceback
 from traffic_client import TrafficGeneratorFactory
 import utils
 
+fluent_logger = None
 
 class NFVBench(object):
     """Main class of NFV benchmarking tool."""
@@ -78,6 +80,10 @@ class NFVBench(object):
         status = NFVBench.STATUS_OK
         result = None
         message = ''
+        if fluent_logger:
+            # take a snapshot of the current time for this new run
+            # so that all subsequent logs can relate to this run
+            fluent_logger.start_new_run()
         try:
             self.update_config(opts)
             self.setup()
@@ -411,6 +417,7 @@ def check_physnet(name, netattrs):
                         .format(n=name))
 
 def main():
+    global fluent_logger
     try:
         log.setup()
         # load default config file
@@ -426,6 +433,15 @@ def main():
         config_plugin = factory.get_config_plugin_class()(config)
         config = config_plugin.get_config()
         openstack_spec = config_plugin.get_openstack_spec()
+
+        # setup the fluent logger as soon as possible right after the config plugin is called
+        if config.fluentd.logging_tag:
+            fluent_logger = FluentLogHandler(config.fluentd.logging_tag,
+                                             fluentd_ip=config.fluentd.ip,
+                                             fluentd_port=config.fluentd.port)
+            LOG.addHandler(fluent_logger)
+        else:
+            fluent_logger = None
 
         opts, unknown_opts = parse_opts_from_cli()
         log.set_level(debug=opts.debug)

@@ -198,6 +198,9 @@ traffic_generator:
 # The openrc file
 openrc_file:
 
+# Number of seconds to wait for VMs to spawn
+check_traffic_time_sec: 200
+
 # General retry count
 generic_retry_count: 100
 

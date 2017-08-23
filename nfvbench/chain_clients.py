@@ -48,7 +48,8 @@ class BasicStageClient(object):
         self.host_ips = None
 
     def _ensure_vms_active(self):
-        for _ in range(self.config.generic_retry_count):
+        retry_count = self.config.check_traffic_time_sec / self.config.generic_poll_sec
+        for _ in range(retry_count):
             for i, instance in enumerate(self.vms):
                 if instance.status == 'ACTIVE':
                     continue

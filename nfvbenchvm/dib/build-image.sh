@@ -5,9 +5,18 @@
 # The following packages must be installed prior to using this script:
 # sudo apt-get -y install python-virtualenv qemu-utils kpartx
 
+# Artifact URL
+gs_url=artifacts.opnfv.org/nfvbench/images
+
 # image version number
 __version__=0.3
 image_name=nfvbenchvm_centos-$__version__
+
+# if image exists already skip building
+if  gsutil -q stat gs://$gs_url/$image_name.qcow2; then
+	echo "Image already exists at http://$gs_url/$image_name.qcow2"
+	exit 0
+fi
 
 # install diskimage-builder
 if [ -d dib-venv ]; then
@@ -37,5 +46,8 @@ export DIB_USE_ELREPO_KERNEL=True
 
 echo "Building $image_name.qcow2..."
 time disk-image-create -o $image_name centos7 nfvbenchvm
-
 ls -l $image_name.qcow2
+
+echo "Uploading $image_name.qcow2..."
+gsutil cp $image_name.qcow2 gs://$gs_url/$image_name
+echo "You can access to image at http://$gs_url/$image_name.qcow2"

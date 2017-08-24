@@ -10,13 +10,13 @@ __version__=0.3
 image_name=nfvbenchvm_centos-$__version__
 
 # install diskimage-builder
-if [ -d dib-venv ]; then
-    . dib-venv/bin/activate
-else
-    virtualenv dib-venv
-    . dib-venv/bin/activate
-    pip install diskimage-builder
-fi
+#if [ -d dib-venv ]; then
+#    . dib-venv/bin/activate
+#else
+#    virtualenv dib-venv
+#    . dib-venv/bin/activate
+#    pip install diskimage-builder
+#fi
 
 # Add nfvbenchvm_centos elements directory to the DIB elements path
 export ELEMENTS_PATH=`pwd`/elements
@@ -36,6 +36,6 @@ export DIB_YUM_REPO_CONF=$ELEMENTS_PATH/nfvbenchvm/fdio-release.repo
 export DIB_USE_ELREPO_KERNEL=True
 
 echo "Building $image_name.qcow2..."
-time disk-image-create -o $image_name centos7 nfvbenchvm
-
-ls -l $image_name.qcow2
+#time disk-image-create -o $image_name centos7 nfvbenchvm
+gsutil cp tst.txt gs://artifacts.opnfv.org/nfvbench
+#ls -l $image_name.qcow2

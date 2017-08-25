@@ -16,6 +16,24 @@
       "revId": "fc284832ef394b3ba1ee171d39ec91002f962e2b",
       "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "da33351e_624aafc6",
+        "filename": "nfvbenchvm/dib/build-image.sh",
+        "patchSetId": 9
+      },
+      "lineNbr": 53,
+      "author": {
+        "id": 6949
+      },
+      "writtenOn": "2017-08-25T19:44:19Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "da33351e_2240a7a4",
+      "revId": "fc284832ef394b3ba1ee171d39ec91002f962e2b",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": false
     }
   ]
 }

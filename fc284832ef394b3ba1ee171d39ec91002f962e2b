@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "da33351e_2240a7a4",
+        "filename": "nfvbenchvm/dib/build-image.sh",
+        "patchSetId": 9
+      },
+      "lineNbr": 53,
+      "author": {
+        "id": 5807
+      },
+      "writtenOn": "2017-08-25T19:15:47Z",
+      "side": 1,
+      "message": "finishing with an echo without testing the error code might not work\nas the caller might think the script is OK (exit code is 0 because of the echo) when the gsutil failed.\n\nTo force a script exit on the first failure, add at the start of the file (line 7):\n\nset -e",
+      "revId": "fc284832ef394b3ba1ee171d39ec91002f962e2b",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": false
+    }
+  ]
+}

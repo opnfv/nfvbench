@@ -71,6 +71,7 @@ def _get_err_config(subset, superset):
 def _validate_config(subset, superset):
     err_cfg = _get_err_config(subset, superset)
     if err_cfg:
-        err_msg = 'Unknown options found in config file/string: ' + str(err_cfg)
+        err_msg = 'The provided configuration has unknown options or values with invalid type: '\
+                  + str(err_cfg)
         LOG.error(err_msg)
         raise Exception(err_msg)

@@ -18,7 +18,7 @@ from log import LOG
 import yaml
 
 
-def config_load(file_name, from_cfg=None):
+def config_load(file_name, from_cfg=None, whitelist_keys=[]):
     """Load a yaml file into a config dict, merge with from_cfg if not None
     The config file content taking precedence in case of duplicate
     """
@@ -31,13 +31,13 @@ def config_load(file_name, from_cfg=None):
                         .format(file_name))
 
     if from_cfg:
-        _validate_config(cfg, from_cfg)
+        _validate_config(cfg, from_cfg, whitelist_keys)
         cfg = from_cfg + cfg
 
     return cfg
 
 
-def config_loads(cfg_text, from_cfg=None):
+def config_loads(cfg_text, from_cfg=None, whitelist_keys=[]):
     """Same as config_load but load from a string
     """
     try:
@@ -46,30 +46,30 @@ def config_loads(cfg_text, from_cfg=None):
         # empty string
         cfg = AttrDict()
     if from_cfg:
-        _validate_config(cfg, from_cfg)
+        _validate_config(cfg, from_cfg, whitelist_keys)
         return from_cfg + cfg
     return cfg
 
+def _validate_config(subset, superset, whitelist_keys):
+    def get_err_config(subset, superset):
+        result = {}
+        for k, v in subset.items():
+            if k not in whitelist_keys:
+                if k not in superset:
+                    result.update({k: v})
+                elif v is not None and superset[k] is not None:
+                    if not isinstance(v, type(superset[k])):
+                        result.update({k: v})
+                        continue
+                if isinstance(v, dict):
+                    res = get_err_config(v, superset[k])
+                    if res:
+                        result.update({k: res})
+        if not result:
+            return None
+        return result
 
-def _get_err_config(subset, superset):
-    result = {}
-    for k, v in subset.items():
-        if k not in superset:
-            result.update({k: v})
-        elif v is not None and superset[k] is not None:
-            if not isinstance(v, type(superset[k])):
-                result.update({k: v})
-                continue
-        if isinstance(v, dict):
-            res = _get_err_config(v, superset[k])
-            if res:
-                result.update({k: res})
-    if not result:
-        return None
-    return result
-
-def _validate_config(subset, superset):
-    err_cfg = _get_err_config(subset, superset)
+    err_cfg = get_err_config(subset, superset)
     if err_cfg:
         err_msg = 'The provided configuration has unknown options or values with invalid type: '\
                   + str(err_cfg)

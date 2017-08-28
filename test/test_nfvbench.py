@@ -673,7 +673,13 @@ def test_config():
             expected = fail_pair[0]
         assert expected in e_info.value.message
 
-
+    # whitelist keys
+    flavor = {'flavor': {'vcpus': 2, 'ram': 8192, 'disk': 0,
+              'extra_specs': {'hw:cpu_policy': 'dedicated'}}}
+    new_flavor = {'flavor': {'vcpus': 2, 'ram': 8192, 'disk': 0,
+                  'extra_specs': {'hw:cpu_policy': 'dedicated', 'hw:numa_nodes': 2}}}
+    assert(config_loads("{'flavor': {'extra_specs': {'hw:numa_nodes': 2}}}", flavor,
+                        whitelist_keys=['alpha', 'extra_specs']) == new_flavor)
 
 def test_fluentd():
     logger = logging.getLogger('fluent-logger')

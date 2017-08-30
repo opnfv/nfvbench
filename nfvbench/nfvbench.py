@@ -30,6 +30,7 @@ import importlib
 import json
 import log
 from log import LOG
+from log import LogLevel
 from nfvbenchd import WebSocketIoServer
 import os
 import pbr.version
@@ -541,7 +542,8 @@ def main():
             'error_message': traceback.format_exc()
         })
         print str(exc)
-        sys.exit(1)
+    finally:
+        LOG.run_summary(LogLevel.get_highest_level_log_name())
 
 if __name__ == '__main__':
     main()

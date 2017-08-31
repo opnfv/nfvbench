@@ -44,6 +44,7 @@ import utils
 
 fluent_logger = None
 
+
 class NFVBench(object):
     """Main class of NFV benchmarking tool."""
     STATUS_OK = 'OK'
@@ -75,7 +76,7 @@ class NFVBench(object):
     def set_notifier(self, notifier):
         self.notifier = notifier
 
-    def run(self, opts):
+    def run(self, opts, is_called_from_cli):
         status = NFVBench.STATUS_OK
         result = None
         message = ''
@@ -83,6 +84,13 @@ class NFVBench(object):
             # take a snapshot of the current time for this new run
             # so that all subsequent logs can relate to this run
             fluent_logger.start_new_run()
+        if is_called_from_cli:
+            # log CLI args
+            params = ' '.join(str(e) for e in sys.argv[1:])
+            LOG.info(params)
+        else:
+            # log REST args
+            LOG.info(opts)
         try:
             self.update_config(opts)
             self.setup()
@@ -407,6 +415,7 @@ def override_custom_traffic(config, frame_sizes, unidir):
         "profile": traffic_profile_name
     }
 
+
 def check_physnet(name, netattrs):
     if not netattrs.physical_network:
         raise Exception("SRIOV requires physical_network to be specified for the {n} network"
@@ -415,8 +424,10 @@ def check_physnet(name, netattrs):
         raise Exception("SRIOV requires segmentation_id to be specified for the {n} network"
                         .format(n=name))
 
+
 def main():
     global fluent_logger
+    run_summary_required = False
     try:
         log.setup()
         # load default config file
@@ -508,7 +519,7 @@ def main():
 
         if opts.server:
             if os.path.isdir(opts.server):
-                server = WebSocketIoServer(opts.server, nfvbench)
+                server = WebSocketIoServer(opts.server, nfvbench, fluent_logger)
                 nfvbench.set_notifier(server)
                 try:
                     port = int(opts.port)
@@ -521,6 +532,7 @@ def main():
                 sys.exit(1)
         else:
             with utils.RunLock():
+                run_summary_required = True
                 if unknown_opts:
                     err_msg = 'Unknown options: ' + ' '.join(unknown_opts)
                     LOG.error(err_msg)
@@ -528,7 +540,7 @@ def main():
 
                 # remove unfilled values
                 opts = {k: v for k, v in vars(opts).iteritems() if v is not None}
-                result = nfvbench.run(opts)
+                result = nfvbench.run(opts, is_called_from_cli=True)
                 if 'error_message' in result:
                     raise Exception(result['error_message'])
 
@@ -536,12 +548,18 @@ def main():
                     nfvbench.save(result['result'])
                     nfvbench.print_summary(result['result'])
     except Exception as exc:
+        run_summary_required = True
         LOG.error({
             'status': NFVBench.STATUS_ERROR,
             'error_message': traceback.format_exc()
         })
         print str(exc)
-        sys.exit(1)
+    finally:
+        if fluent_logger:
+            # only send a summary record if there was an actual nfvbench run or
+            # if an error/exception was logged.
+            fluent_logger.send_run_summary(run_summary_required)
+
 
 if __name__ == '__main__':
     main()

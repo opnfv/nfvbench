@@ -42,12 +42,15 @@ HTTP Interface
 <http-url>/echo (GET)
 ^^^^^^^^^^^^^^^^^^^^^
 
-This request simply returns whatever content is sent in the body of the request (only used for testing)
+This request simply returns whatever content is sent in the body of the request (body should be in json format, only used for testing)
 
-<http-url>/start_run (POST)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Example request: curl -XGET '127.0.0.1:7556/echo' -H "Content-Type: application/json" -d '{"vmtp": "test"}'
+Response:
+{
+  "vmtp": "test"
+}
 
-This request will initiate a new NFVbench run asynchornously and can optionally pass the NFVbench configuration to run in the body (in JSON format).
+ls
 See "NFVbench configuration JSON parameter" below for details on how to format this parameter.
 
 The request returns immediately with a json content indicating if there was an error (status=ERROR) or if the request was submitted successfully (status=PENDING). Example of return when the submission is successful:
@@ -147,7 +150,7 @@ The entire default configuration can be viewed using the --show-json-config opti
 
 .. code-block:: bash
 
-    # nfvbench --show-json-config
+    # nfvbench --show-config
     {
         "availability_zone": null,
         "compute_node_user": "root",

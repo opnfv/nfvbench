@@ -135,6 +135,7 @@ def setup_flask(root_path):
     app.root_path = root_path
     socketio = SocketIO(app, async_mode='threading')
     busy_json = result_json(STATUS_ERROR, 'there is already an NFVbench request running')
+    config_is_null_json = result_json(STATUS_ERROR, 'configuration is missing')
     not_busy_json = result_json(STATUS_ERROR, 'no pending NFVbench run')
     not_found_msg = 'results not found'
     pending_msg = 'NFVbench run still pending'
@@ -166,12 +167,15 @@ def setup_flask(root_path):
     @app.route('/start_run', methods=['POST'])
     def start_run():
         config = load_json(request.json)
-        if Ctx.is_busy():
-            return jsonify(busy_json)
+        if config:
+            if Ctx.is_busy():
+                return jsonify(busy_json)
+            else:
+                request_id = get_uuid()
+                Ctx.enqueue(config, request_id)
+                return jsonify(result_json(STATUS_PENDING, pending_msg, request_id))
         else:
-            request_id = get_uuid()
-            Ctx.enqueue(config, request_id)
-            return jsonify(result_json(STATUS_PENDING, pending_msg, request_id))
+            return jsonify(config_is_null_json)
 
     @app.route('/status', defaults={'request_id': None}, methods=['GET'])
     @app.route('/status/<request_id>', methods=['GET'])

@@ -23,6 +23,7 @@ from flask_socketio import emit
 from flask_socketio import SocketIO
 
 import json
+from log import LOG
 import Queue
 import traceback
 from utils import byteify
@@ -206,9 +207,10 @@ class WebSocketIoServer(object):
     notifications using websocket events (send_ methods). Caller should simply create an instance
     of this class and pass a runner object then invoke the run method
     """
-    def __init__(self, http_root, runner):
+    def __init__(self, http_root, runner, logger):
         self.nfvbench_runner = runner
         setup_flask(http_root)
+        self.fluent_logger = logger
 
     def run(self, host='127.0.0.1', port=7556):
 
@@ -219,6 +221,7 @@ class WebSocketIoServer(object):
         # wait for run requests
         # the runner must be executed from the main thread (Trex client library requirement)
         while True:
+
             # print 'main thread waiting for requests...'
             config = Ctx.dequeue()
             # print 'main thread processing request...'
@@ -227,11 +230,12 @@ class WebSocketIoServer(object):
                 # remove unfilled values as we do not want them to override default values with None
                 config = {k: v for k, v in config.items() if v is not None}
                 with RunLock():
-                    results = self.nfvbench_runner.run(config)
+                    results = self.nfvbench_runner.run(config, config)
             except Exception as exc:
                 print 'NFVbench runner exception:'
                 traceback.print_exc()
                 results = result_json(STATUS_ERROR, str(exc))
+                LOG.exception()
 
             if Ctx.request_from_socketio:
                 socketio.emit('run_end', results)
@@ -239,6 +243,7 @@ class WebSocketIoServer(object):
                 # this might overwrite a previously unfetched result
                 Ctx.set_result(results)
             Ctx.release()
+            self.fluent_logger.send_run_summary(True)
 
     def send_interval_stats(self, time_ms, tx_pps, rx_pps, drop_pct):
         stats = {'time_ms': time_ms, 'tx_pps': tx_pps, 'rx_pps': rx_pps, 'drop_pct': drop_pct}

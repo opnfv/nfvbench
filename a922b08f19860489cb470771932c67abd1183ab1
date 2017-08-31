@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "da33351e_f377a5d2",
+        "filename": "nfvbench/fluentd.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 64,
+      "author": {
+        "id": 5807
+      },
+      "writtenOn": "2017-08-31T19:52:00Z",
+      "side": 1,
+      "message": "VMTP\u003d\u003eNFVbench",
+      "revId": "a922b08f19860489cb470771932c67abd1183ab1",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "da33351e_d37261e2",
+        "filename": "nfvbench/nfvbench.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 93,
+      "author": {
+        "id": 5807
+      },
+      "writtenOn": "2017-08-31T19:52:00Z",
+      "side": 1,
+      "message": "why not just pass the right message from the caller and get rid of is_called_from_cli",
+      "revId": "a922b08f19860489cb470771932c67abd1183ab1",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": false
+    }
+  ]
+}

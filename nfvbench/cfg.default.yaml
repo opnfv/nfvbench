@@ -115,7 +115,7 @@ service_chain_count: 1
 # value was configured. Must be even.
 # Every flow has packets with different IPs in headers
 # Can be overriden by --flow-count
-flow_count: 2
+flow_count: 10000
 
 # Used by PVVP chain to spawn VMs on different compute nodes
 # Can be overriden by --inter-node

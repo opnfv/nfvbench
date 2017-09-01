@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "da33351e_66059179",
+        "filename": "nfvbench/nfvbenchd.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 178,
+      "author": {
+        "id": 5807
+      },
+      "writtenOn": "2017-09-01T00:55:06Z",
+      "side": 1,
+      "message": "ok that works, my only reserve is that you fix the problem when the config is empty and only in that case.\nthere could be a case where there is an exception (for a different reason than empty config) and the busy flag is also not reset\nFor  a more generic fix, you need to track where the exception occurred (before your fix) and try to plug that hole  to reset the busy flag in the exception path",
+      "revId": "e47c2b40e71a545ede1c7c4d05387a15ad00fc72",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": false
+    }
+  ]
+}

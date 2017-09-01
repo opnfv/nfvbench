@@ -14,6 +14,7 @@ RUN apt-get update && apt-get install -y \
        vim \
        wget \
        net-tools \
+       && mkdir /tmp/http_root \
        && mkdir -p /opt/trex \
        && wget --no-cache https://trex-tgn.cisco.com/trex/release/$TREX_VER.tar.gz \
        && tar xzf $TREX_VER.tar.gz -C /opt/trex \
@@ -32,4 +33,5 @@ RUN apt-get update && apt-get install -y \
 
 ENV TREX_STL_EXT_PATH "/opt/trex/$TREX_VER/external_libs"
 
-CMD ["tail", "-f", "/dev/null"]
+ENTRYPOINT ["/nfvbench/docker/nfvbench-entrypoint.sh"]
+

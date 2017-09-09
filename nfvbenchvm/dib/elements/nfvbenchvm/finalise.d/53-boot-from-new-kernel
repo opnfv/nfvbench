@@ -1,0 +1,3 @@
+#!/bin/bash
+
+grubby --set-default-index=0

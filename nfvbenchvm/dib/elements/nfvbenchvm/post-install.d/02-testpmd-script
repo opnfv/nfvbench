@@ -1,7 +1,7 @@
 #!/bin/bash
 
-DPDK=dpdk-17.05
-DPDK_UNTAR=dpdk-17.05
+DPDK=dpdk-17.05.2
+DPDK_UNTAR=dpdk-stable-17.05.2
 
 # pick up the kernel version for the target image
 kernel_version=`ls -t /lib/modules | awk 'NR==1 {print}'`

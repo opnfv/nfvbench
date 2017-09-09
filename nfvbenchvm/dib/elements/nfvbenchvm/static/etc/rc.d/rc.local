@@ -11,7 +11,7 @@ until [ $retry -eq 0 ]; do
     sleep 2
 done
 if [ ! -f $NFVBENCH_CONF ]; then
-    exit 0 
+    exit 0
 fi
 
 # Parse and obtain all configurations
@@ -62,7 +62,7 @@ else
     echo "Configuring vpp..."
     cp /vpp/startup.conf /etc/vpp/startup.conf
     cp /vpp/vm.conf /etc/vpp/vm.conf
-    
+
     sed -i "s/{{PCI_ADDRESS_1}}/$PCI_ADDRESS_1/g" /etc/vpp/startup.conf
     sed -i "s/{{PCI_ADDRESS_2}}/$PCI_ADDRESS_2/g" /etc/vpp/startup.conf
     sed -i "s/{{WORKER_CORES}}/$WORKER_CORES/g" /etc/vpp/startup.conf

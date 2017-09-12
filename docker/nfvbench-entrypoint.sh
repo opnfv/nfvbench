@@ -1,3 +1,4 @@
+#!/bin/bash
 # Copyright 2017 Cisco Systems, Inc.  All rights reserved.
 #
 #    Licensed under the Apache License, Version 2.0 (the "License"); you may
@@ -13,9 +14,26 @@
 #    under the License.
 #
 
-#!/bin/bash
-if [ -z "$1" ] ||  [ $1 != 'start_rest_server' ];then
-	tail -f /dev/null
+if [ -z "$1" ] ||  [ $1 != 'start_rest_server' ]; then
+        tail -f /dev/null
 else
-	 nfvbench --server /tmp/http_root --host 127.0.0.1 --port 7556
+        PARAMS="--server /tmp/http_root"
+        if [ -n "$HOST" ]; then
+                PARAMS+=" --host $HOST"
+        fi
+        if [ -n "$PORT" ]; then
+                PARAMS+=" --port $PORT"
+        fi
+        if [ -n "$OPENRC" ]; then
+            if [ -f "$OPENRC" ]; then
+                PARAMS+=" -c \"openrc_file: $OPENRC\""
+            else
+                echo "Aborting... Openrc config file cannot be found in the given path: $OPENRC"
+                exit 1
+            fi
+        else
+            echo "Aborting... Openrc config path is absent"
+            exit 1
+        fi
+        eval "nfvbench $PARAMS"
 fi

@@ -16,6 +16,7 @@ RUN apt-get update && apt-get install -y \
        net-tools \
        && mkdir /tmp/http_root \
        && mkdir -p /opt/trex \
+       && mkdir /var/log/nfvbench \
        && wget --no-cache https://trex-tgn.cisco.com/trex/release/$TREX_VER.tar.gz \
        && tar xzf $TREX_VER.tar.gz -C /opt/trex \
        && rm -f /$TREX_VER.tar.gz \

@@ -50,11 +50,13 @@ class FluentLogHandler(logging.Handler):
 
     def emit(self, record):
         data = {
-            "runlogdate": self.runlogdate,
             "loglevel": record.levelname,
             "message": self.formatter.format(record),
             "@timestamp": self.__get_timestamp()
         }
+        if self.runlogdate != 0:
+            data["runlogdate"] = self.runlogdate
+
         self.__update_stats(record.levelno)
         self.sender.emit(None, data)
 
@@ -75,7 +77,6 @@ class FluentLogHandler(logging.Handler):
     def send_run_summary(self, run_summary_required):
         if run_summary_required or self.__get_highest_level() == logging.ERROR:
             data = {
-                "runlogdate": self.runlogdate,
                 "loglevel": "RUN_SUMMARY",
                 "message": self.__get_highest_level_desc(),
                 "numloglevel": self.__get_highest_level(),
@@ -83,6 +84,8 @@ class FluentLogHandler(logging.Handler):
                 "numwarnings": self.__warning_counter,
                 "@timestamp": self.__get_timestamp()
             }
+            if self.runlogdate != 0:
+                data["runlogdate"] = self.runlogdate
             self.sender.emit(None, data)
 
     def __get_highest_level(self):

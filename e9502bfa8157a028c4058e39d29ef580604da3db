@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "da33351e_4cb1708e",
+        "filename": "nfvbench/fluentd.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 87,
+      "author": {
+        "id": 5807
+      },
+      "writtenOn": "2017-09-12T19:13:37Z",
+      "side": 1,
+      "message": "add a comment explaining why you have to check for 0 and what happens when kibana receives a record without a runlogdate",
+      "revId": "e9502bfa8157a028c4058e39d29ef580604da3db",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": false
+    }
+  ]
+}

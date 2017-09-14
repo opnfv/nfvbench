@@ -127,9 +127,13 @@ class NFVBench(object):
                     'error_message': message
                 }
 
-    def print_summary(self, result):
-        """Print summary of the result"""
-        summary = NFVBenchSummarizer(result)
+    def prepare_summary(self, result):
+        """Prepares summary of the result to print and send it to logger (eg: fluentd)"""
+        sender = FluentLogHandler("resultnfvbench",
+                                  fluentd_ip=self.config.fluentd.ip,
+                                  fluentd_port=self.config.fluentd.port) \
+            if self.config.fluentd.logging_tag else None
+        summary = NFVBenchSummarizer(result, sender)
         LOG.info(str(summary))
 
     def save(self, result):
@@ -456,7 +460,7 @@ def main():
 
         if opts.summary:
             with open(opts.summary) as json_data:
-                print NFVBenchSummarizer(json.load(json_data))
+                print NFVBenchSummarizer(json.load(json_data), None)
             sys.exit(0)
 
         # show default config in text/yaml format
@@ -542,7 +546,7 @@ def main():
 
                 if 'result' in result and result['status']:
                     nfvbench.save(result['result'])
-                    nfvbench.print_summary(result['result'])
+                    nfvbench.prepare_summary(result['result'])
     except Exception as exc:
         run_summary_required = True
         LOG.error({

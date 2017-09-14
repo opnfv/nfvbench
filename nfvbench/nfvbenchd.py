@@ -21,6 +21,8 @@ from flask import request
 
 from flask_socketio import emit
 from flask_socketio import SocketIO
+from fluentd import FluentLogHandler
+from summarizer import NFVBenchSummarizer
 
 import json
 from log import LOG
@@ -211,10 +213,15 @@ class WebSocketIoServer(object):
     notifications using websocket events (send_ methods). Caller should simply create an instance
     of this class and pass a runner object then invoke the run method
     """
+
     def __init__(self, http_root, runner, logger):
         self.nfvbench_runner = runner
         setup_flask(http_root)
         self.fluent_logger = logger
+        self.result_fluent_logger = FluentLogHandler("resultnfvbench",
+                                                     fluentd_ip=self.fluent_logger.sender.host,
+                                                     fluentd_port=self.fluent_logger.sender.port) \
+            if self.fluent_logger else None
 
     def run(self, host='127.0.0.1', port=7556):
 
@@ -246,8 +253,11 @@ class WebSocketIoServer(object):
             else:
                 # this might overwrite a previously unfetched result
                 Ctx.set_result(results)
+            summary = NFVBenchSummarizer(results['result'], self.result_fluent_logger)
+            LOG.info(str(summary))
             Ctx.release()
-            self.fluent_logger.send_run_summary(True)
+            if self.fluent_logger:
+                self.fluent_logger.send_run_summary(True)
 
     def send_interval_stats(self, time_ms, tx_pps, rx_pps, drop_pct):
         stats = {'time_ms': time_ms, 'tx_pps': tx_pps, 'rx_pps': rx_pps, 'drop_pct': drop_pct}

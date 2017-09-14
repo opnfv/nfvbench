@@ -1,8 +1,8 @@
 # docker file for creating a container that has nfvbench installed and ready to use
 FROM ubuntu:16.04
 
-ENV TREX_VER "v2.27"
-ENV NFVBENCH_TAG "1.0.6"
+ENV TREX_VER "v2.29"
+ENV NFVBENCH_TAG "1.0.7"
 
 RUN apt-get update && apt-get install -y \
        git \

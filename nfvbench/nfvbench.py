@@ -127,9 +127,9 @@ class NFVBench(object):
                     'error_message': message
                 }
 
-    def print_summary(self, result):
+    def print_summary(self, result, runlogdate, fluentd_ip, fluentd_port):
         """Print summary of the result"""
-        summary = NFVBenchSummarizer(result)
+        summary = NFVBenchSummarizer(result, runlogdate, fluentd_ip, fluentd_port)
         LOG.info(str(summary))
 
     def save(self, result):
@@ -542,7 +542,12 @@ def main():
 
                 if 'result' in result and result['status']:
                     nfvbench.save(result['result'])
-                    nfvbench.print_summary(result['result'])
+                    if config.fluentd.logging_tag:
+                        nfvbench.print_summary(result['result'], fluent_logger.runlogdate,
+                                               config.fluentd.ip, config.fluentd.port)
+                    else:
+                        nfvbench.print_summary(result['result'], None,
+                                               None, None)
     except Exception as exc:
         run_summary_required = True
         LOG.error({

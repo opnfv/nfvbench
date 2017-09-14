@@ -1,9 +1,8 @@
 # docker file for creating a container that has nfvbench installed and ready to use
 FROM ubuntu:16.04
 
-COPY . /nfvbench
-
 ENV TREX_VER "v2.27"
+ENV NFVBENCH_TAG "1.0.6"
 
 RUN apt-get update && apt-get install -y \
        git \
@@ -26,6 +25,8 @@ RUN apt-get update && apt-get install -y \
        && sed -i -e "s/2048 /512 /" -e "s/2048\"/512\"/" /opt/trex/$TREX_VER/trex-cfg \
        && pip install -U pip pbr \
        && pip install -U setuptools \
+       && cd / \
+       && git clone --depth 1 -b $NFVBENCH_TAG https://gerrit.opnfv.org/gerrit/nfvbench \
        && cd /nfvbench && pip install -e . \
        && python ./docker/cleanup_generators.py \
        && rm -rf /nfvbench/.git \

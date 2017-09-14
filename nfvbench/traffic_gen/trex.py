@@ -14,6 +14,7 @@
 
 from collections import defaultdict
 from itertools import count
+from math import isnan
 from nfvbench.log import LOG
 from nfvbench.specs import ChainType
 from nfvbench.traffic_server import TRexTrafficServer
@@ -75,17 +76,17 @@ class TRex(AbstractTrafficGenerator):
             stats = self.__combine_stats(in_stats, ph)
             result[ph] = {
                 'tx': {
-                    'total_pkts': stats['tx_pkts']['total'],
-                    'total_pkt_bytes': stats['tx_bytes']['total'],
-                    'pkt_rate': stats['tx_pps']['total'],
-                    'pkt_bit_rate': stats['tx_bps']['total']
+                    'total_pkts': int(stats['tx_pkts']['total']),
+                    'total_pkt_bytes': int(stats['tx_bytes']['total']),
+                    'pkt_rate': int(stats['tx_pps']['total']),
+                    'pkt_bit_rate': int(stats['tx_bps']['total'])
                 },
                 'rx': {
-                    'total_pkts': stats['rx_pkts']['total'],
-                    'total_pkt_bytes': stats['rx_bytes']['total'],
-                    'pkt_rate': stats['rx_pps']['total'],
-                    'pkt_bit_rate': stats['rx_bps']['total'],
-                    'dropped_pkts': stats['tx_pkts']['total'] - stats['rx_pkts']['total']
+                    'total_pkts': int(stats['rx_pkts']['total']),
+                    'total_pkt_bytes': int(stats['rx_bytes']['total']),
+                    'pkt_rate': int(stats['rx_pps']['total']),
+                    'pkt_bit_rate': int(stats['rx_bps']['total']),
+                    'dropped_pkts': int(stats['tx_pkts']['total'] - stats['rx_pkts']['total'])
                 }
             }
 
@@ -93,9 +94,14 @@ class TRex(AbstractTrafficGenerator):
             result[ph]['rx']['max_delay_usec'] = lat.get('total_max', float('nan'))
             result[ph]['rx']['min_delay_usec'] = lat.get('total_min', float('nan'))
             result[ph]['rx']['avg_delay_usec'] = lat.get('average', float('nan'))
-
+            if not isnan(result[ph]['rx']['max_delay_usec']):
+                result[ph]['rx']['max_delay_usec'] = int(result[ph]['rx']['max_delay_usec'])
+            if not isnan(result[ph]['rx']['min_delay_usec']):
+                result[ph]['rx']['min_delay_usec'] = int(result[ph]['rx']['min_delay_usec'])
+            if not isnan(result[ph]['rx']['avg_delay_usec']):
+                result[ph]['rx']['avg_delay_usec'] = int(result[ph]['rx']['avg_delay_usec'])
         total_tx_pkts = result[0]['tx']['total_pkts'] + result[1]['tx']['total_pkts']
-        result["total_tx_rate"] = total_tx_pkts / self.config.duration_sec
+        result["total_tx_rate"] = int(total_tx_pkts / self.config.duration_sec)
         return result
 
     def __combine_stats(self, in_stats, port_handle):

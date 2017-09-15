@@ -291,9 +291,6 @@ def parse_opts_from_cli():
                         action='store',
                         help='Traffic generator profile to use')
 
-    parser.add_argument('-i', '--image', dest='image_name',
-                        action='store',
-                        help='VM image name to use')
 
     parser.add_argument('-0', '--no-traffic', dest='no_traffic',
                         default=None,

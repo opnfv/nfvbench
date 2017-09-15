@@ -170,7 +170,6 @@ The entire default configuration can be viewed using the --show-json-config opti
         "flow_count": 1,
         "generic_poll_sec": 2,
         "generic_retry_count": 100,
-        "image_name": "nfvbenchvm",
         "inter_node": false,
         "internal_networks": {
             "left": {

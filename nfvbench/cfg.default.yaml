@@ -34,6 +34,7 @@ vm_forwarder: testpmd
 # and prepend it with file:// like in this example:
 # file://<location of the image>
 # NFVbench (the image must have the same name as defined in image_name above).
+# if no image file path is given, nfvbench will search for image file on project directory
 vm_image_file:
 
 # Name of the flavor to use for the loopback VMs

@@ -15,6 +15,7 @@
 #
 
 import compute
+from fnmatch import fnmatch
 from glanceclient.v2 import client as glanceclient
 from log import LOG
 from neutronclient.neutron import client as neutronclient
@@ -232,20 +233,28 @@ class BasicStageClient(object):
         if not self.image_instance:
             self.image_instance = self.comp.find_image(self.config.image_name)
         if self.image_instance is None:
-            if self.config.vm_image_file:
-                LOG.info('%s: image for VM not found, trying to upload it ...'
-                         % self.config.image_name)
-                res = self.comp.upload_image_via_url(self.config.image_name,
-                                                     self.config.vm_image_file)
+            if not self.config.vm_image_file:
+                pkg_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+                LOG.info(
+                    'Image path is not set in the configuration, searching image in %s' % pkg_root)
+                for f in os.listdir(pkg_root):
+                    if fnmatch(f, "nfvbenchvm*.qcow2"):
+                        self.config.vm_image_file = f
+                        LOG.info('Image file found at %s' % f)
+                        break
+                else:
+                    raise StageClientException('No image for VM is found on dir %s' % pkg_root)
 
-                if not res:
-                    raise StageClientException('Error uploading image %s from %s. ABORTING.'
-                                               % (self.config.image_name,
-                                                  self.config.vm_image_file))
-                self.image_instance = self.comp.find_image(self.config.image_name)
-            else:
-                raise StageClientException('%s: image to launch VM not found. ABORTING.'
-                                           % self.config.image_name)
+            LOG.info('%s: image for VM not found, trying to upload it ...'
+                     % self.config.image_name)
+            res = self.comp.upload_image_via_url(self.config.image_name,
+                                                 self.config.vm_image_file)
+
+            if not res:
+                raise StageClientException('Error uploading image %s from %s. ABORTING.'
+                                           % (self.config.image_name,
+                                              self.config.vm_image_file))
+            self.image_instance = self.comp.find_image(self.config.image_name)
 
         LOG.info('Found image %s to launch VM' % self.config.image_name)
 
@@ -381,7 +390,7 @@ class BasicStageClient(object):
         """
         vlans = []
         for net in self.nets:
-            assert(net['provider:network_type'] == 'vlan')
+            assert (net['provider:network_type'] == 'vlan')
             vlans.append(net['provider:segmentation_id'])
 
         return vlans
@@ -419,7 +428,6 @@ class BasicStageClient(object):
 
 
 class EXTStageClient(BasicStageClient):
-
     def __init__(self, config, cred):
         super(EXTStageClient, self).__init__(config, cred)
 
@@ -436,7 +444,6 @@ class EXTStageClient(BasicStageClient):
 
 
 class PVPStageClient(BasicStageClient):
-
     def __init__(self, config, cred):
         super(PVPStageClient, self).__init__(config, cred)
 
@@ -480,7 +487,6 @@ class PVPStageClient(BasicStageClient):
 
 
 class PVVPStageClient(BasicStageClient):
-
     def __init__(self, config, cred):
         super(PVVPStageClient, self).__init__(config, cred)
 

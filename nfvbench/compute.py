@@ -51,9 +51,7 @@ class Compute(object):
         retry = 0
         try:
             # check image is file/url based.
-            file_prefix = "file://"
-            image_location = image_file.split(file_prefix)[1]
-            with open(image_location) as f_image:
+            with open(image_file) as f_image:
                 img = self.glance_client.images.create(name=str(final_image_name),
                                                        disk_format="qcow2",
                                                        container_format="bare",
@@ -82,8 +80,7 @@ class Compute(object):
             return False
         except Exception:
             LOG.error(traceback.format_exc())
-            LOG.error("Failed while uploading the image, please make sure the "
-                      "cloud under test has the access to file: %s.", image_file)
+            LOG.error("Failed to upload image %s.", image_file)
             return False
         return True
 

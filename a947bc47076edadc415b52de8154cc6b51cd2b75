@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "da33351e_00fd606e",
+        "filename": "docs/testing/user/userguide/server.rst",
+        "patchSetId": 5
+      },
+      "lineNbr": 306,
+      "author": {
+        "id": 6949
+      },
+      "writtenOn": "2017-09-15T22:26:16Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "da33351e_c08a581a",
+      "revId": "a947bc47076edadc415b52de8154cc6b51cd2b75",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "da33351e_a08f5429",
         "filename": "nfvbench/cfg.default.yaml",
         "patchSetId": 5
@@ -30,6 +48,24 @@
       "writtenOn": "2017-09-15T22:02:41Z",
       "side": 1,
       "message": "This is a bit cumbersome to keep the existing test and try to work around it.\nI\u0027d suggest rewording it from scratch (L25-33):\n\n# By default (empty) NFVbench will try to locate a VM image file\n# from the package root directory named \"nfvbench-\u003cversion\u003e.qcow2\" and\n# upload that file. The image name will be \"nfvbench-\u003cversion\u003e\"\n# This can be overridden by specifying here a pathname of a file\n# that follows the same naming convention.\n# In most cases, this field should be left empty as the packaging should\n# include the proper VM image file",
+      "revId": "a947bc47076edadc415b52de8154cc6b51cd2b75",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "da33351e_a00bd48c",
+        "filename": "nfvbench/cfg.default.yaml",
+        "patchSetId": 5
+      },
+      "lineNbr": 33,
+      "author": {
+        "id": 6949
+      },
+      "writtenOn": "2017-09-15T22:26:16Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "da33351e_a08f5429",
       "revId": "a947bc47076edadc415b52de8154cc6b51cd2b75",
       "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
       "unresolved": false
@@ -53,6 +89,24 @@
     },
     {
       "key": {
+        "uuid": "da33351e_40fac875",
+        "filename": "nfvbench/chain_clients.py",
+        "patchSetId": 5
+      },
+      "lineNbr": 235,
+      "author": {
+        "id": 6949
+      },
+      "writtenOn": "2017-09-15T22:26:16Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "da33351e_c091b848",
+      "revId": "a947bc47076edadc415b52de8154cc6b51cd2b75",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "da33351e_e09cbc5f",
         "filename": "nfvbench/chain_clients.py",
         "patchSetId": 5
@@ -64,6 +118,24 @@
       "writtenOn": "2017-09-15T22:02:41Z",
       "side": 1,
       "message": "Provided VM image file name %s must start with \"nfvbenchvm-\u003cversion\u003e\"",
+      "revId": "a947bc47076edadc415b52de8154cc6b51cd2b75",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "da33351e_20f7c48c",
+        "filename": "nfvbench/chain_clients.py",
+        "patchSetId": 5
+      },
+      "lineNbr": 247,
+      "author": {
+        "id": 6949
+      },
+      "writtenOn": "2017-09-15T22:26:16Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "da33351e_e09cbc5f",
       "revId": "a947bc47076edadc415b52de8154cc6b51cd2b75",
       "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
       "unresolved": false
@@ -87,6 +159,24 @@
     },
     {
       "key": {
+        "uuid": "da33351e_c02d3800",
+        "filename": "nfvbench/chain_clients.py",
+        "patchSetId": 5
+      },
+      "lineNbr": 255,
+      "author": {
+        "id": 6949
+      },
+      "writtenOn": "2017-09-15T22:26:16Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "da33351e_20a22499",
+      "revId": "a947bc47076edadc415b52de8154cc6b51cd2b75",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "da33351e_40cc886a",
         "filename": "nfvbench/chain_clients.py",
         "patchSetId": 5
@@ -104,6 +194,24 @@
     },
     {
       "key": {
+        "uuid": "da33351e_80f05092",
+        "filename": "nfvbench/chain_clients.py",
+        "patchSetId": 5
+      },
+      "lineNbr": 270,
+      "author": {
+        "id": 6949
+      },
+      "writtenOn": "2017-09-15T22:26:16Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "da33351e_40cc886a",
+      "revId": "a947bc47076edadc415b52de8154cc6b51cd2b75",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "da33351e_20c98459",
         "filename": "nfvbench/nfvbench.py",
         "patchSetId": 5
@@ -115,6 +223,24 @@
       "writtenOn": "2017-09-15T22:02:41Z",
       "side": 1,
       "message": "make sure config.image is never used anywhere",
+      "revId": "a947bc47076edadc415b52de8154cc6b51cd2b75",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "da33351e_60ed4cb7",
+        "filename": "nfvbench/nfvbench.py",
+        "patchSetId": 5
+      },
+      "lineNbr": 294,
+      "author": {
+        "id": 6949
+      },
+      "writtenOn": "2017-09-15T22:26:16Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "da33351e_20c98459",
       "revId": "a947bc47076edadc415b52de8154cc6b51cd2b75",
       "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
       "unresolved": false

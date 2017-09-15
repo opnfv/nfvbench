@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "da33351e_e0715ca9",
+        "filename": "nfvbench/chain_clients.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 239,
+      "author": {
+        "id": 6949
+      },
+      "writtenOn": "2017-09-15T18:13:09Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "da33351e_c04ff869",
+      "revId": "a147c6b935163d23c906830f92ba7163e6ef7ef2",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "da33351e_4043e841",
         "filename": "nfvbench/chain_clients.py",
         "patchSetId": 2
@@ -30,6 +48,24 @@
       "writtenOn": "2017-09-15T17:56:14Z",
       "side": 1,
       "message": "Here we found a built-in image, so we simply announce it with the right wording\n\"Found built-in VM image file %s\"",
+      "revId": "a147c6b935163d23c906830f92ba7163e6ef7ef2",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "da33351e_406ac8b3",
+        "filename": "nfvbench/chain_clients.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 243,
+      "author": {
+        "id": 6949
+      },
+      "writtenOn": "2017-09-15T18:13:09Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "da33351e_4043e841",
       "revId": "a147c6b935163d23c906830f92ba7163e6ef7ef2",
       "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
       "unresolved": false
@@ -53,6 +89,24 @@
     },
     {
       "key": {
+        "uuid": "da33351e_2067c4ea",
+        "filename": "nfvbench/chain_clients.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 246,
+      "author": {
+        "id": 6949
+      },
+      "writtenOn": "2017-09-15T18:13:09Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "da33351e_00560006",
+      "revId": "a147c6b935163d23c906830f92ba7163e6ef7ef2",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "da33351e_20406433",
         "filename": "nfvbench/chain_clients.py",
         "patchSetId": 2
@@ -64,6 +118,24 @@
       "writtenOn": "2017-09-15T17:56:14Z",
       "side": 1,
       "message": "Here you\u0027re missing an important announcement (else for L236)) to say that the user actually provided a file!\n\"Using provided VM image file %s\"\nYou could btw just revert the L236 condition and put this LOG.info first.",
+      "revId": "a147c6b935163d23c906830f92ba7163e6ef7ef2",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "da33351e_806050d0",
+        "filename": "nfvbench/chain_clients.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 247,
+      "author": {
+        "id": 6949
+      },
+      "writtenOn": "2017-09-15T18:13:09Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "da33351e_20406433",
       "revId": "a147c6b935163d23c906830f92ba7163e6ef7ef2",
       "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
       "unresolved": false
@@ -87,6 +159,24 @@
     },
     {
       "key": {
+        "uuid": "da33351e_605d4c15",
+        "filename": "nfvbench/chain_clients.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 249,
+      "author": {
+        "id": 6949
+      },
+      "writtenOn": "2017-09-15T18:13:09Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "da33351e_80497062",
+      "revId": "a147c6b935163d23c906830f92ba7163e6ef7ef2",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "da33351e_6046ec50",
         "filename": "nfvbench/chain_clients.py",
         "patchSetId": 2
@@ -98,6 +188,24 @@
       "writtenOn": "2017-09-15T17:56:14Z",
       "side": 1,
       "message": "here again the mesage is debug-oriented!\nthere should be an else for L235\nIn one case you announce that you are reusing an image\nIn the other case that you have successfully uploaded the image",
+      "revId": "a147c6b935163d23c906830f92ba7163e6ef7ef2",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "da33351e_e0a83cdd",
+        "filename": "nfvbench/chain_clients.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 259,
+      "author": {
+        "id": 6949
+      },
+      "writtenOn": "2017-09-15T18:13:09Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "da33351e_6046ec50",
       "revId": "a147c6b935163d23c906830f92ba7163e6ef7ef2",
       "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
       "unresolved": false

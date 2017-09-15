@@ -170,7 +170,6 @@ The entire default configuration can be viewed using the --show-json-config opti
         "flow_count": 1,
         "generic_poll_sec": 2,
         "generic_retry_count": 100,
-        "image_name": "nfvbenchvm",
         "inter_node": false,
         "internal_networks": {
             "left": {
@@ -304,7 +303,7 @@ The entire default configuration can be viewed using the --show-json-config opti
         ],
         "unidir_reverse_traffic_pps": 1,
         "vlan_tagging": true,
-        "vm_image_file": "file://172.29.172.152/downloads/nfvbench/nfvbenchvm-latest.qcow2",
+        "vm_image_file": "/nfvbench/nfvbenchvm-0.3.qcow2",
         "vts_ncs": {
             "host": null,
             "password": "secret",

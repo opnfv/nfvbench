@@ -19,21 +19,16 @@
 # option, e.g. "--interval"
 
 
-# Name of the image to use for launching the loopback VMs. This name must be
-# the exact same name used in OpenStack (as shown from 'nova image-list')
-# Can be overridden by --image or -i
-image_name: 'nfvbenchvm'
 # Forwarder to use in nfvbenchvm image. Available options: ['vpp', 'testpmd']
 vm_forwarder: testpmd
 
-# NFVbench can automatically upload a VM image if the image named by
-# image_name is missing, for that you need to specify a file location where
-# the image can be retrieved
-#
-# To upload the image as a file, download it to preferred location
-# and prepend it with file:// like in this example:
-# file://<location of the image>
-# NFVbench (the image must have the same name as defined in image_name above).
+# By default (empty) NFVBench will try to locate a VM image file
+# from the package root directory named "nfvbench-<version>.qcow2" and
+# upload that file. The image name will be "nfvbench-<version>"
+# This can be overridden by specifying here a pathname of a file
+# that follows the same naming convention.
+# In most cases, this field should be left empty as the packaging should
+# include the proper VM image file
 vm_image_file:
 
 # Name of the flavor to use for the loopback VMs

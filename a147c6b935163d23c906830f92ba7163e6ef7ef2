@@ -1,0 +1,106 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "da33351e_c04ff869",
+        "filename": "nfvbench/chain_clients.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 239,
+      "author": {
+        "id": 5807
+      },
+      "writtenOn": "2017-09-15T17:56:14Z",
+      "side": 1,
+      "message": "this is the default path, what 99.99% of users will go thoughr\nSo reminding that path is not set in config is good for debugging but not that useful for most users.\nInstead a more useful message will say that a builtin image will be used by default, but let;s not say anything yet at this point! so suggest removing this (remember we\u0027re not debugging the code so we don;t need to know what is going to happen).",
+      "revId": "a147c6b935163d23c906830f92ba7163e6ef7ef2",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "da33351e_4043e841",
+        "filename": "nfvbench/chain_clients.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 243,
+      "author": {
+        "id": 5807
+      },
+      "writtenOn": "2017-09-15T17:56:14Z",
+      "side": 1,
+      "message": "Here we found a built-in image, so we simply announce it with the right wording\n\"Found built-in VM image file %s\"",
+      "revId": "a147c6b935163d23c906830f92ba7163e6ef7ef2",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "da33351e_00560006",
+        "filename": "nfvbench/chain_clients.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 246,
+      "author": {
+        "id": 5807
+      },
+      "writtenOn": "2017-09-15T17:56:14Z",
+      "side": 1,
+      "message": "Here printing the path is a debug implementation detail that users have no clue about.\nA simple \"Cannot find any built-in VM image file\" message is sufficient.\nThis should normally never happen and would suggest a build bug (rare)",
+      "revId": "a147c6b935163d23c906830f92ba7163e6ef7ef2",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "da33351e_20406433",
+        "filename": "nfvbench/chain_clients.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 247,
+      "author": {
+        "id": 5807
+      },
+      "writtenOn": "2017-09-15T17:56:14Z",
+      "side": 1,
+      "message": "Here you\u0027re missing an important announcement (else for L236)) to say that the user actually provided a file!\n\"Using provided VM image file %s\"\nYou could btw just revert the L236 condition and put this LOG.info first.",
+      "revId": "a147c6b935163d23c906830f92ba7163e6ef7ef2",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "da33351e_80497062",
+        "filename": "nfvbench/chain_clients.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 249,
+      "author": {
+        "id": 5807
+      },
+      "writtenOn": "2017-09-15T17:56:14Z",
+      "side": 1,
+      "message": "At this point the user knows a VM image file is found so no point of repeating.\n\"Uploading %s...\"",
+      "revId": "a147c6b935163d23c906830f92ba7163e6ef7ef2",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "da33351e_6046ec50",
+        "filename": "nfvbench/chain_clients.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 259,
+      "author": {
+        "id": 5807
+      },
+      "writtenOn": "2017-09-15T17:56:14Z",
+      "side": 1,
+      "message": "here again the mesage is debug-oriented!\nthere should be an else for L235\nIn one case you announce that you are reusing an image\nIn the other case that you have successfully uploaded the image",
+      "revId": "a147c6b935163d23c906830f92ba7163e6ef7ef2",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": false
+    }
+  ]
+}

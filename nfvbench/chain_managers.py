@@ -85,8 +85,14 @@ class StatsManager(object):
         WORKER_CLASS = self.factory.get_chain_worker(self.specs.openstack.encaps,
                                                      self.config.service_chain)
         self.worker = WORKER_CLASS(self.config, self.clients, self.specs)
-        self.worker.set_vlans(self.vlans)
-        self._config_interfaces()
+        try:
+            self.worker.set_vlans(self.vlans)
+            self._config_interfaces()
+        except Exception as exc:
+            # since the wrorker is up and running, we need to close it
+            # in case of exception
+            self.close()
+            raise exc
 
     def _get_data(self):
         return self.worker.get_data()

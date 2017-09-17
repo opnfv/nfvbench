@@ -1,2 +1,7 @@
 requirements-dev.txt
 .gitignore
+.gitreview
+nfvbenchvm/
+test/
+.tox/
+.cache/

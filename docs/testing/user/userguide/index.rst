@@ -17,7 +17,7 @@ It is designed to be easy to install and easy to use by non experts (no need to 
 Table of Content
 ----------------
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 3
 
    readme
    installation

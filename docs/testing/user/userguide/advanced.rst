@@ -11,7 +11,7 @@ Below are shown the most common and useful use-cases and explained some fields f
 
 How to change any NFVbench run configuration (CLI)
 --------------------------------------------------
-NFVbench always starts with a default configuration which can further be partially refined (overridden) by the user from the CLI or from REST requests.
+NFVbench always starts with a default configuration which can further be refined (overridden) by the user from the CLI or from REST requests.
 
 At first have a look at the default config:
 
@@ -39,9 +39,9 @@ as seen from inside the container (in this example, we assume the current direct
 
 The same -c option also accepts any valid yaml or json string to override certain parameters without having to create a configuration file.
 
-NFVbench also provides many configuration options as optional arguments. For example the number of flows can be specified using the --flow-count option.
+NFVbench provides many configuration options as optional arguments. For example the number of flows can be specified using the --flow-count option.
 
-For example, flow count can be specified in any of 3 ways:
+The flow count option can be specified in any of 3 ways:
 
 - by providing a confguration file that has the flow_count value to use (-c myconfig.yaml and myconfig.yaml contains 'flow_count: 100k')
 - by passing that yaml paremeter inline (-c "flow_count: 100k") or (-c "{flow_count: 100k}")
@@ -63,10 +63,9 @@ For example, this will only display the running configuration (without actually 
 Connectivity and Configuration Check
 ------------------------------------
 
-NFVbench allows to test connectivity to devices used with selected flow test, for example PVP.
-It runs the whole test, but without actually sending any traffic or influencing interface counters.
-It is also a good way to check if everything is configured properly in the config file and what versions of components are used.
-
+NFVbench allows to test connectivity to devices used with the selected packet path.
+It runs the whole test, but without actually sending any traffic.
+It is also a good way to check if everything is configured properly in the configuration file and what versions of components are used.
 
 To verify everything works without sending any traffic, use the --no-traffic option:
 
@@ -83,13 +82,13 @@ Used parameters:
 Fixed Rate Run
 --------------
 
-Fixed rate run is the most basic type of NFVbench usage. It is usually used to verify that some amount of packets can pass network components in selected flow.
+Fixed rate run is the most basic type of NFVbench usage. It can be used to measure the drop rate with a fixed transmission rate of packets.
 
-The first example shows how to run PVP flow (default flow) with multiple different settings:
+This example shows how to run the PVP packet path (which is the default packet path) with multiple different settings:
 
 .. code-block:: bash
 
-    nfvbench -c nfvbench.cfg --no-reset --no-cleanup --rate 100000pps --duration 30 --interval 15 --json results.json
+    nfvbench -c nfvbench.cfg --no-cleanup --rate 100000pps --duration 30 --interval 15 --json results.json
 
 Used parameters:
 
@@ -100,16 +99,16 @@ Used parameters:
 * ``--interval 15`` : stats are checked and shown periodically (in seconds) in this interval when traffic is flowing
 * ``--json results.json`` : collected data are stored in this file after run is finished
 
-.. note:: It is your responsibility to clean up resources if needed when ``--no-cleanup`` parameter is used. You can use the nfvbench_cleanup helper script for that purpose
+.. note:: It is your responsibility to clean up resources if needed when ``--no-cleanup`` parameter is used. You can use the nfvbench_cleanup helper script for that purpose.
 
-The ``--json`` parameter makes it easy to store NFVbench results. To display collected results in a table form, do:
+The ``--json`` parameter makes it easy to store NFVbench results. The --show-summary (or -ss) option can be used to display the results in a json results file in a text tabular format:
 
 .. code-block:: bash
 
-    nfvbench --show-summary results.json    # or shortcut -ss results.json
+    nfvbench --show-summary results.json
 
 
-Second example aims to show how to specify which supported flow to run:
+This example shows how to specify a different packet path:
 
 .. code-block:: bash
 
@@ -120,7 +119,7 @@ Used parameters:
 * ``-c nfvbench.cfg`` : path to the config file
 * ``--rate 1Mbps`` : defines rate of packets sent by traffic generator
 * ``--inter-node`` : VMs are created on different compute nodes, works only with PVVP flow
-* ``--service-chain PVVP`` or ``-sc PVVP`` : specifies type of flow to use, default is PVP
+* ``--service-chain PVVP`` or ``-sc PVVP`` : specifies the type of service chain (or packet path) to use
 
 .. note:: When parameter ``--inter-node`` is not used or there aren't enough compute nodes, VMs are on the same compute node.
 
@@ -135,20 +134,22 @@ Parameter ``--rate`` accepts different types of values:
 * bits per second (bps, kbps, Mbps, Gbps), e.g. ``1Gbps``, ``1000bps``
 * NDR/PDR (ndr, pdr, ndr_pdr), e.g. ``ndr_pdr``
 
-The last mentioned value, NDR/PDR, is default one and its usage is covered more below.
-
+NDR/PDR is the default rate when not specified.
 
 NDR and PDR
 -----------
 
-NDR and PDR test is used to determine performance of your setup, maximum packets throughput.
+The NDR and PDR test is used to determine the maximum throughput performance of the system under test
+following guidelines defined in RFC-2544:
 
-* NDR (No Drop Rate): how many packets can be sent so (almost) none of them are dropped
-* PDR (Partial Drop Rate): how many packets can be sent so drop rate is below given limit
+* NDR (No Drop Rate): maximum packet rate sent without dropping any packet
+* PDR (Partial Drop Rate): maximum packet rate sent while allowing a given maximum drop rate
 
-Config file contains section where settings for NDR/PDR can be set.
-Increasing number of attempts helps to minimize a chance of traffic hiccups influencing result.
-Other way of increasing precision is to specify longer duration for traffic to run.
+The NDR search can also be relaxed to allow some very small amount of drop rate (lower than the PDR maximum drop rate).
+NFVbench will measure the NDR and PDR values by driving the traffic generator through multiple iterations
+at different transmission rates using a binary search algorithm.
+
+The configuration file contains section where settings for NDR/PDR can be set.
 
 .. code-block:: bash
 
@@ -166,13 +167,13 @@ Other way of increasing precision is to specify longer duration for traffic to r
         # or PDR should be within `load_epsilon` difference than the one calculated.
         load_epsilon: 0.1
 
-Because NDR/PDR is the default ``--rate`` value, it's possible to run NFVbench simply like this:
+Because NDR/PDR is the default ``--rate`` value, it is possible to run NFVbench simply like this:
 
 .. code-block:: bash
 
     nfvbench -c nfvbench.cfg
 
-Other custom run:
+Other possible run options:
 
 .. code-block:: bash
 
@@ -188,19 +189,19 @@ Used parameters:
 Multichain
 ----------
 
-NFVbench allows to run multiple chains at the same time. For example it is possible to run PVP service chain N-times,
+NFVbench allows to run multiple chains at the same time. For example it is possible to stage the PVP service chain N-times,
 where N can be as much as your compute power can scale. With N = 10, NFVbench will spawn 10 VMs as a part of 10 simultaneous PVP chains.
 
-Number of chains is specified by ``--service-chain-count`` or ``-scc`` flag, default value is 1.
-For example to run NFVbench with 3 PVP chains use command:
+The number of chains is specified by ``--service-chain-count`` or ``-scc`` flag with a default value of 1.
+For example to run NFVbench with 3 PVP chains:
 
 .. code-block:: bash
 
     nfvbench -c nfvbench.cfg --rate 10000pps -scc 3
 
-It is not necessary to specify service chain because PVP is set as default. PVP service chains will have 3 VMs in 3 chains with this configuration.
+It is not necessary to specify the service chain type (-sc) because PVP is set as default. The PVP service chains will have 3 VMs in 3 chains with this configuration.
 If ``-sc PVVP`` is specified instead, there would be 6 VMs in 3 chains as this service chain has 2 VMs per chain.
-Both **single run** or **NDR/PDR** can be run as multichain. Running multichain is a scenario closer to a real life situation than just simple run.
+Both **single run** or **NDR/PDR** can be run as multichain. Running multichain is a scenario closer to a real life situation than runs with a single chain.
 
 
 External Chain
@@ -226,31 +227,26 @@ To run NFVbench on such external service chains:
 
 .. image:: images/extchain-config.svg
 
-The L3 router function must be enabled in the VNF and configured to:
+L3 routing must be enabled in the VNF and configured to:
 
 - reply to ARP requests to its public IP addresses on both left and right networks
 - route packets from each set of remote devices toward the appropriate dest gateway IP in the traffic generator using 2 static routes (as illustrated in the diagram)
 
 Upon start, NFVbench will:
 - first retrieve the properties of the left and right networks using Neutron APIs,
-- extract the underlying network ID (either VLAN ID or VNI if VxLAN is used),
-- then program the TOR to stitch the 2 interfaces from the traffic generator into each end of the service chain,
-- then generate and measure traffic.
+- extract the underlying network ID (typically VLAN segmentation ID),
+- generate packets with the proper VLAN ID and measure traffic.
 
 Note that in the case of multiple chains, all chains end interfaces must be connected to the same two left and right networks.
 The traffic will be load balanced across the corresponding gateway IP of these external service chains.
-
-.. note:: By default, interfaces configuration (TOR, VTS, etc.) will be run by NFVbench but these can be skipped by using ``--no-int-config`` flag.
 
 
 Multiflow
 ---------
 
 NFVbench always generates L3 packets from the traffic generator but allows the user to specify how many flows to generate.
-A flow is identified by a unique src/dest MAC IP and port tuple that is sent by the traffic generator. Note that from a vswitch point of view, the
-number of flows seen will be higher as it will be at least 4 times the number of flows sent by the traffic generator
-(add reverse direction of vswitch to traffic generator, add flow to VM and flow from VM).
-
+A flow is identified by a unique src/dest MAC IP and port tuple that is sent by the traffic generator. Flows are
+generated by ranging the IP adresses but using a small fixed number of MAC addresses.
 
 The number of flows will be spread roughly even between chains when more than 1 chain is being tested.
 For example, for 11 flows and 3 chains, number of flows that will run for each chain will be 3, 4, and 4 flows respectively.
@@ -262,6 +258,9 @@ To run NFVbench with 3 chains and 100 flows, use the following command:
 
     nfvbench -c nfvbench.cfg --rate 10000pps -scc 3 -fc 100
 
+Note that from a vswitch point of view, the
+number of flows seen will be higher as it will be at least 4 times the number of flows sent by the traffic generator
+(add flow to VM and flow from VM).
 
 IP addresses generated can be controlled with the following NFVbench configuration options:
 
@@ -286,12 +285,10 @@ The corresponding ``step`` is used for ranging the IP addresses from the `ip_add
 0.0.0.1 is the default step for all IP ranges. In ``ip_addrs``, 'random' can be configured which tells NFVBench to generate random src/dst IP pairs in the traffic stream.
 
 
-Traffic Config via CLI
-----------------------
+Traffic Configuration via CLI
+-----------------------------
 
-While traffic configuration can modified using the config file, it became a hassle to have to change the config file everytime you need to change traffic config.
-
-Traffic config can be overridden with the CLI options.
+While traffic configuration can be modified using the configuration file, it can be inconvenient to have to change the configuration file everytime you need to change a traffic configuration option. Traffic configuration options can be overridden with a few CLI options.
 
 Here is an example of configuring traffic via CLI:
 
@@ -299,7 +296,7 @@ Here is an example of configuring traffic via CLI:
 
     nfvbench --rate 10kpps --service-chain-count 2 -fs 64 -fs IMIX -fs 1518 --unidir
 
-This command will run NFVbench with two streams with unidirectional flow for three packet sizes 64B, IMIX, and 1518B.
+This command will run NFVbench with a unidirectional flow for three packet sizes 64B, IMIX, and 1518B.
 
 Used parameters:
 
@@ -313,8 +310,8 @@ MAC Addresses
 -------------
 
 NFVbench will dicover the MAC addresses to use for generated frames using:
-- either OpenStack discovery (find the MAC of an existing VM) if the loopback VM is configured to run L2 forwarding
-- or using dynamic ARP discovery (find MAC from IP) if the loopback VM is configured to run L3 routing or in the case of external chains.
+- either OpenStack discovery (find the MAC of an existing VM) in the case of PVP and PVVP service chains
+- or using dynamic ARP discovery (find MAC from IP) in the case of external chains.
 
 Cleanup Script
 --------------

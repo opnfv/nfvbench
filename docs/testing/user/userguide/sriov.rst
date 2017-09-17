@@ -6,7 +6,7 @@
 Testing SR-IOV
 ==============
 
-NFVbench supports SR-IOV with the PVP and PVVP packet flows. SR-IOV support is not applicable for external chains since the networks have to be setup externally (and can themselves be pre-set to use SR-IOV or not).
+NFVbench supports SR-IOV with the PVP packet flow (PVVP is not supported). SR-IOV support is not applicable for external chains since the networks have to be setup externally (and can themselves be pre-set to use SR-IOV or not).
 
 Pre-requisites
 --------------

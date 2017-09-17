@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+# Copyright 2017 Cisco Systems, Inc.  All rights reserved.
 #
 # NFVBench documentation build configuration file, created by
 # sphinx-quickstart on Thu Sep 29 14:25:18 2016.

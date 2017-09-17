@@ -154,64 +154,23 @@ Edit the nfvbench.cfg file to only keep those properties that need to be modifie
 6. Run NFVbench
 ---------------
 
-To do a single run at 5000pps bi-directional using the PVP packet path:
+To do a single run at 10,000pps bi-directional (or 5kpps in each direction) using the PVP packet path:
 
 .. code-block:: bash
 
-   nfvbench -c /tmp/nfvbench/my_nfvbench.cfg --rate 5kpps
+   nfvbench -c /tmp/nfvbench/my_nfvbench.cfg --rate 10kpps
 
 NFVbench options used:
 
 * ``-c /tmp/nfvbench/my_nfvbench.cfg`` : specify the config file to use (this must reflect the file path from inside the container)
-* ``--rate 5kpps`` : specify rate of packets for test using the kpps unit (thousands of packets per second)
+* ``--rate 10kpps`` : specify rate of packets for test for both directions using the kpps unit (thousands of packets per second)
 
 This should produce a result similar to this (a simple run with the above options should take less than 5 minutes):
 
 .. code-block:: none
 
-    ========== nfvbench Summary ==========
-    Date: 2016-10-05 21:43:30
-    nfvbench version 0.0.1.dev128
-    Mercury version: 5002
-    Benchmarks:
-    > Networks:
-      > N9K version: {'10.28.108.249': {'BIOS': '07.34', 'NXOS': '7.0(3)I2(2b)'}, '10.28.108.248': {'BIOS': '07.34', 'NXOS': '7.0(3)I2(2b)'}}
-        Traffic generator profile: trex-c45
-        Traffic generator tool: TRex
-        Traffic generator API version: {u'build_date': u'Aug 24 2016', u'version': u'v2.08', u'built_by': u'hhaim', u'build_time': u'16:32:13'}
-        Flows:
-        > PVP:
-          VPP version: {u'sjc04-pod3-compute-6': 'v16.06-rc1~27-gd175728'}
-          > Bidirectional: False
-            Profile: traffic_profile_64B
+  [TBP]
 
-               +-----------------+-------------+----------------------+----------------------+----------------------+
-               |  L2 Frame Size  |  Drop Rate  |   Avg Latency (usec) |   Min Latency (usec) |   Max Latency (usec) |
-               +=================+=============+======================+======================+======================+
-               |       64        |   0.0000%   |              22.1885 |                   10 |                  503 |
-               +-----------------+-------------+----------------------+----------------------+----------------------+
-
-
-            > L2 frame size: 64
-              Flow analysis duration: 70.0843 seconds
-
-              Run Config:
-
-               +-------------+------------------+--------------+-----------+
-               |  Direction  |   Duration (sec) |     Rate     |   Rate    |
-               +=============+==================+==============+===========+
-               |   Forward   |               60 | 1.0080 Mbps  | 1,500 pps |
-               +-------------+------------------+--------------+-----------+
-               |   Reverse   |               60 | 672.0000 bps |   1 pps   |
-               +-------------+------------------+--------------+-----------+
-
-               +----------------------+----------+-----------------+---------------+---------------+-----------------+---------------+---------------+
-               |      Interface       |  Device  |  Packets (fwd)  |   Drops (fwd) |  Drop% (fwd)  |   Packets (rev) |   Drops (rev) |  Drop% (rev)  |
-               +======================+==========+=================+===============+===============+=================+===============+===============+
-               |  traffic-generator   |   trex   |     90,063      |               |               |              61 |             0 |       -       |
-               +----------------------+----------+-----------------+---------------+---------------+-----------------+---------------+---------------+
-               |  traffic-generator   |   trex   |     90,063      |             0 |       -       |              61 |               |               |
-               +----------------------+----------+-----------------+---------------+---------------+-----------------+---------------+---------------+
 
 7. Terminating the NFVbench container
 -------------------------------------

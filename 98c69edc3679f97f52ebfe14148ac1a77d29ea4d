@@ -1,0 +1,55 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "da33351e_33d0bbf5",
+        "filename": "nfvbench/nfvbench.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 130,
+      "author": {
+        "id": 5807
+      },
+      "writtenOn": "2017-09-18T21:20:19Z",
+      "side": 1,
+      "message": "bs this function no longer just prints a summary, better rename it to \"process_summary()\" or \"prepare_summary()\".\nThe use of runlogdate to mean use fluent is a bit of a stretch...\n \nAdjust the comment to describe what it does.\n\nAlso this summarizer code should not care about the type of sender used (fluentd here but it could be extended to other types of sending protocols later).\n\nInstead of passing arguments that are fluentd specific, pass a class instance instead.\n\n# set create_perf_record to True if fluentd is enabled\nsummarizer \u003d NFVBenchSummarizer(result, create_perf_records, runlogdate)\n\nif create_perf_records:\n     perf_records \u003d summarizer.get_perf_records()\n     # send perf records to fluentd\n    for record in perf_records:\n        ...\n\n# send summary to log\nLOG.info(summarizer.get_text())",
+      "revId": "98c69edc3679f97f52ebfe14148ac1a77d29ea4d",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "da33351e_f301336b",
+        "filename": "nfvbench/summarizer.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 5807
+      },
+      "writtenOn": "2017-09-18T21:20:19Z",
+      "side": 1,
+      "message": "As mentioned in the previous comment, my main concern is to have this class depend on too many other libraries (here fluent library).\nIt is better to return the records and let the caller used them with fluentd.\nTo make it simpler, the summary creation code can be called in the constructor directly and results stored in an instance variables",
+      "revId": "98c69edc3679f97f52ebfe14148ac1a77d29ea4d",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "da33351e_13349748",
+        "filename": "nfvbench/traffic_gen/trex.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 102,
+      "author": {
+        "id": 5807
+      },
+      "writtenOn": "2017-09-18T21:20:19Z",
+      "side": 1,
+      "message": "much simpler to just check if the key is present:\n\nresult[...] \u003d int(lat[key]) if key in lat else float(\u0027nan\u0027)",
+      "revId": "98c69edc3679f97f52ebfe14148ac1a77d29ea4d",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": false
+    }
+  ]
+}

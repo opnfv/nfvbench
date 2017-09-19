@@ -640,6 +640,21 @@ class TrafficClient(object):
                 })
                 right_targets[tag] = target
             else:
+                # initialize to 0 all fields of result for
+                # the worst case scenario of the binary search (if ndr/pdr is not found)
+                if tag not in results:
+                    results[tag] = dict.fromkeys(rates, 0)
+                    empty_stats = self.__format_output_stats(dict(stats))
+                    for key in empty_stats:
+                        if isinstance(empty_stats[key], dict):
+                            empty_stats[key] = dict.fromkeys(empty_stats[key], 0)
+                        else:
+                            empty_stats[key] = 0
+                    results[tag].update({
+                        'load_percent_per_direction': 0,
+                        'stats': empty_stats,
+                        'timestamp_sec': None
+                    })
                 left_targets[tag] = target
 
         # search lower half

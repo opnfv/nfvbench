@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "da33351e_7f8e82d1",
+        "filename": "nfvbench/nfvbench.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 494,
+      "author": {
+        "id": 5807
+      },
+      "writtenOn": "2017-09-19T23:09:51Z",
+      "side": 1,
+      "message": "if passed by cli, the user_label value will need to be copied into the config dict like the 2 above.\ndid you try cli arg to verify it was working?",
+      "revId": "ea51c75ee0a48a6ccfda70fa6792d011461c8044",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": false
+    }
+  ]
+}

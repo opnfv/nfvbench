@@ -384,3 +384,7 @@ fluentd:
 # Module and class name of factory which will be used to provide classes dynamically for other components.
 factory_module: 'nfvbench.factory'
 factory_class: 'BasicFactory'
+
+# Custom label added for every perf record generated during this run.
+# Can be overriden by --user-label
+user_label:

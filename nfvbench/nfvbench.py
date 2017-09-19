@@ -377,7 +377,11 @@ def parse_opts_from_cli():
     parser.add_argument('--log-file', '--logfile', dest='log_file',
                         action='store',
                         help='Filename for saving logs',
-                        metavar='<log_file>')
+                        metavar='<log_file>'),
+
+    parser.add_argument('--user-label', '--userlabel', dest='user_label',
+                        action='store',
+                        help='Custom label for performance records')
 
     opts, unknown_opts = parser.parse_known_args()
     return opts, unknown_opts

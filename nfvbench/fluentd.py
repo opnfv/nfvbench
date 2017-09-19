@@ -61,6 +61,10 @@ class FluentLogHandler(logging.Handler):
         self.__update_stats(record.levelno)
         self.sender.emit(None, data)
 
+    # this function is called by summarizer
+    def record_send(self, record):
+        self.sender.emit(None, record)
+
     # send START record for each run
     def __send_start_record(self):
         data = {

@@ -27,7 +27,6 @@ from traffic_base import AbstractTrafficGenerator
 from traffic_base import TrafficGeneratorException
 import traffic_utils as utils
 
-
 from trex_stl_lib.api import CTRexVmInsFixHwCs
 from trex_stl_lib.api import Dot1Q
 from trex_stl_lib.api import Ether
@@ -49,7 +48,6 @@ from trex_stl_lib.services.trex_stl_service_arp import STLServiceARP
 
 
 class TRex(AbstractTrafficGenerator):
-
     LATENCY_PPS = 1000
 
     def __init__(self, runner):
@@ -75,27 +73,30 @@ class TRex(AbstractTrafficGenerator):
             stats = self.__combine_stats(in_stats, ph)
             result[ph] = {
                 'tx': {
-                    'total_pkts': stats['tx_pkts']['total'],
-                    'total_pkt_bytes': stats['tx_bytes']['total'],
-                    'pkt_rate': stats['tx_pps']['total'],
-                    'pkt_bit_rate': stats['tx_bps']['total']
+                    'total_pkts': int(stats['tx_pkts']['total']),
+                    'total_pkt_bytes': int(stats['tx_bytes']['total']),
+                    'pkt_rate': int(stats['tx_pps']['total']),
+                    'pkt_bit_rate': int(stats['tx_bps']['total'])
                 },
                 'rx': {
-                    'total_pkts': stats['rx_pkts']['total'],
-                    'total_pkt_bytes': stats['rx_bytes']['total'],
-                    'pkt_rate': stats['rx_pps']['total'],
-                    'pkt_bit_rate': stats['rx_bps']['total'],
-                    'dropped_pkts': stats['tx_pkts']['total'] - stats['rx_pkts']['total']
+                    'total_pkts': int(stats['rx_pkts']['total']),
+                    'total_pkt_bytes': int(stats['rx_bytes']['total']),
+                    'pkt_rate': int(stats['rx_pps']['total']),
+                    'pkt_bit_rate': int(stats['rx_bps']['total']),
+                    'dropped_pkts': int(stats['tx_pkts']['total'] - stats['rx_pkts']['total'])
                 }
             }
 
             lat = self.__combine_latencies(in_stats, ph)
-            result[ph]['rx']['max_delay_usec'] = lat.get('total_max', float('nan'))
-            result[ph]['rx']['min_delay_usec'] = lat.get('total_min', float('nan'))
-            result[ph]['rx']['avg_delay_usec'] = lat.get('average', float('nan'))
-
+            result[ph]['rx']['max_delay_usec'] = int(
+                lat['total_max']) if 'total_max' in lat else float('nan')
+            result[ph]['rx']['min_delay_usec'] = int(
+                lat['total_min']) if 'total_min' in lat else float('nan')
+            result[ph]['rx']['avg_delay_usec'] = int(
+                lat['average']) if 'average' in lat else float(
+                'nan')
         total_tx_pkts = result[0]['tx']['total_pkts'] + result[1]['tx']['total_pkts']
-        result["total_tx_rate"] = total_tx_pkts / self.config.duration_sec
+        result["total_tx_rate"] = int(total_tx_pkts / self.config.duration_sec)
         return result
 
     def __combine_stats(self, in_stats, port_handle):

@@ -500,5 +500,6 @@ class NFVBenchSummarizer(Summarizer):
         # init is called after checking for sender
         self.record_header = {
             "runlogdate": self.sender.runlogdate,
+            "user_label": self.config['user_label']
         }
         self.record_data = {}

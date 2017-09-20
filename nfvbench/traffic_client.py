@@ -419,12 +419,13 @@ class TrafficClient(object):
 
         # ensures enough traffic is coming back
         threshold = (self.config.service_chain_count - 1) / float(self.config.service_chain_count)
-
-        for it in xrange(self.config.generic_retry_count):
+        retry_count = (self.config.check_traffic_time_sec +
+                       self.config.generic_poll_sec - 1) / self.config.generic_poll_sec
+        for it in xrange(retry_count):
             self.gen.clear_stats()
             self.gen.start_traffic()
             LOG.info('Waiting for packets to be received back... ({} / {})'.format(it + 1,
-                     self.config.generic_retry_count))
+                     retry_count))
             time.sleep(self.config.generic_poll_sec)
             self.gen.stop_traffic()
             stats = self.gen.get_stats()

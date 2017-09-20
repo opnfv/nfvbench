@@ -3,6 +3,7 @@ FROM ubuntu:16.04
 
 ENV TREX_VER "v2.29"
 ENV NFVBENCH_TAG "1.0.7"
+ENV VM_IMAGE_VER "0.4"
 
 RUN apt-get update && apt-get install -y \
        git \
@@ -28,6 +29,7 @@ RUN apt-get update && apt-get install -y \
        && cd / \
        && git clone --depth 1 -b $NFVBENCH_TAG https://gerrit.opnfv.org/gerrit/nfvbench \
        && cd /nfvbench && pip install -e . \
+       && wget -O nfvbenchvm-$VM_IMAGE_VER.qcow2 http://artifacts.opnfv.org/nfvbench/images/nfvbenchvm_centos-$VM_IMAGE_VER.qcow2 \
        && python ./docker/cleanup_generators.py \
        && rm -rf /nfvbench/.git \
        && apt-get remove -y wget git \

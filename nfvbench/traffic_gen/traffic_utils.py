@@ -14,7 +14,9 @@
 
 
 import bitmath
+from nfvbench.utils import cast_integer
 from traffic_base import AbstractTrafficGenerator
+
 
 
 def convert_rates(l2frame_size, rate, intf_speed):
@@ -39,9 +41,9 @@ def convert_rates(l2frame_size, rate, intf_speed):
 
     return {
         'initial_rate_type': initial_rate_type,
-        'rate_pps': int(pps),
+        'rate_pps': cast_integer(pps),
         'rate_percent': load,
-        'rate_bps': int(bps)
+        'rate_bps': cast_integer(bps)
     }
 
 

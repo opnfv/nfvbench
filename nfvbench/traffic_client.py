@@ -25,6 +25,7 @@ from stats_collector import IterationCollector
 import struct
 import time
 import traffic_gen.traffic_utils as utils
+from utils import cast_integer
 
 
 class TrafficClientException(Exception):
@@ -538,9 +539,12 @@ class TrafficClient(object):
                     retDict[port]['rx'][key] = int(stats[port]['rx'][key])
                 except ValueError:
                     retDict[port]['rx'][key] = 0
-            retDict[port]['rx']['avg_delay_usec'] = int(stats[port]['rx']['avg_delay_usec'])
-            retDict[port]['rx']['min_delay_usec'] = int(stats[port]['rx']['min_delay_usec'])
-            retDict[port]['rx']['max_delay_usec'] = int(stats[port]['rx']['max_delay_usec'])
+            retDict[port]['rx']['avg_delay_usec'] = cast_integer(
+                stats[port]['rx']['avg_delay_usec'])
+            retDict[port]['rx']['min_delay_usec'] = cast_integer(
+                stats[port]['rx']['min_delay_usec'])
+            retDict[port]['rx']['max_delay_usec'] = cast_integer(
+                stats[port]['rx']['max_delay_usec'])
             retDict[port]['drop_rate_percent'] = self.__get_dropped_rate(retDict[port])
 
         ports = sorted(retDict.keys())

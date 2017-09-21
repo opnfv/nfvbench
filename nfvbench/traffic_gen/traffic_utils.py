@@ -17,6 +17,7 @@ import bitmath
 from traffic_base import AbstractTrafficGenerator
 
 
+
 def convert_rates(l2frame_size, rate, intf_speed):
     avg_packet_size = get_average_packet_size(l2frame_size)
     if 'rate_pps' in rate:

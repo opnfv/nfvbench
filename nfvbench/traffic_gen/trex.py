@@ -17,6 +17,7 @@ from itertools import count
 from nfvbench.log import LOG
 from nfvbench.specs import ChainType
 from nfvbench.traffic_server import TRexTrafficServer
+from nfvbench.utils import cast_integer
 from nfvbench.utils import timeout
 from nfvbench.utils import TimeoutError
 import os
@@ -73,30 +74,31 @@ class TRex(AbstractTrafficGenerator):
             stats = self.__combine_stats(in_stats, ph)
             result[ph] = {
                 'tx': {
-                    'total_pkts': int(stats['tx_pkts']['total']),
-                    'total_pkt_bytes': int(stats['tx_bytes']['total']),
-                    'pkt_rate': int(stats['tx_pps']['total']),
-                    'pkt_bit_rate': int(stats['tx_bps']['total'])
+                    'total_pkts': cast_integer(stats['tx_pkts']['total']),
+                    'total_pkt_bytes': cast_integer(stats['tx_bytes']['total']),
+                    'pkt_rate': cast_integer(stats['tx_pps']['total']),
+                    'pkt_bit_rate': cast_integer(stats['tx_bps']['total'])
                 },
                 'rx': {
-                    'total_pkts': int(stats['rx_pkts']['total']),
-                    'total_pkt_bytes': int(stats['rx_bytes']['total']),
-                    'pkt_rate': int(stats['rx_pps']['total']),
-                    'pkt_bit_rate': int(stats['rx_bps']['total']),
-                    'dropped_pkts': int(stats['tx_pkts']['total'] - stats['rx_pkts']['total'])
+                    'total_pkts': cast_integer(stats['rx_pkts']['total']),
+                    'total_pkt_bytes': cast_integer(stats['rx_bytes']['total']),
+                    'pkt_rate': cast_integer(stats['rx_pps']['total']),
+                    'pkt_bit_rate': cast_integer(stats['rx_bps']['total']),
+                    'dropped_pkts': cast_integer(
+                        stats['tx_pkts']['total'] - stats['rx_pkts']['total'])
                 }
             }
 
             lat = self.__combine_latencies(in_stats, ph)
-            result[ph]['rx']['max_delay_usec'] = int(
+            result[ph]['rx']['max_delay_usec'] = cast_integer(
                 lat['total_max']) if 'total_max' in lat else float('nan')
-            result[ph]['rx']['min_delay_usec'] = int(
+            result[ph]['rx']['min_delay_usec'] = cast_integer(
                 lat['total_min']) if 'total_min' in lat else float('nan')
-            result[ph]['rx']['avg_delay_usec'] = int(
+            result[ph]['rx']['avg_delay_usec'] = cast_integer(
                 lat['average']) if 'average' in lat else float(
                 'nan')
         total_tx_pkts = result[0]['tx']['total_pkts'] + result[1]['tx']['total_pkts']
-        result["total_tx_rate"] = int(total_tx_pkts / self.config.duration_sec)
+        result["total_tx_rate"] = cast_integer(total_tx_pkts / self.config.duration_sec)
         return result
 
     def __combine_stats(self, in_stats, port_handle):

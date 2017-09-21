@@ -17,6 +17,7 @@ import fcntl
 from functools import wraps
 import json
 from log import LOG
+from math import isnan
 import os
 import re
 import signal
@@ -139,6 +140,10 @@ def parse_flow_count(flow_count):
         raise Exception("Unknown flow count format '{}'".format(input_fc))
 
     return flow_count * multiplier
+
+
+def cast_integer(value):
+    return int(value) if not isnan(value) else value
 
 
 class RunLock(object):

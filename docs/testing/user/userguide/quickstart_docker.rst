@@ -148,7 +148,12 @@ Edit the nfvbench.cfg file to only keep those properties that need to be modifie
 
 5. Upload the NFVbench loopback VM image to OpenStack
 -----------------------------------------------------
-[TBP URL to NFVbench VM image in the OPNFV artifact repository]
+
+By default NFVBench will try to locate a VM image file from the package root directory named "nfvbench-<version>.qcow2" and  upload that file.
+The image name will be "nfvbench-<version>" This can be overridden by specifying file path in configuration file with vm_image_file parameter,
+and that file should follow the same naming convention.
+
+In most cases, there is no need to pass vm_image_file field as the packaging should include the proper VM image file
 
 
 6. Run NFVbench

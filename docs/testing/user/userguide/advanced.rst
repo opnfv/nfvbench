@@ -288,7 +288,8 @@ The corresponding ``step`` is used for ranging the IP addresses from the `ip_add
 Traffic Configuration via CLI
 -----------------------------
 
-While traffic configuration can be modified using the configuration file, it can be inconvenient to have to change the configuration file everytime you need to change a traffic configuration option. Traffic configuration options can be overridden with a few CLI options.
+While traffic configuration can be modified using the configuration file, it can be inconvenient to have to change the configuration file everytime
+you need to change a traffic configuration option. Traffic configuration options can be overridden with a few CLI options.
 
 Here is an example of configuring traffic via CLI:
 

@@ -25,6 +25,7 @@ from stats_collector import IterationCollector
 import struct
 import time
 import traffic_gen.traffic_utils as utils
+from trex_stl_lib.api import STLError
 from utils import cast_integer
 
 
@@ -629,8 +630,11 @@ class TrafficClient(object):
 
         # Obtain the average drop rate in for middle load
         middle = (left + right) / 2.0
-        stats, rates = self.__run_search_iteration(middle)
-
+        try:
+            stats, rates = self.__run_search_iteration(middle)
+        except STLError:
+            self.__targets_found(left, targets, results)
+            return
         # Split target dicts based on the avg drop rate
         left_targets = {}
         right_targets = {}

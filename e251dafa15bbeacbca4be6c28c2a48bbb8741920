@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "da33351e_3e807245",
+        "filename": "docs/testing/user/userguide/quickstart_docker.rst",
+        "patchSetId": 7
+      },
+      "lineNbr": 156,
+      "author": {
+        "id": 5807
+      },
+      "writtenOn": "2017-09-22T19:09:36Z",
+      "side": 1,
+      "message": "all this section goes away as the user no longer needs to do anything (this is a quickstart guide)\nany discussion on override of the image should normally go to advanced section but at this point not that urgent because it is corner case.\ndo not forget to adjust the section numbering below",
+      "revId": "e251dafa15bbeacbca4be6c28c2a48bbb8741920",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "da33351e_fea28afb",
+        "filename": "docs/testing/user/userguide/server.rst",
+        "patchSetId": 7
+      },
+      "lineNbr": 50,
+      "author": {
+        "id": 5807
+      },
+      "writtenOn": "2017-09-22T19:09:36Z",
+      "side": 1,
+      "message": "pls change \"vmtp\" to anything else",
+      "revId": "e251dafa15bbeacbca4be6c28c2a48bbb8741920",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": false
+    }
+  ]
+}

@@ -50,17 +50,6 @@ Response:
   "vmtp": "test"
 }
 
-ls
-See "NFVbench configuration JSON parameter" below for details on how to format this parameter.
-
-The request returns immediately with a json content indicating if there was an error (status=ERROR) or if the request was submitted successfully (status=PENDING). Example of return when the submission is successful:
-
-.. code-block:: bash
-
-    {
-      "error_message": "nfvbench run still pending",
-      "status": "PENDING"
-    }
 
 <http-url>/status (GET)
 ^^^^^^^^^^^^^^^^^^^^^^^
@@ -92,6 +81,34 @@ Example of return when the run completes:
     }
 
 
+<http-url>/start_run (POST)
+^^^^^^^^^^^^^^^^^^^^^
+
+This request starts an NFVBench run with passed configurations.
+
+Example request: curl -XPOST 'localhost:7556/start_run' -H "Content-Type: application/json" -d @nfvbenchconfig.json
+
+See "NFVbench configuration JSON parameter" below for details on how to format this parameter.
+
+The request returns immediately with a json content indicating if there was an error (status=ERROR) or if the request was submitted successfully (status=PENDING).
+Example of return when the submission is successful:
+
+.. code-block:: bash
+
+    {
+      "error_message": "NFVbench run still pending",
+      "request_id": "42cccb7effdc43caa47f722f0ca8ec96",
+      "status": "PENDING"
+    }
+
+If there is already an NFVBench running then it will return
+
+.. code-block:: bash
+
+    {
+     "error_message": "there is already an NFVbench request running",
+     "status": "ERROR"
+    }
 
 WebSocket/SocketIO events
 -------------------------
@@ -303,7 +320,6 @@ The entire default configuration can be viewed using the --show-json-config opti
         ],
         "unidir_reverse_traffic_pps": 1,
         "vlan_tagging": true,
-        "vm_image_file": "/nfvbench/nfvbenchvm-0.3.qcow2",
         "vts_ncs": {
             "host": null,
             "password": "secret",

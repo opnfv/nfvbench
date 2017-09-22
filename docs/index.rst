@@ -6,6 +6,6 @@
 .. toctree::
    :maxdepth: 1
 
-   development/index
-   release/release-notes/index
-   testing/index
+   * :ref:`development/index`
+   * :ref:`release/release-notes/index`
+   * :ref:`testing/index`

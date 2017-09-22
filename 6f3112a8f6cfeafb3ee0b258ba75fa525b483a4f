@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "da33351e_7ef79a8b",
+        "filename": "nfvbench/traffic_client.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 636,
+      "author": {
+        "id": 5807
+      },
+      "writtenOn": "2017-09-22T23:06:14Z",
+      "side": 1,
+      "message": "here we should log the exception (LOG.exception)\nwe can\u0027t use targets_found because it displays the wrong message:\n            LOG.info(\u0027Found {} ({}) load: {}\u0027.format(tag, target, rate))\n\nwe should also force a run \"failure\" by scoring a 0 rate/0 DR to the run (since this is an abnormal condition).",
+      "revId": "6f3112a8f6cfeafb3ee0b258ba75fa525b483a4f",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": false
+    }
+  ]
+}

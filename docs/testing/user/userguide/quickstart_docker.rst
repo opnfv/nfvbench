@@ -38,11 +38,15 @@ The NFVbench container requires the following Docker options to operate properly
 |                                                      | /tmp/nfvbench director in the container but any      |
 |                                                      | other similar mapping can work as well               |
 +------------------------------------------------------+------------------------------------------------------+
-| --net=host                                           | (optional) needed if you run the NFVbench REST       |
+| --net=host                                           | (optional) needed if you run the NFVbench ok       |
 |                                                      | server in the container (or use any appropriate      |
 |                                                      | docker network mode other than "host")               |
 +------------------------------------------------------+------------------------------------------------------+
-| --privilege                                          | (optional) required if SELinux is enabled on the host|
+| --privileged                                         | (optional) required if SELinux is enabled on the host|
++------------------------------------------------------+------------------------------------------------------+
+| --e HOST="127.0.0.1"                                 | (optional) required if REST server is enabled        |
++------------------------------------------------------+------------------------------------------------------+
+| --e PORT=7556                                        | (optional) required if REST server is enabled        |
 +------------------------------------------------------+------------------------------------------------------+
 
 It can be convenient to write a shell script (or an alias) to automatically insert the necessary options.
@@ -57,11 +61,18 @@ The second approach is more responsive as the delay is only incurred once when s
 
 We will take the second approach and start the NFVbench container in detached mode with the name "nfvbench" (this works with bash, prefix with "sudo" if you do not use the root login)
 
+To run NFVBench without server mode
+
 .. code-block:: bash
 
-    docker run --detach --net=host --privileged -v $PWD:/tmp/nfvbench -v /dev:/dev -v /lib/modules/$(uname -r):/lib/modules/$(uname -r) --name nfvbench opnfv/nfvbench tail -f /dev/null
+    docker run --detach --net=host --privileged -v $PWD:/tmp/nfvbench -v /dev:/dev -v /lib/modules/$(uname -r):/lib/modules/$(uname -r) --name nfvbench opnfv/nfvbench
 
-The tail command simply prevents the container from exiting.
+To run NFVBench enabling REST server
+
+.. code-block:: bash
+
+    docker run --detach --net=host --privileged -e HOST="127.0.0.1" -e PORT=7556 -v $PWD:/tmp/nfvbench -v /dev:/dev -v /lib/modules/$(uname -r):/lib/modules/$(uname -r) --name nfvbench opnfv/nfvbench start_rest_server
+
 
 The create an alias to make it easy to execute nfvbench commands directly from the host shell prompt:
 
@@ -146,12 +157,7 @@ Alternatively, the full template with comments can be obtained using the --show-
 Edit the nfvbench.cfg file to only keep those properties that need to be modified (preserving the nesting)
 
 
-5. Upload the NFVbench loopback VM image to OpenStack
------------------------------------------------------
-[TBP URL to NFVbench VM image in the OPNFV artifact repository]
-
-
-6. Run NFVbench
+5. Run NFVbench
 ---------------
 
 To do a single run at 10,000pps bi-directional (or 5kpps in each direction) using the PVP packet path:

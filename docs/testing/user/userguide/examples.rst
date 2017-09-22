@@ -7,9 +7,11 @@ Example of Results
 Example run for fixed rate
 
 .. code-block:: bash
+
     nfvbench -c /nfvbench/nfvbenchconfig.json --rate 1%
 
 .. code-block:: bash
+
     ========== NFVBench Summary ==========
     Date: 2017-09-21 23:57:44
     NFVBench version 1.0.9
@@ -77,9 +79,11 @@ Example run for fixed rate
 Example run for NDR/PDR with package size 1518B
 
 .. code-block:: bash
+
     nfvbench -c /nfvbench/nfvbenchconfig.json -fs 1518
 
 .. code-block:: bash
+
     ========== NFVBench Summary ==========
     Date: 2017-09-22 00:02:07
     NFVBench version 1.0.9

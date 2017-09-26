@@ -44,11 +44,12 @@ The NFVbench container requires the following Docker options to operate properly
 +------------------------------------------------------+------------------------------------------------------+
 | --privileged                                         | (optional) required if SELinux is enabled on the host|
 +------------------------------------------------------+------------------------------------------------------+
-| --e HOST="127.0.0.1"                                 | (optional) required if REST server is enabled        |
+| -e HOST="127.0.0.1"                                 | (optional) required if REST server is enabled        |
 +------------------------------------------------------+------------------------------------------------------+
-| --e PORT=7556                                        | (optional) required if REST server is enabled        |
+| -e PORT=7556                                        | (optional) required if REST server is enabled        |
 +------------------------------------------------------+------------------------------------------------------+
-
+| -e CONFIG_FILE="/root/nfvbenchconfig.json           | (optional) required if REST server is enabled        |
++------------------------------------------------------+------------------------------------------------------+
 It can be convenient to write a shell script (or an alias) to automatically insert the necessary options.
 
 3. Start the Docker container
@@ -67,11 +68,11 @@ To run NFVBench without server mode
 
     docker run --detach --net=host --privileged -v $PWD:/tmp/nfvbench -v /dev:/dev -v /lib/modules/$(uname -r):/lib/modules/$(uname -r) --name nfvbench opnfv/nfvbench
 
-To run NFVBench enabling REST server
+To run NFVBench enabling REST server (mount the configuration json and the path for openrc)
 
 .. code-block:: bash
 
-    docker run --detach --net=host --privileged -e HOST="127.0.0.1" -e PORT=7556 -v $PWD:/tmp/nfvbench -v /dev:/dev -v /lib/modules/$(uname -r):/lib/modules/$(uname -r) --name nfvbench opnfv/nfvbench start_rest_server
+    docker run --detach --net=host --privileged -e HOST="127.0.0.1" -e PORT=7556 --e CONFIG_FILE="/root/nfvbenchconfig.json -v /root/nfvbenchconfig.json:/root/nfvbenchconfig.json:Z  /root/openrc:/root/openrc:Z -v $PWD:/tmp/nfvbench -v /dev:/dev -v /lib/modules/$(uname -r):/lib/modules/$(uname -r) --name nfvbench opnfv/nfvbench start_rest_server
 
 
 The create an alias to make it easy to execute nfvbench commands directly from the host shell prompt:

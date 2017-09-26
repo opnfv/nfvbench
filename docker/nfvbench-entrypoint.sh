@@ -24,16 +24,10 @@ else
         if [ -n "$PORT" ]; then
                 PARAMS+=" --port $PORT"
         fi
-        if [ -n "$OPENRC" ]; then
-            if [ -f "$OPENRC" ]; then
-                PARAMS+=" -c \"openrc_file: $OPENRC\""
-            else
-                echo "Aborting... Openrc config file cannot be found in the given path: $OPENRC"
-                exit 1
+        if [ -n "$CONFIG_FILE" ]; then
+            if [ -f "$CONFIG_FILE" ]; then
+                PARAMS+=" -c $CONFIG_FILE"
             fi
-        else
-            echo "Aborting... Openrc config path is absent"
-            exit 1
         fi
         eval "nfvbench $PARAMS"
 fi

@@ -84,7 +84,7 @@ Example of return when the run completes:
 <http-url>/start_run (POST)
 ^^^^^^^^^^^^^^^^^^^^^
 
-This request starts an NFVBench run with passed configurations.
+This request starts an NFVBench run with passed configurations. If no configuration is passed, a run with default configurations will be executed.
 
 Example request: curl -XPOST 'localhost:7556/start_run' -H "Content-Type: application/json" -d @nfvbenchconfig.json
 

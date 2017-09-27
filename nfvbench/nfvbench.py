@@ -129,10 +129,13 @@ class NFVBench(object):
 
     def prepare_summary(self, result):
         """Prepares summary of the result to print and send it to logger (eg: fluentd)"""
-        sender = FluentLogHandler("resultnfvbench",
-                                  fluentd_ip=self.config.fluentd.ip,
-                                  fluentd_port=self.config.fluentd.port) \
-            if self.config.fluentd.logging_tag else None
+        global fluent_logger
+        sender = None
+        if fluent_logger:
+            sender = FluentLogHandler("resultnfvbench",
+                                      fluentd_ip=self.config.fluentd.ip,
+                                      fluentd_port=self.config.fluentd.port)
+            sender.runlogdate = fluent_logger.runlogdate
         summary = NFVBenchSummarizer(result, sender)
         LOG.info(str(summary))
 

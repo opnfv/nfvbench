@@ -215,10 +215,13 @@ class WebSocketIoServer(object):
         self.nfvbench_runner = runner
         setup_flask(http_root)
         self.fluent_logger = logger
-        self.result_fluent_logger = FluentLogHandler("resultnfvbench",
-                                                     fluentd_ip=self.fluent_logger.sender.host,
-                                                     fluentd_port=self.fluent_logger.sender.port) \
-            if self.fluent_logger else None
+        self.result_fluent_logger = None
+        if self.fluent_logger:
+            self.result_fluent_logger = \
+                FluentLogHandler("resultnfvbench",
+                                 fluentd_ip=self.fluent_logger.sender.host,
+                                 fluentd_port=self.fluent_logger.sender.port)
+            self.result_fluent_logger.runlogdate = self.fluent_logger.runlogdate
 
     def run(self, host='127.0.0.1', port=7556):
 
@@ -250,6 +253,8 @@ class WebSocketIoServer(object):
             else:
                 # this might overwrite a previously unfetched result
                 Ctx.set_result(results)
+            if self.fluent_logger:
+                self.result_fluent_logger.runlogdate = self.fluent_logger.runlogdate
             summary = NFVBenchSummarizer(results['result'], self.result_fluent_logger)
             LOG.info(str(summary))
             Ctx.release()

@@ -2,6 +2,23 @@
   "comments": [
     {
       "key": {
+        "uuid": "da33351e_9694f98b",
+        "filename": "docs/testing/user/userguide/quickstart_docker.rst",
+        "patchSetId": 2
+      },
+      "lineNbr": 55,
+      "author": {
+        "id": 5807
+      },
+      "writtenOn": "2017-09-27T15:31:40Z",
+      "side": 1,
+      "message": "The minimal configuration file required must specify the openrc file to use (using in-container path), the PCI addresses of the 2 NIC ports to use for generating traffic and the line rate (in each direction) of each of these 2 interfaces.",
+      "revId": "272914efb9dc8ca3037473e28f9ce847279b2c08",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "da33351e_f65f450d",
         "filename": "docs/testing/user/userguide/quickstart_docker.rst",
         "patchSetId": 2
@@ -13,6 +30,40 @@
       "writtenOn": "2017-09-27T15:24:32Z",
       "side": 1,
       "message": "try to be consistent with the example above, with -v $PWD:/tmp/nfvbench \nthe path would be /tmp/nfvbench/openrc for a file that resides in the current directory of the host.\nThis needs a paragraph to explain.",
+      "revId": "272914efb9dc8ca3037473e28f9ce847279b2c08",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "da33351e_16d7494c",
+        "filename": "docs/testing/user/userguide/quickstart_docker.rst",
+        "patchSetId": 2
+      },
+      "lineNbr": 74,
+      "author": {
+        "id": 5807
+      },
+      "writtenOn": "2017-09-27T15:31:40Z",
+      "side": 1,
+      "message": "I think switch port can/should be removed and I think all keys with empty values can be removed as well. Can you try it out to make sure it works?",
+      "revId": "272914efb9dc8ca3037473e28f9ce847279b2c08",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "da33351e_76c855a8",
+        "filename": "docs/testing/user/userguide/quickstart_docker.rst",
+        "patchSetId": 2
+      },
+      "lineNbr": 85,
+      "author": {
+        "id": 5807
+      },
+      "writtenOn": "2017-09-27T15:31:40Z",
+      "side": 1,
+      "message": "Add a note that all other options in that minimal configuration must be present and should not be set to any other value.",
       "revId": "272914efb9dc8ca3037473e28f9ce847279b2c08",
       "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
       "unresolved": false

@@ -1,0 +1,55 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "da33351e_f65f450d",
+        "filename": "docs/testing/user/userguide/quickstart_docker.rst",
+        "patchSetId": 2
+      },
+      "lineNbr": 60,
+      "author": {
+        "id": 5807
+      },
+      "writtenOn": "2017-09-27T15:24:32Z",
+      "side": 1,
+      "message": "try to be consistent with the example above, with -v $PWD:/tmp/nfvbench \nthe path would be /tmp/nfvbench/openrc for a file that resides in the current directory of the host.\nThis needs a paragraph to explain.",
+      "revId": "272914efb9dc8ca3037473e28f9ce847279b2c08",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "da33351e_f6b6253d",
+        "filename": "docs/testing/user/userguide/quickstart_docker.rst",
+        "patchSetId": 2
+      },
+      "lineNbr": 106,
+      "author": {
+        "id": 5807
+      },
+      "writtenOn": "2017-09-27T15:24:32Z",
+      "side": 1,
+      "message": "good example m again pls add a sentence to explain the mapping for openrc",
+      "revId": "272914efb9dc8ca3037473e28f9ce847279b2c08",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "da33351e_567f1166",
+        "filename": "docs/testing/user/userguide/server.rst",
+        "patchSetId": 2
+      },
+      "lineNbr": 87,
+      "author": {
+        "id": 5807
+      },
+      "writtenOn": "2017-09-27T15:24:32Z",
+      "side": 1,
+      "message": "will be executed",
+      "revId": "272914efb9dc8ca3037473e28f9ce847279b2c08",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": false
+    }
+  ]
+}

@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "da33351e_760a157a",
+        "filename": "docs/testing/user/userguide/quickstart_docker.rst",
+        "patchSetId": 2
+      },
+      "lineNbr": 55,
+      "author": {
+        "id": 6949
+      },
+      "writtenOn": "2017-09-27T17:23:59Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "da33351e_9694f98b",
+      "revId": "272914efb9dc8ca3037473e28f9ce847279b2c08",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "da33351e_f65f450d",
         "filename": "docs/testing/user/userguide/quickstart_docker.rst",
         "patchSetId": 2
@@ -30,6 +48,24 @@
       "writtenOn": "2017-09-27T15:24:32Z",
       "side": 1,
       "message": "try to be consistent with the example above, with -v $PWD:/tmp/nfvbench \nthe path would be /tmp/nfvbench/openrc for a file that resides in the current directory of the host.\nThis needs a paragraph to explain.",
+      "revId": "272914efb9dc8ca3037473e28f9ce847279b2c08",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "da33351e_362d2dff",
+        "filename": "docs/testing/user/userguide/quickstart_docker.rst",
+        "patchSetId": 2
+      },
+      "lineNbr": 60,
+      "author": {
+        "id": 6949
+      },
+      "writtenOn": "2017-09-27T17:23:59Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "da33351e_f65f450d",
       "revId": "272914efb9dc8ca3037473e28f9ce847279b2c08",
       "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
       "unresolved": false
@@ -53,6 +89,24 @@
     },
     {
       "key": {
+        "uuid": "da33351e_76333562",
+        "filename": "docs/testing/user/userguide/quickstart_docker.rst",
+        "patchSetId": 2
+      },
+      "lineNbr": 74,
+      "author": {
+        "id": 6949
+      },
+      "writtenOn": "2017-09-27T17:23:59Z",
+      "side": 1,
+      "message": "tested \u0026 done",
+      "parentUuid": "da33351e_16d7494c",
+      "revId": "272914efb9dc8ca3037473e28f9ce847279b2c08",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "da33351e_76c855a8",
         "filename": "docs/testing/user/userguide/quickstart_docker.rst",
         "patchSetId": 2
@@ -64,6 +118,24 @@
       "writtenOn": "2017-09-27T15:31:40Z",
       "side": 1,
       "message": "Add a note that all other options in that minimal configuration must be present and should not be set to any other value.",
+      "revId": "272914efb9dc8ca3037473e28f9ce847279b2c08",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "da33351e_b6401da6",
+        "filename": "docs/testing/user/userguide/quickstart_docker.rst",
+        "patchSetId": 2
+      },
+      "lineNbr": 85,
+      "author": {
+        "id": 6949
+      },
+      "writtenOn": "2017-09-27T17:23:59Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "da33351e_76c855a8",
       "revId": "272914efb9dc8ca3037473e28f9ce847279b2c08",
       "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
       "unresolved": false
@@ -87,6 +159,24 @@
     },
     {
       "key": {
+        "uuid": "da33351e_963d192e",
+        "filename": "docs/testing/user/userguide/quickstart_docker.rst",
+        "patchSetId": 2
+      },
+      "lineNbr": 106,
+      "author": {
+        "id": 6949
+      },
+      "writtenOn": "2017-09-27T17:23:59Z",
+      "side": 1,
+      "message": "I changed mapping to /tmp/nfvbench and explained in above.",
+      "parentUuid": "da33351e_f6b6253d",
+      "revId": "272914efb9dc8ca3037473e28f9ce847279b2c08",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "da33351e_567f1166",
         "filename": "docs/testing/user/userguide/server.rst",
         "patchSetId": 2
@@ -98,6 +188,24 @@
       "writtenOn": "2017-09-27T15:24:32Z",
       "side": 1,
       "message": "will be executed",
+      "revId": "272914efb9dc8ca3037473e28f9ce847279b2c08",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "da33351e_d64321ad",
+        "filename": "docs/testing/user/userguide/server.rst",
+        "patchSetId": 2
+      },
+      "lineNbr": 87,
+      "author": {
+        "id": 6949
+      },
+      "writtenOn": "2017-09-27T17:23:59Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "da33351e_567f1166",
       "revId": "272914efb9dc8ca3037473e28f9ce847279b2c08",
       "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
       "unresolved": false

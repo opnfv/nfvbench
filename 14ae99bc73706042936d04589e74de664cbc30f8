@@ -1,0 +1,55 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "da33351e_96523965",
+        "filename": "docs/testing/user/userguide/quickstart_docker.rst",
+        "patchSetId": 3
+      },
+      "lineNbr": 55,
+      "author": {
+        "id": 5807
+      },
+      "writtenOn": "2017-09-27T17:47:16Z",
+      "side": 1,
+      "message": "drop line 55?",
+      "revId": "14ae99bc73706042936d04589e74de664cbc30f8",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "da33351e_d64841b5",
+        "filename": "docs/testing/user/userguide/quickstart_docker.rst",
+        "patchSetId": 3
+      },
+      "lineNbr": 60,
+      "author": {
+        "id": 5807
+      },
+      "writtenOn": "2017-09-27T17:47:16Z",
+      "side": 1,
+      "message": "\"Using the -v $PWD:/tmp/nfvbench parameter in docker run, openrc file can be referenced as in the example configuration. Actual openrc file should exist\nunder $PWD.\"\n\nrephrased as:\n\nHere is an example of mimimal configuration where:\n- the openrc file is located on the host current directory which is mapped under /tmp/nfvbench in the container (this is achieved using -v $PWD:/tmp/nfvbench)\n- the 2 NIC ports to use for generating traffic have the PCI addresses \"04:00.0\" and \"04:00.1\"",
+      "revId": "14ae99bc73706042936d04589e74de664cbc30f8",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "da33351e_36c9ad26",
+        "filename": "docs/testing/user/userguide/quickstart_docker.rst",
+        "patchSetId": 3
+      },
+      "lineNbr": 87,
+      "author": {
+        "id": 5807
+      },
+      "writtenOn": "2017-09-27T17:47:16Z",
+      "side": 1,
+      "message": "The other options in the minimal configuration must be present and must have the same values as above.",
+      "revId": "14ae99bc73706042936d04589e74de664cbc30f8",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": false
+    }
+  ]
+}

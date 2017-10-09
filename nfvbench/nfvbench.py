@@ -464,7 +464,7 @@ def main():
 
         if opts.summary:
             with open(opts.summary) as json_data:
-                print NFVBenchSummarizer(json.load(json_data), None)
+                print NFVBenchSummarizer(json.load(json_data), fluent_logger)
             sys.exit(0)
 
         # show default config in text/yaml format

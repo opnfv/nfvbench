@@ -193,9 +193,6 @@ class BasicStageClient(object):
             if name and server.name != name:
                 continue
 
-            if az and self.__get_server_az(server) != az:
-                raise StageClientException(error_msg.format('availability zones'))
-
             if flavor_id and server.flavor['id'] != flavor_id:
                 raise StageClientException(error_msg.format('flavors'))
 

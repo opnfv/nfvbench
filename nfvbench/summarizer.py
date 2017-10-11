@@ -370,7 +370,7 @@ class NFVBenchSummarizer(Summarizer):
                     'type': 'NDR',
                     'rate_bps': analysis['ndr']['rate_bps'],
                     'rate_pps': analysis['ndr']['rate_pps'],
-                    'drop_percantage': analysis['ndr']['stats']['overall']['drop_percentage'],
+                    'drop_percentage': analysis['ndr']['stats']['overall']['drop_percentage'],
                     'avg_delay_usec': analysis['ndr']['stats']['overall']['avg_delay_usec'],
                     'min_delay_usec': analysis['ndr']['stats']['overall']['min_delay_usec'],
                     'max_delay_usec': analysis['ndr']['stats']['overall']['max_delay_usec']
@@ -393,7 +393,7 @@ class NFVBenchSummarizer(Summarizer):
                     'type': 'PDR',
                     'rate_bps': analysis['pdr']['rate_bps'],
                     'rate_pps': analysis['pdr']['rate_pps'],
-                    'drop_percantage': analysis['pdr']['stats']['overall']['drop_percentage'],
+                    'drop_percentage': analysis['pdr']['stats']['overall']['drop_percentage'],
                     'avg_delay_usec': analysis['pdr']['stats']['overall']['avg_delay_usec'],
                     'min_delay_usec': analysis['pdr']['stats']['overall']['min_delay_usec'],
                     'max_delay_usec': analysis['pdr']['stats']['overall']['max_delay_usec']

@@ -375,6 +375,11 @@ fluentd:
     # log records
     logging_tag:
 
+    # by default (result_tag is empty) nfvbenc results are not sent to fluentd
+    # to enable sending nfvbench results to fluentd, specify a valid fluentd tag name
+    # to be used for the results records, which is different than logging_tag
+    result_tag:
+
     # IP address of the server, defaults to loopback
     ip: 127.0.0.1
 

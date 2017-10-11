@@ -131,8 +131,8 @@ class NFVBench(object):
         """Prepares summary of the result to print and send it to logger (eg: fluentd)"""
         global fluent_logger
         sender = None
-        if fluent_logger:
-            sender = FluentLogHandler("resultnfvbench",
+        if self.config.fluentd.result_tag:
+            sender = FluentLogHandler(self.config.fluentd.result_tag,
                                       fluentd_ip=self.config.fluentd.ip,
                                       fluentd_port=self.config.fluentd.port)
             sender.runlogdate = fluent_logger.runlogdate
@@ -467,7 +467,14 @@ def main():
                 result = json.load(json_data)
                 if opts.user_label:
                     result['config']['user_label'] = opts.user_label
-                print NFVBenchSummarizer(result, fluent_logger)
+                if config.fluentd.result_tag:
+                    sender = FluentLogHandler(config.fluentd.result_tag,
+                                              fluentd_ip=config.fluentd.ip,
+                                              fluentd_port=config.fluentd.port)
+                    sender.runlogdate = fluent_logger.runlogdate
+                    print NFVBenchSummarizer(result, sender)
+                else:
+                    print NFVBenchSummarizer(result, None)
             sys.exit(0)
 
         # show default config in text/yaml format

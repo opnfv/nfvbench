@@ -17,12 +17,12 @@
 from attrdict import AttrDict
 import logging
 from nfvbench.config import config_loads
-from nfvbench.connection import SSH
 from nfvbench.credentials import Credentials
 from nfvbench.fluentd import FluentLogHandler
 import nfvbench.log
 from nfvbench.network import Interface
 from nfvbench.network import Network
+from nfvbench.specs import ChainType
 from nfvbench.specs import Encaps
 import nfvbench.traffic_gen.traffic_utils as traffic_utils
 import os
@@ -31,22 +31,6 @@ import pytest
 __location__ = os.path.realpath(os.path.join(os.getcwd(),
                                              os.path.dirname(__file__)))
 
-
-@pytest.fixture
-def ssh(monkeypatch):
-    def mock_init(self, ssh_access, *args, **kwargs):
-        self.ssh_access = ssh_access
-        if ssh_access.private_key:
-            self.pkey = self._get_pkey(ssh_access.private_key)
-        else:
-            self.pkey = None
-        self._client = False
-        self.connect_timeout = 2
-        self.connect_retry_count = 1
-        self.connect_retry_wait_sec = 1
-        super(SSH, self).__init__()
-
-    monkeypatch.setattr(SSH, '__init__', mock_init)
 
 
 @pytest.fixture
@@ -645,6 +629,102 @@ def test_no_credentials():
         assert False
     else:
         assert True
+
+import socket
+import sys
+
+# Because trex_stl_lib may not be installed when running unit test
+# nfvbench.traffic_client will try to import STLError:
+# from trex_stl_lib.api import STLError
+# will raise ImportError: No module named trex_stl_lib.api
+try:
+    import trex_stl_lib.api
+except ImportError:
+    # Make up a trex_stl_lib.api.STLError class
+    class STLError(Exception):
+        pass
+    from types import ModuleType
+    stl_lib_mod = ModuleType('trex_stl_lib')
+    sys.modules['trex_stl_lib'] = stl_lib_mod
+    api_mod = ModuleType('trex_stl_lib.api')
+    stl_lib_mod.api = api_mod
+    sys.modules['trex_stl_lib.api'] = api_mod
+    api_mod.STLError = STLError
+
+from nfvbench.traffic_client import Device
+from nfvbench.traffic_client import IpBlock
+
+
+def test_ip_block():
+    ipb = IpBlock('10.0.0.0', '0.0.0.1', 256)
+    assert(ipb.get_ip() == '10.0.0.0')
+    assert(ipb.get_ip(255) == '10.0.0.255')
+    with pytest.raises(IndexError):
+        ipb.get_ip(256)
+    # verify with step larger than 1
+    ipb = IpBlock('10.0.0.0', '0.0.0.2', 256)
+    assert(ipb.get_ip() == '10.0.0.0')
+    assert(ipb.get_ip(1) == '10.0.0.2')
+    assert(ipb.get_ip(128) == '10.0.1.0')
+    assert(ipb.get_ip(255) == '10.0.1.254')
+    with pytest.raises(IndexError):
+        ipb.get_ip(256)
+
+def check_config(configs, cc, fc, src_ip, dst_ip, step_ip):
+    '''Verify that the range configs for each chain have adjacent IP ranges
+    of the right size and without holes between chains
+    '''
+    step = Device.ip_to_int(step_ip)
+    cfc = 0
+    sip = Device.ip_to_int(src_ip)
+    dip = Device.ip_to_int(dst_ip)
+    for index in range(cc):
+        config = configs[index]
+        assert(config['ip_src_count'] == config['ip_dst_count'])
+        assert(Device.ip_to_int(config['ip_src_addr']) == sip)
+        assert(Device.ip_to_int(config['ip_dst_addr']) == dip)
+        count = config['ip_src_count']
+        cfc += count
+        sip += count * step
+        dip += count * step
+    assert(cfc == fc)
+
+def create_device(fc, cc, ip, gip, tggip, step_ip):
+    return Device(0, 0, flow_count=fc, chain_count=cc, ip=ip, gateway_ip=gip, tg_gateway_ip=tggip,
+                     ip_addrs_step=step_ip,
+                     tg_gateway_ip_addrs_step=step_ip,
+                     gateway_ip_addrs_step=step_ip)
+
+def check_device_flow_config(step_ip):
+    fc = 99999
+    cc = 10
+    ip0 = '10.0.0.0'
+    ip1 = '20.0.0.0'
+    tggip = '50.0.0.0'
+    gip = '60.0.0.0'
+    dev0 = create_device(fc, cc, ip0, gip, tggip, step_ip)
+    dev1 = create_device(fc, cc, ip1, gip, tggip, step_ip)
+    dev0.set_destination(dev1)
+    configs = dev0.get_stream_configs(ChainType.EXT)
+    check_config(configs, cc, fc, ip0, ip1, step_ip)
+
+def test_device_flow_config():
+    check_device_flow_config('0.0.0.1')
+    check_device_flow_config('0.0.0.2')
+
+def test_device_ip_range():
+    def is_ip_range_disjoint(ip0, ip1, flows):
+        tggip = '50.0.0.0'
+        gip = '60.0.0.0'
+        dev0 = create_device(flows, 10, ip0, gip, tggip, '0.0.0.1')
+        dev1 = create_device(flows, 10, ip1, gip, tggip, '0.0.0.1')
+        dev0.set_destination(dev1)
+        return dev0.is_ip_range_disjoint()
+    assert(is_ip_range_disjoint('10.0.0.0', '20.0.0.0', 10000))
+    assert(not is_ip_range_disjoint('10.0.0.0', '10.0.1.0', 10000))
+    assert(not is_ip_range_disjoint('10.0.0.0', '10.0.1.0', 257))
+    assert(not is_ip_range_disjoint('10.0.1.0', '10.0.0.0', 257))
+
 
 def test_config():
     refcfg = {1: 100, 2: {21: 100, 22: 200}, 3: None}

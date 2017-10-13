@@ -81,6 +81,35 @@ class TrafficRunner(object):
             self.stop()
         return self.client.get_stats()
 
+class IpBlock(object):
+    def __init__(self, base_ip, step_ip, count_ip):
+        self.base_ip_int = Device.ip_to_int(base_ip)
+        self.step = Device.ip_to_int(step_ip)
+        self.max_available = count_ip
+        self.next_free = 0
+
+    def get_ip(self, index=0):
+        '''Return the IP address at given index
+        '''
+        if index < 0 or index >= self.max_available:
+            raise IndexError('Index out of bounds')
+        return Device.int_to_ip(self.base_ip_int + index * self.step)
+
+    def reserve_ip_range(self, count):
+        '''Reserve a range of count consecutive IP addresses spaced by step
+        '''
+        if self.next_free + count > self.max_available:
+            raise IndexError('No more IP addresses next free=%d max_available=%d requested=%d',
+                              self.next_free,
+                              self.max_available,
+                              count)
+        first_ip = self.get_ip(self.next_free)
+        last_ip = self.get_ip(self.next_free + count - 1)
+        self.next_free += count
+        return (first_ip, last_ip)
+
+    def reset_reservation(self):
+        self.next_free = 0
 
 class Device(object):
 
@@ -105,15 +134,15 @@ class Device(object):
         self.ip_addrs_step = ip_addrs_step
         self.tg_gateway_ip_addrs_step = tg_gateway_ip_addrs_step
         self.gateway_ip_addrs_step = gateway_ip_addrs_step
-        self.ip_list = self.expand_ip(self.ip, self.ip_addrs_step, self.flow_count)
         self.gateway_ip = gateway_ip
-        self.gateway_ip_list = self.expand_ip(self.gateway_ip,
-                                              self.gateway_ip_addrs_step,
-                                              self.chain_count)
         self.tg_gateway_ip = tg_gateway_ip
-        self.tg_gateway_ip_list = self.expand_ip(self.tg_gateway_ip,
-                                                 self.tg_gateway_ip_addrs_step,
-                                                 self.chain_count)
+        self.ip_block = IpBlock(self.ip, ip_addrs_step, flow_count)
+        self.gw_ip_block = IpBlock(gateway_ip,
+                                   gateway_ip_addrs_step,
+                                   chain_count) 
+        self.tg_gw_ip_block = IpBlock(tg_gateway_ip,
+                                      tg_gateway_ip_addrs_step,
+                                      chain_count) 
         self.udp_src_port = udp_src_port
         self.udp_dst_port = udp_dst_port
 
@@ -133,55 +162,59 @@ class Device(object):
             raise TrafficClientException('Trying to set VLAN tag as None')
         self.vlan_tag = vlan_tag
 
+    def get_gw_ip(self, chain_index):
+        '''Retrieve the IP address assigned for the gateway of a given chain
+        '''
+        return self.gw_ip_block.get_ip(chain_index)
+
     def get_stream_configs(self, service_chain):
         configs = []
-        flow_idx = 0
-        for chain_idx in xrange(self.chain_count):
-            current_flow_count = (self.flow_count - flow_idx) / (self.chain_count - chain_idx)
-            max_idx = flow_idx + current_flow_count - 1
-            ip_src_count = self.ip_to_int(self.ip_list[max_idx]) - \
-                self.ip_to_int(self.ip_list[flow_idx]) + 1
-            ip_dst_count = self.ip_to_int(self.dst.ip_list[max_idx]) - \
-                self.ip_to_int(self.dst.ip_list[flow_idx]) + 1
+        # exact flow count for each chain is calculated as follows:
+        # - all chains except the first will have the same flow count
+        #   calculated as (total_flows + chain_count - 1) / chain_count
+        # - the first chain will have the remainder  
+        # example 11 flows and 3 chains => 3, 4, 4
+        flows_per_chain = (self.flow_count + self.chain_count -1) / self.chain_count
+        cur_chain_flow_count = self.flow_count - flows_per_chain * (self.chain_count - 1)
 
+        self.ip_block.reset_reservation()
+        self.dst.ip_block.reset_reservation()
+
+        for chain_idx in xrange(self.chain_count):
+            src_ip_first, src_ip_last = self.ip_block.reserve_ip_range(cur_chain_flow_count)
+            dst_ip_first, dst_ip_last = self.dst.ip_block.reserve_ip_range(cur_chain_flow_count)
             configs.append({
-                'count': current_flow_count,
+                'count': cur_chain_flow_count,
                 'mac_src': self.mac,
                 'mac_dst': self.dst.mac if service_chain == ChainType.EXT
                 else self.vm_mac_list[chain_idx],
-                'ip_src_addr': self.ip_list[flow_idx],
-                'ip_src_addr_max': self.ip_list[max_idx],
-                'ip_src_count': ip_src_count,
-                'ip_dst_addr': self.dst.ip_list[flow_idx],
-                'ip_dst_addr_max': self.dst.ip_list[max_idx],
-                'ip_dst_count': ip_dst_count,
+                'ip_src_addr': src_ip_first,
+                'ip_src_addr_max': src_ip_last,
+                'ip_src_count': cur_chain_flow_count,
+                'ip_dst_addr': dst_ip_first,
+                'ip_dst_addr_max': dst_ip_last,
+                'ip_dst_count': cur_chain_flow_count,
                 'ip_addrs_step': self.ip_addrs_step,
                 'udp_src_port': self.udp_src_port,
                 'udp_dst_port': self.udp_dst_port,
-                'mac_discovery_gw': self.gateway_ip_list[chain_idx],
-                'ip_src_tg_gw': self.tg_gateway_ip_list[chain_idx],
-                'ip_dst_tg_gw': self.dst.tg_gateway_ip_list[chain_idx],
+                'mac_discovery_gw': self.get_gw_ip(chain_idx),
+                'ip_src_tg_gw': self.tg_gw_ip_block.get_ip(chain_idx),
+                'ip_dst_tg_gw': self.dst.tg_gw_ip_block.get_ip(chain_idx),
                 'vlan_tag': self.vlan_tag if self.vlan_tagging else None
             })
+            # after first chain, fall back to the flow count for all other chains
+            cur_chain_flow_count = flows_per_chain
 
-            flow_idx += current_flow_count
         return configs
 
-    @classmethod
-    def expand_ip(cls, ip, step_ip, count):
-        if step_ip == 'random':
-            # Repeatable Random will used in the stream src/dst IP pairs, but we still need
-            # to expand the IP based on the number of chains and flows configured. So we use
-            # "0.0.0.1" as the step to have the exact IP flow ranges for every chain.
-            step_ip = '0.0.0.1'
-
-        step_ip_in_int = cls.ip_to_int(step_ip)
-        subnet = IPNetwork(ip)
-        ip_list = []
-        for _ in xrange(count):
-            ip_list.append(subnet.ip.format())
-            subnet = subnet.next(step_ip_in_int)
-        return ip_list
+    def ip_range_overlaps(self):
+        '''Check if this device ip range is overlapping with the dst device ip range
+        '''
+        src_base_ip = Device.ip_to_int(self.ip)
+        dst_base_ip = Device.ip_to_int(self.dst.ip)
+        src_last_ip = src_base_ip + self.flow_count - 1
+        dst_last_ip = dst_base_ip + self.flow_count - 1
+        return dst_last_ip >= src_base_ip and src_last_ip >= dst_base_ip
 
     @staticmethod
     def mac_to_int(mac):
@@ -197,6 +230,9 @@ class Device(object):
     def ip_to_int(addr):
         return struct.unpack("!I", socket.inet_aton(addr))[0]
 
+    @staticmethod
+    def int_to_ip(nvalue):
+        return socket.inet_ntoa(struct.pack("!I", nvalue))
 
 class RunningTrafficProfile(object):
     """Represents traffic configuration for currently running traffic profile."""
@@ -284,14 +320,11 @@ class RunningTrafficProfile(object):
         self.dst_device.set_destination(self.src_device)
 
         if self.service_chain == ChainType.EXT and not self.no_arp \
-                and not self.__are_unique(self.src_device.ip_list, self.dst_device.ip_list):
-            raise Exception('Computed IP addresses are not unique, choose different base. '
-                            'Start IPs: {start}. End IPs: {end}'
-                            .format(start=self.src_device.ip_list,
-                                    end=self.dst_device.ip_list))
-
-    def __are_unique(self, list1, list2):
-        return set(list1).isdisjoint(set(list2))
+                and self.src_device.ip_range_overlaps():
+            raise Exception('Overlapping IP address ranges src=%s dst=%d flows=%d' %
+                            self.src_device.ip,
+                            self.dst_device.ip,
+                            self.flow_count)
 
     @property
     def devices(self):

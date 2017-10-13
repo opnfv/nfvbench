@@ -310,8 +310,8 @@ class BasicStageClient(object):
         with open(boot_script_file, 'r') as boot_script:
             content = boot_script.read()
 
-        g1cidr = self.config.generator_config.src_device.gateway_ip_list[chain_index] + '/8'
-        g2cidr = self.config.generator_config.dst_device.gateway_ip_list[chain_index] + '/8'
+        g1cidr = self.config.generator_config.src_device.get_gw_ip(chain_index) + '/8'
+        g2cidr = self.config.generator_config.dst_device.get_gw_ip(chain_index) + '/8'
 
         vm_config = {
             'forwarder': self.config.vm_forwarder,

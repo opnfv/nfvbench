@@ -27,6 +27,7 @@ from nfvbench.specs import Encaps
 import nfvbench.traffic_gen.traffic_utils as traffic_utils
 import os
 import pytest
+import sys
 
 __location__ = os.path.realpath(os.path.join(os.getcwd(),
                                              os.path.dirname(__file__)))
@@ -630,15 +631,13 @@ def test_no_credentials():
     else:
         assert True
 
-import socket
-import sys
-
 # Because trex_stl_lib may not be installed when running unit test
 # nfvbench.traffic_client will try to import STLError:
 # from trex_stl_lib.api import STLError
 # will raise ImportError: No module named trex_stl_lib.api
 try:
     import trex_stl_lib.api
+    assert(trex_stl_lib.api)
 except ImportError:
     # Make up a trex_stl_lib.api.STLError class
     class STLError(Exception):
@@ -691,9 +690,9 @@ def check_config(configs, cc, fc, src_ip, dst_ip, step_ip):
 
 def create_device(fc, cc, ip, gip, tggip, step_ip):
     return Device(0, 0, flow_count=fc, chain_count=cc, ip=ip, gateway_ip=gip, tg_gateway_ip=tggip,
-                     ip_addrs_step=step_ip,
-                     tg_gateway_ip_addrs_step=step_ip,
-                     gateway_ip_addrs_step=step_ip)
+                  ip_addrs_step=step_ip,
+                  tg_gateway_ip_addrs_step=step_ip,
+                  gateway_ip_addrs_step=step_ip)
 
 def check_device_flow_config(step_ip):
     fc = 99999
@@ -713,17 +712,17 @@ def test_device_flow_config():
     check_device_flow_config('0.0.0.2')
 
 def test_device_ip_range():
-    def is_ip_range_disjoint(ip0, ip1, flows):
+    def ip_range_overlaps(ip0, ip1, flows):
         tggip = '50.0.0.0'
         gip = '60.0.0.0'
         dev0 = create_device(flows, 10, ip0, gip, tggip, '0.0.0.1')
         dev1 = create_device(flows, 10, ip1, gip, tggip, '0.0.0.1')
         dev0.set_destination(dev1)
-        return dev0.is_ip_range_disjoint()
-    assert(is_ip_range_disjoint('10.0.0.0', '20.0.0.0', 10000))
-    assert(not is_ip_range_disjoint('10.0.0.0', '10.0.1.0', 10000))
-    assert(not is_ip_range_disjoint('10.0.0.0', '10.0.1.0', 257))
-    assert(not is_ip_range_disjoint('10.0.1.0', '10.0.0.0', 257))
+        return dev0.ip_range_overlaps()
+    assert(not ip_range_overlaps('10.0.0.0', '20.0.0.0', 10000))
+    assert(ip_range_overlaps('10.0.0.0', '10.0.1.0', 10000))
+    assert(ip_range_overlaps('10.0.0.0', '10.0.1.0', 257))
+    assert(ip_range_overlaps('10.0.1.0', '10.0.0.0', 257))
 
 
 def test_config():

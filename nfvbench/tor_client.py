@@ -27,13 +27,13 @@ class BasicTORClient(object):
     def get_int_counters(self):
         return {}
 
-    def get_vni_counters(self, vni):
+    def get_vni_counters(self, _vni):
         return {}
 
-    def get_vni_interface(self, vni, counters):
+    def get_vni_interface(self, _vni, _counters):
         return None
 
-    def get_vni_for_vlan(self, vlans):
+    def get_vni_for_vlan(self, _vlans):
         return []
 
     def attach_tg_interfaces(self, network_vlans, switch_ports):

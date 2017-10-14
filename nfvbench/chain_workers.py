@@ -34,7 +34,7 @@ class BasicWorker(object):
     def get_data(self):
         return {}
 
-    def get_network_interfaces(self, index):
+    def get_network_interfaces(self, _):
         return []
 
     def clear_interfaces(self):

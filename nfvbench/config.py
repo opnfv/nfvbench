@@ -18,7 +18,7 @@ from log import LOG
 import yaml
 
 
-def config_load(file_name, from_cfg=None, whitelist_keys=[]):
+def config_load(file_name, from_cfg=None, whitelist_keys=None):
     """Load a yaml file into a config dict, merge with from_cfg if not None
     The config file content taking precedence in case of duplicate
     """
@@ -31,13 +31,15 @@ def config_load(file_name, from_cfg=None, whitelist_keys=[]):
                         .format(file_name))
 
     if from_cfg:
+        if not whitelist_keys:
+            whitelist_keys = []
         _validate_config(cfg, from_cfg, whitelist_keys)
         cfg = from_cfg + cfg
 
     return cfg
 
 
-def config_loads(cfg_text, from_cfg=None, whitelist_keys=[]):
+def config_loads(cfg_text, from_cfg=None, whitelist_keys=None):
     """Same as config_load but load from a string
     """
     try:
@@ -46,9 +48,12 @@ def config_loads(cfg_text, from_cfg=None, whitelist_keys=[]):
         # empty string
         cfg = AttrDict()
     if from_cfg:
+        if not whitelist_keys:
+            whitelist_keys = []
         _validate_config(cfg, from_cfg, whitelist_keys)
         return from_cfg + cfg
     return cfg
+
 
 def _validate_config(subset, superset, whitelist_keys):
     def get_err_config(subset, superset):

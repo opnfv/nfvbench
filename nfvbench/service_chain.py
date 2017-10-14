@@ -14,11 +14,12 @@
 #    under the License.
 #
 
-from chain_managers import StageManager
 from collections import OrderedDict
+import time
+
+from chain_managers import StageManager
 from log import LOG
 from specs import ChainType
-import time
 
 
 class ServiceChain(object):
@@ -113,8 +114,8 @@ class ServiceChain(object):
             self.clients['traffic'].ensure_end_to_end()
 
     def run(self):
-        LOG.info('Starting {} chain...'.format(self.chain_name))
-        LOG.info('Dry run: {}'.format(self.config.no_traffic))
+        LOG.info('Starting %s chain...', self.chain_name)
+        LOG.info('Dry run: %s', self.config.no_traffic)
         results = {}
 
         self.__set_helpers()
@@ -127,7 +128,7 @@ class ServiceChain(object):
             results[self.chain_name]['mode'] = 'inter-node' \
                 if self.config.inter_node else 'intra-node'
 
-        LOG.info("Service chain '{}' run completed.".format(self.chain_name))
+        LOG.info("Service chain '%s' run completed.", self.chain_name)
         return results
 
     def get_version(self):

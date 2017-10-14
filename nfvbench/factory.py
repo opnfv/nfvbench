@@ -27,7 +27,6 @@ import tor_client
 
 
 class BasicFactory(object):
-
     chain_classes = [ChainType.EXT, ChainType.PVP, ChainType.PVVP]
 
     chain_stats_classes = {
@@ -56,7 +55,7 @@ class BasicFactory(object):
 
         return CLASS
 
-    def get_chain_worker(self, encaps, service_chain):
+    def get_chain_worker(self, _encaps, _service_chain):
         return workers.BasicWorker
 
     def get_tor_class(self, tor_type, no_tor_access):

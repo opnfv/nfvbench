@@ -12,10 +12,12 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-from log import LOG
 import os
 import subprocess
 import yaml
+
+from log import LOG
+
 
 class TrafficServerException(Exception):
     pass
@@ -29,7 +31,7 @@ class TRexTrafficServer(TrafficServer):
     def __init__(self, trex_base_dir='/opt/trex'):
         contents = os.listdir(trex_base_dir)
         # only one version of TRex should be supported in container
-        assert(len(contents) == 1)
+        assert len(contents) == 1
         self.trex_dir = os.path.join(trex_base_dir, contents[0])
 
     def run_server(self, traffic_profile, filename='/etc/trex_cfg.yaml'):

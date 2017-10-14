@@ -30,23 +30,22 @@ class Encaps(object):
 
 
 class ChainType(object):
-        PVP = "PVP"
-        PVVP = "PVVP"
-        EXT = "EXT"
+    PVP = "PVP"
+    PVVP = "PVVP"
+    EXT = "EXT"
 
-        chain_mapping = {
-            'PVP': PVP,
-            'PVVP': PVVP,
-            'EXT': EXT
-        }
+    chain_mapping = {
+        'PVP': PVP,
+        'PVVP': PVVP,
+        'EXT': EXT
+    }
 
-        @classmethod
-        def get_chain_type(cls, chain):
-            return cls.chain_mapping.get(chain.upper(), None)
+    @classmethod
+    def get_chain_type(cls, chain):
+        return cls.chain_mapping.get(chain.upper(), None)
 
 
 class OpenStackSpec(object):
-
     def __init__(self):
         self.__vswitch = "BASIC"
         self.__encaps = Encaps.BASIC
@@ -75,13 +74,11 @@ class OpenStackSpec(object):
 
 
 class RunSpec(object):
-
     def __init__(self, no_vswitch_access, openstack_spec):
         self.use_vswitch = (not no_vswitch_access) and openstack_spec.vswitch != "BASIC"
 
 
 class Specs(object):
-
     def __init__(self):
         self.openstack = None
         self.run_spec = None

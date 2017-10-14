@@ -14,8 +14,11 @@
 #    under the License.
 #
 
-from attrdict import AttrDict
 import logging
+import os
+import sys
+
+from attrdict import AttrDict
 from nfvbench.config import config_loads
 from nfvbench.credentials import Credentials
 from nfvbench.fluentd import FluentLogHandler
@@ -25,13 +28,10 @@ from nfvbench.network import Network
 from nfvbench.specs import ChainType
 from nfvbench.specs import Encaps
 import nfvbench.traffic_gen.traffic_utils as traffic_utils
-import os
 import pytest
-import sys
 
 __location__ = os.path.realpath(os.path.join(os.getcwd(),
                                              os.path.dirname(__file__)))
-
 
 
 @pytest.fixture
@@ -40,13 +40,13 @@ def openstack_vxlan_spec():
         {
             'openstack': AttrDict({
                 'vswitch': "VTS",
-                'encaps': Encaps.VxLAN}
-            ),
+                'encaps': Encaps.VxLAN}),
             'run_spec': AttrDict({
                 'use_vpp': True
             })
         }
     )
+
 
 # =========================================================================
 # PVP Chain tests
@@ -60,7 +60,7 @@ def test_chain_interface():
     assert iface.get_packet_count('rx') == 4321
     assert iface.get_packet_count('wrong_key') == 0
 
-
+# pylint: disable=redefined-outer-name
 @pytest.fixture(scope='session')
 def iface1():
     return Interface('iface1', 'trex', tx_packets=10000, rx_packets=1234)
@@ -97,7 +97,9 @@ def test_chain_network(net1, net2, iface1, iface2, iface3, iface4):
     net2.add_interface(iface4)
     assert [iface4, iface3, iface2, iface1] == net2.get_interfaces()
 
+# pylint: enable=redefined-outer-name
 
+# pylint: disable=pointless-string-statement
 """
 def test_chain_analysis(net1, monkeypatch, openstack_vxlan_spec):
     def mock_empty(self, *args, **kwargs):
@@ -261,7 +263,6 @@ def test_pvp_chain_run(pvp_chain):
     }
     assert result == expected_result
 """
-
 
 # =========================================================================
 # PVVP Chain tests
@@ -439,6 +440,7 @@ def test_pvvp_chain_run(pvvp_chain):
     assert result == expected_result
 """
 
+
 # =========================================================================
 # Traffic client tests
 # =========================================================================
@@ -477,6 +479,7 @@ def test_parse_rate_str():
     assert should_raise_error('0kbps')
     assert should_raise_error('0pps')
     assert should_raise_error('-1bps')
+
 
 def test_rate_conversion():
     assert traffic_utils.load_to_bps(50, 10000000000) == pytest.approx(5000000000.0)
@@ -615,13 +618,15 @@ def test_ndr_pdr_search(traffic_client):
         result.pop('time_taken_sec')
     assert results == expected_results
 """
+# pylint: enable=pointless-string-statement
 
 # =========================================================================
 # Other tests
 # =========================================================================
 
-def setup_module(module):
+def setup_module(_module):
     nfvbench.log.setup(mute_stdout=True)
+
 
 def test_no_credentials():
     cred = Credentials('/completely/wrong/path/openrc', None, False)
@@ -631,18 +636,23 @@ def test_no_credentials():
     else:
         assert True
 
+
 # Because trex_stl_lib may not be installed when running unit test
 # nfvbench.traffic_client will try to import STLError:
 # from trex_stl_lib.api import STLError
 # will raise ImportError: No module named trex_stl_lib.api
 try:
     import trex_stl_lib.api
-    assert(trex_stl_lib.api)
+
+    assert trex_stl_lib.api
 except ImportError:
     # Make up a trex_stl_lib.api.STLError class
     class STLError(Exception):
         pass
+
+
     from types import ModuleType
+
     stl_lib_mod = ModuleType('trex_stl_lib')
     sys.modules['trex_stl_lib'] = stl_lib_mod
     api_mod = ModuleType('trex_stl_lib.api')
@@ -650,24 +660,26 @@ except ImportError:
     sys.modules['trex_stl_lib.api'] = api_mod
     api_mod.STLError = STLError
 
+# pylint: disable=wrong-import-position,ungrouped-imports
 from nfvbench.traffic_client import Device
 from nfvbench.traffic_client import IpBlock
-
+# pylint: enable=wrong-import-position,ungrouped-imports
 
 def test_ip_block():
     ipb = IpBlock('10.0.0.0', '0.0.0.1', 256)
-    assert(ipb.get_ip() == '10.0.0.0')
-    assert(ipb.get_ip(255) == '10.0.0.255')
+    assert ipb.get_ip() == '10.0.0.0'
+    assert ipb.get_ip(255) == '10.0.0.255'
     with pytest.raises(IndexError):
         ipb.get_ip(256)
     # verify with step larger than 1
     ipb = IpBlock('10.0.0.0', '0.0.0.2', 256)
-    assert(ipb.get_ip() == '10.0.0.0')
-    assert(ipb.get_ip(1) == '10.0.0.2')
-    assert(ipb.get_ip(128) == '10.0.1.0')
-    assert(ipb.get_ip(255) == '10.0.1.254')
+    assert ipb.get_ip() == '10.0.0.0'
+    assert ipb.get_ip(1) == '10.0.0.2'
+    assert ipb.get_ip(128) == '10.0.1.0'
+    assert ipb.get_ip(255) == '10.0.1.254'
     with pytest.raises(IndexError):
         ipb.get_ip(256)
+
 
 def check_config(configs, cc, fc, src_ip, dst_ip, step_ip):
     '''Verify that the range configs for each chain have adjacent IP ranges
@@ -679,20 +691,22 @@ def check_config(configs, cc, fc, src_ip, dst_ip, step_ip):
     dip = Device.ip_to_int(dst_ip)
     for index in range(cc):
         config = configs[index]
-        assert(config['ip_src_count'] == config['ip_dst_count'])
-        assert(Device.ip_to_int(config['ip_src_addr']) == sip)
-        assert(Device.ip_to_int(config['ip_dst_addr']) == dip)
+        assert config['ip_src_count'] == config['ip_dst_count']
+        assert Device.ip_to_int(config['ip_src_addr']) == sip
+        assert Device.ip_to_int(config['ip_dst_addr']) == dip
         count = config['ip_src_count']
         cfc += count
         sip += count * step
         dip += count * step
-    assert(cfc == fc)
+    assert cfc == fc
+
 
 def create_device(fc, cc, ip, gip, tggip, step_ip):
     return Device(0, 0, flow_count=fc, chain_count=cc, ip=ip, gateway_ip=gip, tg_gateway_ip=tggip,
                   ip_addrs_step=step_ip,
                   tg_gateway_ip_addrs_step=step_ip,
                   gateway_ip_addrs_step=step_ip)
+
 
 def check_device_flow_config(step_ip):
     fc = 99999
@@ -707,9 +721,11 @@ def check_device_flow_config(step_ip):
     configs = dev0.get_stream_configs(ChainType.EXT)
     check_config(configs, cc, fc, ip0, ip1, step_ip)
 
+
 def test_device_flow_config():
     check_device_flow_config('0.0.0.1')
     check_device_flow_config('0.0.0.2')
+
 
 def test_device_ip_range():
     def ip_range_overlaps(ip0, ip1, flows):
@@ -719,10 +735,11 @@ def test_device_ip_range():
         dev1 = create_device(flows, 10, ip1, gip, tggip, '0.0.0.1')
         dev0.set_destination(dev1)
         return dev0.ip_range_overlaps()
-    assert(not ip_range_overlaps('10.0.0.0', '20.0.0.0', 10000))
-    assert(ip_range_overlaps('10.0.0.0', '10.0.1.0', 10000))
-    assert(ip_range_overlaps('10.0.0.0', '10.0.1.0', 257))
-    assert(ip_range_overlaps('10.0.1.0', '10.0.0.0', 257))
+
+    assert not ip_range_overlaps('10.0.0.0', '20.0.0.0', 10000)
+    assert ip_range_overlaps('10.0.0.0', '10.0.1.0', 10000)
+    assert ip_range_overlaps('10.0.0.0', '10.0.1.0', 257)
+    assert ip_range_overlaps('10.0.1.0', '10.0.0.0', 257)
 
 
 def test_config():
@@ -730,10 +747,10 @@ def test_config():
     res1 = {1: 10, 2: {21: 100, 22: 200}, 3: None}
     res2 = {1: 100, 2: {21: 1000, 22: 200}, 3: None}
     res3 = {1: 100, 2: {21: 100, 22: 200}, 3: "abc"}
-    assert(config_loads("{}", refcfg) == refcfg)
-    assert(config_loads("{1: 10}", refcfg) == res1)
-    assert(config_loads("{2: {21: 1000}}", refcfg) == res2)
-    assert(config_loads('{3: "abc"}', refcfg) == res3)
+    assert config_loads("{}", refcfg) == refcfg
+    assert config_loads("{1: 10}", refcfg) == res1
+    assert config_loads("{2: {21: 1000}}", refcfg) == res2
+    assert config_loads('{3: "abc"}', refcfg) == res3
 
     # correctly fails
     # pairs of input string and expected subset (None if identical)
@@ -754,11 +771,12 @@ def test_config():
 
     # whitelist keys
     flavor = {'flavor': {'vcpus': 2, 'ram': 8192, 'disk': 0,
-              'extra_specs': {'hw:cpu_policy': 'dedicated'}}}
+                         'extra_specs': {'hw:cpu_policy': 'dedicated'}}}
     new_flavor = {'flavor': {'vcpus': 2, 'ram': 8192, 'disk': 0,
-                  'extra_specs': {'hw:cpu_policy': 'dedicated', 'hw:numa_nodes': 2}}}
-    assert(config_loads("{'flavor': {'extra_specs': {'hw:numa_nodes': 2}}}", flavor,
-                        whitelist_keys=['alpha', 'extra_specs']) == new_flavor)
+                             'extra_specs': {'hw:cpu_policy': 'dedicated', 'hw:numa_nodes': 2}}}
+    assert config_loads("{'flavor': {'extra_specs': {'hw:numa_nodes': 2}}}", flavor,
+                        whitelist_keys=['alpha', 'extra_specs']) == new_flavor
+
 
 def test_fluentd():
     logger = logging.getLogger('fluent-logger')

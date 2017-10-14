@@ -12,16 +12,17 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-import errno
-import fcntl
-from functools import wraps
-import json
-from log import LOG
 from math import isnan
 import os
 import re
 import signal
 import subprocess
+
+import errno
+import fcntl
+from functools import wraps
+import json
+from log import LOG
 
 
 class TimeoutError(Exception):
@@ -30,7 +31,7 @@ class TimeoutError(Exception):
 
 def timeout(seconds=10, error_message=os.strerror(errno.ETIME)):
     def decorator(func):
-        def _handle_timeout(signum, frame):
+        def _handle_timeout(_signum, _frame):
             raise TimeoutError(error_message)
 
         def wrapper(*args, **kwargs):
@@ -110,7 +111,7 @@ def get_intel_pci(nic_ports):
     for driver in ['i40e', 'ixgbe']:
         matches = re.findall(regex.format(hx=hx, driver=driver), devices)
         if matches:
-            pcis = map(lambda x: x[0], matches)
+            pcis = [x[0] for x in matches]
             if len(pcis) < 2:
                 continue
             pcis.sort()

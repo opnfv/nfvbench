@@ -12,11 +12,7 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-from nfvbench.log import LOG
-
 from traffic_base import AbstractTrafficGenerator
-import traffic_utils as utils
-
 
 
 class DummyTG(AbstractTrafficGenerator):
@@ -49,12 +45,6 @@ class DummyTG(AbstractTrafficGenerator):
 
     def create_traffic(self, l2frame_size, rates, bidirectional, latency=True):
         pass
-
-    def modify_rate(self, rate, reverse):
-        port_index = int(reverse)
-        port = self.port_handle[port_index]
-        self.rates[port_index] = utils.to_rate_str(rate)
-        LOG.info('Modified traffic stream for %s, new rate=%s.' % (port, utils.to_rate_str(rate)))
 
     def clear_streamblock(self):
         pass

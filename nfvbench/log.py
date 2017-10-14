@@ -31,7 +31,10 @@ def setup(mute_stdout=False):
     # disable unnecessary information capture
     logging.logThreads = 0
     logging.logProcesses = 0
+    # to make sure each log record does not have a source file name attached
+    # pylint: disable=protected-access
     logging._srcfile = None
+    # pylint: enable=protected-access
 
 def add_file_logger(logfile):
     if logfile:

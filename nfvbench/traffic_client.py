@@ -12,20 +12,24 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+from datetime import datetime
+import socket
+import struct
+import time
+
 from attrdict import AttrDict
 import bitmath
-from datetime import datetime
-from log import LOG
 from netaddr import IPNetwork
+# pylint: disable=import-error
+from trex_stl_lib.api import STLError
+# pylint: enable=import-error
+
+from log import LOG
 from network import Interface
-import socket
 from specs import ChainType
 from stats_collector import IntervalCollector
 from stats_collector import IterationCollector
-import struct
-import time
 import traffic_gen.traffic_utils as utils
-from trex_stl_lib.api import STLError
 from utils import cast_integer
 
 
@@ -34,7 +38,6 @@ class TrafficClientException(Exception):
 
 
 class TrafficRunner(object):
-
     def __init__(self, client, duration_sec, interval_sec=0):
         self.client = client
         self.start_time = None
@@ -59,8 +62,7 @@ class TrafficRunner(object):
     def time_elapsed(self):
         if self.is_running():
             return time.time() - self.start_time
-        else:
-            return self.duration_sec
+        return self.duration_sec
 
     def poll_stats(self):
         if not self.is_running():
@@ -81,6 +83,7 @@ class TrafficRunner(object):
             self.stop()
         return self.client.get_stats()
 
+
 class IpBlock(object):
     def __init__(self, base_ip, step_ip, count_ip):
         self.base_ip_int = Device.ip_to_int(base_ip)
@@ -100,9 +103,9 @@ class IpBlock(object):
         '''
         if self.next_free + count > self.max_available:
             raise IndexError('No more IP addresses next free=%d max_available=%d requested=%d',
-                              self.next_free,
-                              self.max_available,
-                              count)
+                             self.next_free,
+                             self.max_available,
+                             count)
         first_ip = self.get_ip(self.next_free)
         last_ip = self.get_ip(self.next_free + count - 1)
         self.next_free += count
@@ -111,8 +114,8 @@ class IpBlock(object):
     def reset_reservation(self):
         self.next_free = 0
 
-class Device(object):
 
+class Device(object):
     def __init__(self, port, pci, switch_port=None, vtep_vlan=None, ip=None, tg_gateway_ip=None,
                  gateway_ip=None, ip_addrs_step=None, tg_gateway_ip_addrs_step=None,
                  gateway_ip_addrs_step=None, udp_src_port=None, udp_dst_port=None,
@@ -139,10 +142,10 @@ class Device(object):
         self.ip_block = IpBlock(self.ip, ip_addrs_step, flow_count)
         self.gw_ip_block = IpBlock(gateway_ip,
                                    gateway_ip_addrs_step,
-                                   chain_count) 
+                                   chain_count)
         self.tg_gw_ip_block = IpBlock(tg_gateway_ip,
                                       tg_gateway_ip_addrs_step,
-                                      chain_count) 
+                                      chain_count)
         self.udp_src_port = udp_src_port
         self.udp_dst_port = udp_dst_port
 
@@ -172,9 +175,9 @@ class Device(object):
         # exact flow count for each chain is calculated as follows:
         # - all chains except the first will have the same flow count
         #   calculated as (total_flows + chain_count - 1) / chain_count
-        # - the first chain will have the remainder  
+        # - the first chain will have the remainder
         # example 11 flows and 3 chains => 3, 4, 4
-        flows_per_chain = (self.flow_count + self.chain_count -1) / self.chain_count
+        flows_per_chain = (self.flow_count + self.chain_count - 1) / self.chain_count
         cur_chain_flow_count = self.flow_count - flows_per_chain * (self.chain_count - 1)
 
         self.ip_block.reset_reservation()
@@ -186,8 +189,8 @@ class Device(object):
             configs.append({
                 'count': cur_chain_flow_count,
                 'mac_src': self.mac,
-                'mac_dst': self.dst.mac if service_chain == ChainType.EXT
-                else self.vm_mac_list[chain_idx],
+                'mac_dst': self.dst.mac if service_chain == ChainType.EXT else self.vm_mac_list[
+                    chain_idx],
                 'ip_src_addr': src_ip_first,
                 'ip_src_addr_max': src_ip_last,
                 'ip_src_count': cur_chain_flow_count,
@@ -234,6 +237,7 @@ class Device(object):
     def int_to_ip(nvalue):
         return socket.inet_ntoa(struct.pack("!I", nvalue))
 
+
 class RunningTrafficProfile(object):
     """Represents traffic configuration for currently running traffic profile."""
 
@@ -277,8 +281,8 @@ class RunningTrafficProfile(object):
         generator_config = AttrDict(traffic_generator)
         generator_config.pop('default_profile')
         generator_config.pop('generator_profile')
-        matching_profile = filter(lambda profile: profile.name == generator_profile,
-                                  traffic_generator.generator_profile)
+        matching_profile = [profile for profile in traffic_generator.generator_profile if
+                            profile.name == generator_profile]
         if len(matching_profile) != 1:
             raise Exception('Traffic generator profile not found: ' + generator_profile)
 
@@ -348,7 +352,6 @@ class RunningTrafficProfile(object):
 
 
 class TrafficGeneratorFactory(object):
-
     def __init__(self, config):
         self.config = config
 
@@ -363,8 +366,7 @@ class TrafficGeneratorFactory(object):
         elif tool == 'dummy':
             from traffic_gen import dummy
             return dummy.DummyTG(self.config)
-        else:
-            return None
+        return None
 
     def list_generator_profile(self):
         return [profile.name for profile in self.config.traffic_generator.generator_profile]
@@ -373,12 +375,12 @@ class TrafficGeneratorFactory(object):
         return RunningTrafficProfile(self.config, generator_profile)
 
     def get_matching_profile(self, traffic_profile_name):
-        matching_profile = filter(lambda profile: profile.name == traffic_profile_name,
-                                  self.config.traffic_profile)
+        matching_profile = [profile for profile in self.config.traffic_profile if
+                            profile.name == traffic_profile_name]
 
         if len(matching_profile) > 1:
             raise Exception('Multiple traffic profiles with the same name found.')
-        elif len(matching_profile) == 0:
+        elif not matching_profile:
             raise Exception('No traffic profile found.')
 
         return matching_profile[0]
@@ -389,7 +391,6 @@ class TrafficGeneratorFactory(object):
 
 
 class TrafficClient(object):
-
     PORTS = [0, 1]
 
     def __init__(self, config, notifier=None):
@@ -408,7 +409,7 @@ class TrafficClient(object):
             'l2frame_size': None,
             'duration_sec': self.config.duration_sec,
             'bidirectional': True,
-            'rates': None
+            'rates': []  # to avoid unsbuscriptable-obj warning
         }
         self.current_total_rate = {'rate_percent': '10'}
         if self.config.single_run:
@@ -459,8 +460,7 @@ class TrafficClient(object):
         for it in xrange(retry_count):
             self.gen.clear_stats()
             self.gen.start_traffic()
-            LOG.info('Waiting for packets to be received back... ({} / {})'.format(it + 1,
-                     retry_count))
+            LOG.info('Waiting for packets to be received back... (%d / %d)', it + 1, retry_count)
             time.sleep(self.config.generic_poll_sec)
             self.gen.stop_traffic()
             stats = self.gen.get_stats()
@@ -553,8 +553,7 @@ class TrafficClient(object):
         total_pkts = result['tx']['total_pkts']
         if not total_pkts:
             return float('inf')
-        else:
-            return float(dropped_pkts) / total_pkts * 100
+        return float(dropped_pkts) / total_pkts * 100
 
     def get_stats(self):
         stats = self.gen.get_stats()
@@ -621,7 +620,7 @@ class TrafficClient(object):
         self.interval_collector.add_ndr_pdr(tag, last_stats)
 
     def __format_output_stats(self, stats):
-        for key in (self.PORTS + ['overall']):
+        for key in self.PORTS + ['overall']:
             interface = stats[key]
             stats[key] = {
                 'tx_pkts': interface['tx']['total_pkts'],
@@ -637,7 +636,7 @@ class TrafficClient(object):
 
     def __targets_found(self, rate, targets, results):
         for tag, target in targets.iteritems():
-            LOG.info('Found {} ({}) load: {}'.format(tag, target, rate))
+            LOG.info('Found %s (%s) load: %s', tag, target, rate)
             self.__ndr_pdr_found(tag, rate)
             results[tag]['timestamp_sec'] = time.time()
 
@@ -652,9 +651,9 @@ class TrafficClient(object):
                 ('ndr', 'pdr')
         results a dict to store results
         '''
-        if len(targets) == 0:
+        if not targets:
             return
-        LOG.info('Range search [{} .. {}] targets: {}'.format(left, right, targets))
+        LOG.info('Range search [%s .. %s] targets: %s', left, right, targets)
 
         # Terminate search when gap is less than load epsilon
         if right - left < self.config.measurement.load_epsilon:
@@ -733,7 +732,7 @@ class TrafficClient(object):
 
         # save reliable stats from whole iteration
         self.iteration_collector.add(stats, current_traffic_config['direction-total']['rate_pps'])
-        LOG.info('Average drop rate: {}'.format(stats['overall']['drop_rate_percent']))
+        LOG.info('Average drop rate: %f', stats['overall']['drop_rate_percent'])
 
         return stats, current_traffic_config['direction-total']
 
@@ -761,7 +760,7 @@ class TrafficClient(object):
             if stats is None:
                 return
         self.log_stats(stats)
-        LOG.info('Drop rate: {}'.format(stats['overall']['drop_rate_percent']))
+        LOG.info('Drop rate: %f', stats['overall']['drop_rate_percent'])
         yield stats
 
     def cancel_traffic(self):
@@ -817,7 +816,8 @@ class TrafficClient(object):
         for direction in ['orig', 'tx', 'rx']:
             total[direction] = {}
             for unit in ['rate_percent', 'rate_bps', 'rate_pps']:
-                total[direction][unit] = sum(map(lambda x: float(x[direction][unit]), r.values()))
+
+                total[direction][unit] = sum([float(x[direction][unit]) for x in r.values()])
 
         r['direction-total'] = total
         return r

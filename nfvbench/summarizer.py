@@ -14,10 +14,11 @@
 #    under the License.
 #
 
-import bitmath
 from contextlib import contextmanager
 from datetime import datetime
 import math
+
+import bitmath
 import pytz
 from specs import ChainType
 from tabulate import tabulate
@@ -40,12 +41,11 @@ class Formatter(object):
 
     @staticmethod
     def standard(data):
-        if type(data) == int:
+        if isinstance(data, int):
             return Formatter.int(data)
-        elif type(data) == float:
+        elif isinstance(data, float):
             return Formatter.float(4)(data)
-        else:
-            return Formatter.fixed(data)
+        return Formatter.fixed(data)
 
     @staticmethod
     def suffix(suffix_str):
@@ -70,8 +70,7 @@ class Formatter(object):
         bps = byte_to_bit_classes.get(bit.unit, bitmath.Bit).from_other(bit) / 8.0
         if bps.unit != 'Bit':
             return bps.format("{value:.4f} {unit}ps")
-        else:
-            return bps.format("{value:.4f} bps")
+        return bps.format("{value:.4f} bps")
 
     @staticmethod
     def percentage(data):
@@ -79,8 +78,7 @@ class Formatter(object):
             return ''
         elif math.isnan(data):
             return '-'
-        else:
-            return Formatter.suffix('%')(Formatter.float(4)(data))
+        return Formatter.suffix('%')(Formatter.float(4)(data))
 
 
 class Table(object):
@@ -92,7 +90,7 @@ class Table(object):
         self.columns = len(header_row)
 
     def add_row(self, row):
-        assert (self.columns == len(row))
+        assert self.columns == len(row)
         formatted_row = []
         for entry, formatter in zip(row, self.formatters):
             formatted_row.append(formatter(entry))
@@ -123,7 +121,7 @@ class Summarizer(object):
         self.marker_stack.append(marker)
 
     def __unindent(self):
-        assert (self.indent_size >= self.indent_per_level)
+        assert self.indent_size >= self.indent_per_level
         self.indent_size -= self.indent_per_level
         self.marker_stack.pop()
 
@@ -135,7 +133,7 @@ class Summarizer(object):
 
     def _put(self, *args):
         self.str += self.__get_indent_string()
-        if len(args) and type(args[-1]) == dict:
+        if args and isinstance(args[-1], dict):
             self.str += ' '.join(map(str, args[:-1])) + '\n'
             self._put_dict(args[-1])
         else:
@@ -144,7 +142,7 @@ class Summarizer(object):
     def _put_dict(self, data):
         with self._create_block(False):
             for key, value in data.iteritems():
-                if type(value) == dict:
+                if isinstance(value, dict):
                     self._put(key + ':')
                     self._put_dict(value)
                 else:
@@ -472,8 +470,7 @@ class NFVBenchSummarizer(Summarizer):
     def __record_send(self):
         if self.sender:
             self.record_header["@timestamp"] = datetime.utcnow().replace(
-                tzinfo=pytz.utc).strftime(
-                "%Y-%m-%dT%H:%M:%S.%f%z")
+                tzinfo=pytz.utc).strftime("%Y-%m-%dT%H:%M:%S.%f%z")
             for frame_size in self.record_data:
                 data = self.record_header
                 data['frame_size'] = frame_size

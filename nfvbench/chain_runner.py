@@ -14,9 +14,10 @@
 #    under the License.
 #
 
+import traceback
+
 from log import LOG
 from service_chain import ServiceChain
-import traceback
 from traffic_client import TrafficClient
 
 

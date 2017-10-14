@@ -14,14 +14,16 @@
 #    under the License.
 #
 
-import compute
-from glanceclient.v2 import client as glanceclient
-from log import LOG
-from neutronclient.neutron import client as neutronclient
-from novaclient.client import Client
 import os
 import re
 import time
+
+import compute
+from log import LOG
+
+from glanceclient.v2 import client as glanceclient
+from neutronclient.neutron import client as neutronclient
+from novaclient.client import Client
 
 
 class StageClientException(Exception):
@@ -65,7 +67,8 @@ class BasicStageClient(object):
                     LOG.info('Created instance: %s', instance.name)
                 self.vms[i] = instance
                 setattr(self.vms[i], 'is_reuse', is_reuse)
-            if all(map(lambda instance: instance.status == 'ACTIVE', self.vms)):
+
+            if all([(vm.status == 'ACTIVE') for vm in self.vms]):
                 return
             time.sleep(self.config.generic_poll_sec)
         raise StageClientException('Timed out waiting for VMs to spawn')
@@ -139,7 +142,7 @@ class BasicStageClient(object):
         # add subnet id to the network dict since it has just been added
         network['subnets'] = [subnet['id']]
         network['is_reuse'] = False
-        LOG.info('Created network: %s.' % name)
+        LOG.info('Created network: %s.', name)
         return network
 
     def _create_port(self, net):
@@ -161,7 +164,7 @@ class BasicStageClient(object):
             except Exception:
                 retry += 1
                 time.sleep(self.config.generic_poll_sec)
-        LOG.error('Unable to delete port: %s' % (port['id']))
+        LOG.error('Unable to delete port: %s', port['id'])
 
     def __delete_net(self, network):
         retry = 0
@@ -172,7 +175,7 @@ class BasicStageClient(object):
             except Exception:
                 retry += 1
                 time.sleep(self.config.generic_poll_sec)
-        LOG.error('Unable to delete network: %s' % (network['name']))
+        LOG.error('Unable to delete network: %s', network['name'])
 
     def __get_server_az(self, server):
         availability_zone = getattr(server, 'OS-EXT-AZ:availability_zone', None)
@@ -185,7 +188,7 @@ class BasicStageClient(object):
 
     def _lookup_servers(self, name=None, nets=None, az=None, flavor_id=None):
         error_msg = 'VM with the same name, but non-matching {} found. Aborting.'
-        networks = set(map(lambda net: net['name'], nets)) if nets else None
+        networks = set([net['name'] for net in nets]) if nets else None
         server_list = self.comp.get_server_list()
         matching_servers = []
 
@@ -208,7 +211,7 @@ class BasicStageClient(object):
         return matching_servers
 
     def _create_server(self, name, ports, az, nfvbenchvm_config):
-        port_ids = map(lambda port: {'port-id': port['id']}, ports)
+        port_ids = [{'port-id': port['id']} for port in ports]
         nfvbenchvm_config_location = os.path.join('/etc/', self.nfvbenchvm_config_name)
         server = self.comp.create_server(name,
                                          self.image_instance,
@@ -222,7 +225,7 @@ class BasicStageClient(object):
                                          files={nfvbenchvm_config_location: nfvbenchvm_config})
         if server:
             setattr(server, 'is_reuse', False)
-            LOG.info('Creating instance: %s on %s' % (name, az))
+            LOG.info('Creating instance: %s on %s', name, az)
         else:
             raise StageClientException('Unable to create instance: %s.' % (name))
         return server
@@ -232,14 +235,14 @@ class BasicStageClient(object):
         if self.image_name:
             self.image_instance = self.comp.find_image(self.image_name)
         if self.image_instance:
-            LOG.info("Reusing image %s" % self.image_name)
+            LOG.info("Reusing image %s", self.image_name)
         else:
-            image_name_search_pattern = '(nfvbenchvm-\d+(\.\d+)*).qcow2'
+            image_name_search_pattern = r'(nfvbenchvm-\d+(\.\d+)*).qcow2'
             if self.config.vm_image_file:
                 match = re.search(image_name_search_pattern, self.config.vm_image_file)
                 if match:
                     self.image_name = match.group(1)
-                    LOG.info('Using provided VM image file %s' % self.config.vm_image_file)
+                    LOG.info('Using provided VM image file %s', self.config.vm_image_file)
                 else:
                     raise StageClientException('Provided VM image file name %s must start with '
                                                '"nfvbenchvm-<version>"' % self.config.vm_image_file)
@@ -249,15 +252,14 @@ class BasicStageClient(object):
                     if re.search(image_name_search_pattern, f):
                         self.config.vm_image_file = pkg_root + '/' + f
                         self.image_name = f.replace('.qcow2', '')
-                        LOG.info('Found built-in VM image file %s' % f)
+                        LOG.info('Found built-in VM image file %s', f)
                         break
                 else:
                     raise StageClientException('Cannot find any built-in VM image file.')
             if self.image_name:
                 self.image_instance = self.comp.find_image(self.image_name)
             if not self.image_instance:
-                LOG.info('Uploading %s'
-                         % self.image_name)
+                LOG.info('Uploading %s', self.image_name)
                 res = self.comp.upload_image_via_url(self.image_name,
                                                      self.config.vm_image_file)
 
@@ -265,7 +267,7 @@ class BasicStageClient(object):
                     raise StageClientException('Error uploading image %s from %s. ABORTING.'
                                                % (self.image_name,
                                                   self.config.vm_image_file))
-                LOG.info('Image %s successfully uploaded.' % self.image_name)
+                LOG.info('Image %s successfully uploaded.', self.image_name)
                 self.image_instance = self.comp.find_image(self.image_name)
 
         self.__setup_flavor()
@@ -285,7 +287,7 @@ class BasicStageClient(object):
                                                                  override=True,
                                                                  **flavor_dict)
 
-            LOG.info("Flavor '%s' was created." % self.config.flavor_type)
+            LOG.info("Flavor '%s' was created.", self.config.flavor_type)
 
             if extra_specs:
                 self.flavor_type['flavor'].set_keys(extra_specs)
@@ -298,10 +300,10 @@ class BasicStageClient(object):
 
     def __delete_flavor(self, flavor):
         if self.comp.delete_flavor(flavor=flavor):
-            LOG.info("Flavor '%s' deleted" % self.config.flavor_type)
+            LOG.info("Flavor '%s' deleted", self.config.flavor_type)
             self.flavor_type = {'is_reuse': False, 'flavor': None}
         else:
-            LOG.error('Unable to delete flavor: %s' % self.config.flavor_type)
+            LOG.error('Unable to delete flavor: %s', self.config.flavor_type)
 
     def get_config_file(self, chain_index, src_mac, dst_mac):
         boot_script_file = os.path.join(os.path.dirname(os.path.abspath(__file__)),
@@ -339,7 +341,7 @@ class BasicStageClient(object):
         """
         Disable security at port level.
         """
-        vm_ids = map(lambda vm: vm.id, self.vms)
+        vm_ids = [vm.id for vm in self.vms]
         for net in self.nets:
             for port in self.ports[net['id']]:
                 if port['device_id'] in vm_ids:
@@ -349,7 +351,7 @@ class BasicStageClient(object):
                             'port_security_enabled': False,
                         }
                     })
-                    LOG.info('Security disabled on port {}'.format(port['id']))
+                    LOG.info('Security disabled on port %s', port['id'])
 
     def get_loop_vm_hostnames(self):
         return [getattr(vm, 'OS-EXT-SRV-ATTR:hypervisor_hostname') for vm in self.vms]
@@ -361,8 +363,7 @@ class BasicStageClient(object):
         if not self.host_ips:
             #  get the hypervisor object from the host name
             self.host_ips = [self.comp.get_hypervisor(
-                             getattr(vm, 'OS-EXT-SRV-ATTR:hypervisor_hostname')).host_ip
-                             for vm in self.vms]
+                getattr(vm, 'OS-EXT-SRV-ATTR:hypervisor_hostname')).host_ip for vm in self.vms]
         return self.host_ips
 
     def get_loop_vm_compute_nodes(self):
@@ -378,11 +379,10 @@ class BasicStageClient(object):
                                        flavor_id=self.flavor_type['flavor'].id)
         if servers:
             server = servers[0]
-            LOG.info('Reusing existing server: ' + name)
+            LOG.info('Reusing existing server: %s', name)
             setattr(server, 'is_reuse', True)
             return server
-        else:
-            return None
+        return None
 
     def get_networks_uuids(self):
         """
@@ -400,7 +400,7 @@ class BasicStageClient(object):
         """
         vlans = []
         for net in self.nets:
-            assert (net['provider:network_type'] == 'vlan')
+            assert net['provider:network_type'] == 'vlan'
             vlans.append(net['provider:segmentation_id'])
 
         return vlans
@@ -421,7 +421,7 @@ class BasicStageClient(object):
                 if not getattr(vm, 'is_reuse', True):
                     self.comp.delete_server(vm)
                 else:
-                    LOG.info('Server %s not removed since it is reused' % vm.name)
+                    LOG.info('Server %s not removed since it is reused', vm.name)
 
         for port in self.created_ports:
             self.__delete_port(port)
@@ -431,16 +431,13 @@ class BasicStageClient(object):
                 if 'is_reuse' in net and not net['is_reuse']:
                     self.__delete_net(net)
                 else:
-                    LOG.info('Network %s not removed since it is reused' % (net['name']))
+                    LOG.info('Network %s not removed since it is reused', net['name'])
 
             if not self.flavor_type['is_reuse']:
                 self.__delete_flavor(self.flavor_type['flavor'])
 
 
 class EXTStageClient(BasicStageClient):
-    def __init__(self, config, cred):
-        super(EXTStageClient, self).__init__(config, cred)
-
     def setup(self):
         super(EXTStageClient, self).setup()
 
@@ -454,13 +451,10 @@ class EXTStageClient(BasicStageClient):
 
 
 class PVPStageClient(BasicStageClient):
-    def __init__(self, config, cred):
-        super(PVPStageClient, self).__init__(config, cred)
-
     def get_end_port_macs(self):
-        vm_ids = map(lambda vm: vm.id, self.vms)
+        vm_ids = [vm.id for vm in self.vms]
         port_macs = []
-        for index, net in enumerate(self.nets):
+        for _index, net in enumerate(self.nets):
             vm_mac_map = {port['device_id']: port['mac_address'] for port in self.ports[net['id']]}
             port_macs.append([vm_mac_map[vm_id] for vm_id in vm_ids])
         return port_macs
@@ -497,13 +491,10 @@ class PVPStageClient(BasicStageClient):
 
 
 class PVVPStageClient(BasicStageClient):
-    def __init__(self, config, cred):
-        super(PVVPStageClient, self).__init__(config, cred)
-
     def get_end_port_macs(self):
         port_macs = []
         for index, net in enumerate(self.nets[:2]):
-            vm_ids = map(lambda vm: vm.id, self.vms[index::2])
+            vm_ids = [vm.id for vm in self.vms[index::2]]
             vm_mac_map = {port['device_id']: port['mac_address'] for port in self.ports[net['id']]}
             port_macs.append([vm_mac_map[vm_id] for vm_id in vm_ids])
         return port_macs

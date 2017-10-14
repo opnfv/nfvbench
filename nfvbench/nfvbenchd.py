@@ -14,6 +14,11 @@
 #    under the License.
 #
 
+import json
+import Queue
+import traceback
+import uuid
+
 from flask import Flask
 from flask import jsonify
 from flask import render_template
@@ -24,13 +29,10 @@ from flask_socketio import SocketIO
 from fluentd import FluentLogHandler
 from summarizer import NFVBenchSummarizer
 
-import json
 from log import LOG
-import Queue
-import traceback
 from utils import byteify
 from utils import RunLock
-import uuid
+
 
 # this global cannot reside in Ctx because of the @app and @socketio decorators
 app = None
@@ -144,29 +146,29 @@ def setup_flask(root_path):
     # --------- socketio requests ------------
 
     @socketio.on('start_run')
-    def socketio_start_run(config):
+    def _socketio_start_run(config):
         if not Ctx.is_busy():
             Ctx.enqueue(config, get_uuid(), from_socketio=True)
         else:
             emit('error', {'reason': 'there is already an NFVbench request running'})
 
     @socketio.on('echo')
-    def socketio_echo(config):
+    def _socketio_echo(config):
         emit('echo', config)
 
     # --------- HTTP requests ------------
 
     @app.route('/')
-    def index():
+    def _index():
         return render_template('index.html')
 
     @app.route('/echo', methods=['GET'])
-    def echo():
+    def _echo():
         config = request.json
         return jsonify(config)
 
     @app.route('/start_run', methods=['POST'])
-    def start_run():
+    def _start_run():
         config = load_json(request.json)
         if not config:
             config = {}
@@ -178,7 +180,7 @@ def setup_flask(root_path):
 
     @app.route('/status', defaults={'request_id': None}, methods=['GET'])
     @app.route('/status/<request_id>', methods=['GET'])
-    def get_status(request_id):
+    def _get_status(request_id):
         if request_id:
             if Ctx.is_busy() and request_id == Ctx.get_current_request_id():
                 # task with request_id still pending
@@ -188,9 +190,8 @@ def setup_flask(root_path):
             if res:
                 # found result for given request_id
                 return jsonify(res)
-            else:
-                # result for given request_id not found
-                return jsonify(result_json(STATUS_NOT_FOUND, not_found_msg, request_id))
+            # result for given request_id not found
+            return jsonify(result_json(STATUS_NOT_FOUND, not_found_msg, request_id))
         else:
             if Ctx.is_busy():
                 # task still pending, return with request_id
@@ -201,8 +202,7 @@ def setup_flask(root_path):
             res = Ctx.get_result()
             if res:
                 return jsonify(res)
-            else:
-                return jsonify(not_busy_json)
+            return jsonify(not_busy_json)
 
 
 class WebSocketIoServer(object):

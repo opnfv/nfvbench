@@ -11,16 +11,16 @@
 #    WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
 #    License for the specific language governing permissions and limitations
 #    under the License.
-
-'''Module for Openstack compute operations'''
-from glanceclient import exc as glance_exception
-import keystoneauth1
-from log import LOG
-import novaclient
+"""Module for Openstack compute operations"""
 import os
 import time
 import traceback
 
+import keystoneauth1
+from log import LOG
+import novaclient
+
+from glanceclient import exc as glance_exception
 
 try:
     from glanceclient.openstack.common.apiclient.exceptions import NotFound as GlanceImageNotFound
@@ -29,7 +29,6 @@ except ImportError:
 
 
 class Compute(object):
-
     def __init__(self, nova_client, glance_client, neutron_client, config):
         self.novaclient = nova_client
         self.glance_client = glance_client
@@ -137,10 +136,9 @@ class Compute(object):
         '''
         if ssh_access.public_key_file:
             return self.add_public_key(kp_name, ssh_access.public_key_file)
-        else:
-            keypair = self.create_keypair(kp_name, None)
-            ssh_access.private_key = keypair.private_key
-            return keypair
+        keypair = self.create_keypair(kp_name, None)
+        ssh_access.private_key = keypair.private_key
+        return keypair
 
     def find_network(self, label):
         net = self.novaclient.networks.find(label=label)
@@ -290,7 +288,7 @@ class Compute(object):
                     if hyp.zone == zone:
                         # matches
                         return az_host
-                    # else continue - another zone with same host name?
+                        # else continue - another zone with same host name?
             # no match
             LOG.error('No match for availability zone and host ' + az_host)
             return None
@@ -375,16 +373,15 @@ class Compute(object):
             LOG.warning('Operation Forbidden: could not retrieve list of hypervisors'
                         ' (likely no permission)')
 
-        hypervisor_list = filter(lambda h: h.status == 'enabled' and h.state == 'up',
-                                 hypervisor_list)
+        hypervisor_list = [h for h in hypervisor_list if h.status == 'enabled' and h.state == 'up']
         if self.config.availability_zone:
-            host_list = filter(lambda h: h.zone == self.config.availability_zone, host_list)
+            host_list = [h for h in host_list if h.zone == self.config.availability_zone]
 
         if self.config.compute_nodes:
-            host_list = filter(lambda h: h.host in self.config.compute_nodes, host_list)
+            host_list = [h for h in host_list if h.host in self.config.compute_nodes]
 
         hosts = [h.hypervisor_hostname for h in hypervisor_list]
-        host_list = filter(lambda h: h.host in hosts, host_list)
+        host_list = [h for h in host_list if h.host in hosts]
 
         avail_list = []
         for host in host_list:
@@ -408,10 +405,7 @@ class Compute(object):
         try:
             server_instance_1 = self.novaclient.servers.get(vm_instance1)
             server_instance_2 = self.novaclient.servers.get(vm_instance2)
-            if server_instance_1.hostId == server_instance_2.hostId:
-                return True
-            else:
-                return False
+            return bool(server_instance_1.hostId == server_instance_2.hostId)
         except novaclient.exceptions:
             LOG.warning("Exception in retrieving the hostId of servers")
 
@@ -420,7 +414,7 @@ class Compute(object):
         # check first the security group exists
         sec_groups = self.neutronclient.list_security_groups()['security_groups']
         group = [x for x in sec_groups if x['name'] == self.config.security_group_name]
-        if len(group) > 0:
+        if group:
             return group[0]
 
         body = {

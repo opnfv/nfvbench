@@ -27,7 +27,6 @@ import tor_client
 
 
 class BasicFactory(object):
-
     chain_classes = [ChainType.EXT, ChainType.PVP, ChainType.PVVP]
 
     chain_stats_classes = {

@@ -12,6 +12,11 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+import os
+import random
+import time
+import traceback
+
 from collections import defaultdict
 from itertools import count
 from nfvbench.log import LOG
@@ -20,14 +25,11 @@ from nfvbench.traffic_server import TRexTrafficServer
 from nfvbench.utils import cast_integer
 from nfvbench.utils import timeout
 from nfvbench.utils import TimeoutError
-import os
-import random
-import time
-import traceback
 from traffic_base import AbstractTrafficGenerator
 from traffic_base import TrafficGeneratorException
 import traffic_utils as utils
 
+# pylint: disable=import-error
 from trex_stl_lib.api import CTRexVmInsFixHwCs
 from trex_stl_lib.api import Dot1Q
 from trex_stl_lib.api import Ether
@@ -46,6 +48,7 @@ from trex_stl_lib.api import STLVmFlowVarRepetableRandom
 from trex_stl_lib.api import STLVmWrFlowVar
 from trex_stl_lib.api import UDP
 from trex_stl_lib.services.trex_stl_service_arp import STLServiceARP
+# pylint: enable=import-error
 
 
 class TRex(AbstractTrafficGenerator):
@@ -95,8 +98,7 @@ class TRex(AbstractTrafficGenerator):
             result[ph]['rx']['min_delay_usec'] = cast_integer(
                 lat['total_min']) if 'total_min' in lat else float('nan')
             result[ph]['rx']['avg_delay_usec'] = cast_integer(
-                lat['average']) if 'average' in lat else float(
-                'nan')
+                lat['average']) if 'average' in lat else float('nan')
         total_tx_pkts = result[0]['tx']['total_pkts'] + result[1]['tx']['total_pkts']
         result["total_tx_rate"] = cast_integer(total_tx_pkts / self.config.duration_sec)
         return result
@@ -117,7 +119,7 @@ class TRex(AbstractTrafficGenerator):
 
     def __combine_latencies(self, in_stats, port_handle):
         """Traverses TRex result dictionary and combines chosen latency stats."""
-        if not len(self.latencies[port_handle]):
+        if not self.latencies[port_handle]:
             return {}
 
         result = defaultdict(float)
@@ -268,7 +270,7 @@ class TRex(AbstractTrafficGenerator):
                     if os.path.isfile(logpath):
                         # Wait for TRex to finish writing error message
                         last_size = 0
-                        for it in xrange(self.config.generic_retry_count):
+                        for _ in xrange(self.config.generic_retry_count):
                             size = os.path.getsize(logpath)
                             if size == last_size:
                                 # probably not writing anymore
@@ -347,13 +349,13 @@ class TRex(AbstractTrafficGenerator):
 
                 if len(self.arps[port]) == self.config.service_chain_count:
                     resolved += 1
-                    LOG.info('ARP resolved successfully for port {}'.format(port))
+                    LOG.info('ARP resolved successfully for port %s', port)
                     break
                 else:
                     failed = [arp.get_record().dst_ip for arp in arps
                               if arp.get_record().dst_mac is None]
-                    LOG.info('Retrying ARP for: {} ({} / {})'.format(
-                        failed, attempt, self.config.generic_retry_count))
+                    LOG.info('Retrying ARP for: %d (%d / %d)',
+                             failed, attempt, self.config.generic_retry_count)
                     time.sleep(self.config.generic_poll_sec)
 
         self.client.set_service_mode(ports=self.port_handle, enabled=False)
@@ -396,7 +398,7 @@ class TRex(AbstractTrafficGenerator):
 
         stream_cfgs = [d.get_stream_configs(self.config.generator_config.service_chain)
                        for d in self.config.generator_config.devices]
-        self.rates = map(lambda rate: utils.to_rate_str(rate), rates)
+        self.rates = [utils.to_rate_str(rate) for rate in rates]
 
         for ph in self.port_handle:
             # generate one pg_id for each direction
@@ -420,13 +422,7 @@ class TRex(AbstractTrafficGenerator):
 
         for ph in self.port_handle:
             self.client.add_streams(self.streamblock[ph], ports=ph)
-            LOG.info('Created traffic stream for port %s.' % ph)
-
-    def modify_rate(self, rate, reverse):
-        port_index = int(reverse)
-        port = self.port_handle[port_index]
-        self.rates[port_index] = utils.to_rate_str(rate)
-        LOG.info('Modified traffic stream for %s, new rate=%s.' % (port, utils.to_rate_str(rate)))
+            LOG.info('Created traffic stream for port %s.', ph)
 
     def clear_streamblock(self):
         self.streamblock = defaultdict(list)

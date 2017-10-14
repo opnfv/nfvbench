@@ -14,8 +14,9 @@
 
 
 import bitmath
-from traffic_base import AbstractTrafficGenerator
+from nfvbench.utils import multiplier_map
 
+imix_avg_l2_size = None
 
 
 def convert_rates(l2frame_size, rate, intf_speed):
@@ -48,9 +49,8 @@ def convert_rates(l2frame_size, rate, intf_speed):
 
 def get_average_packet_size(l2frame_size):
     if l2frame_size.upper() == 'IMIX':
-        return AbstractTrafficGenerator.imix_avg_l2_size
-    else:
-        return float(l2frame_size)
+        return imix_avg_l2_size
+    return float(l2frame_size)
 
 
 def load_to_bps(load_percentage, intf_speed):
@@ -71,15 +71,9 @@ def pps_to_bps(pps, avg_packet_size):
 
 def weighted_avg(weight, count):
     if sum(weight):
-        return sum(map(lambda x: x[0] * x[1], zip(weight, count))) / sum(weight)
-    else:
-        return float('nan')
 
-multiplier_map = {
-    'K': 1000,
-    'M': 1000000,
-    'G': 1000000000
-}
+        return sum([x[0] * x[1] for x in zip(weight, count)]) / sum(weight)
+    return float('nan')
 
 def parse_rate_str(rate_str):
     if rate_str.endswith('pps'):

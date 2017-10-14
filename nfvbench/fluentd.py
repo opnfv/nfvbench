@@ -12,9 +12,10 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+import logging
+
 from datetime import datetime
 from fluent import sender
-import logging
 import pytz
 
 
@@ -108,8 +109,7 @@ class FluentLogHandler(logging.Handler):
             return "GOOD RUN"
         elif highest_level == logging.WARNING:
             return "RUN WITH WARNINGS"
-        else:
-            return "RUN WITH ERRORS"
+        return "RUN WITH ERRORS"
 
     def __update_stats(self, levelno):
         if levelno == logging.WARNING:

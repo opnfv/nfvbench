@@ -14,76 +14,86 @@
 
 import abc
 
+from nfvbench.log import LOG
+import traffic_utils
+
+
 class TrafficGeneratorException(Exception):
     pass
 
 
 class AbstractTrafficGenerator(object):
-
     # src_mac (6) + dst_mac (6) + mac_type (2) + frame_check (4) = 18
     l2_header_size = 18
 
     imix_l2_sizes = [64, 594, 1518]
     imix_l3_sizes = [size - l2_header_size for size in imix_l2_sizes]
     imix_ratios = [7, 4, 1]
-    imix_avg_l2_size = sum(map(
-        lambda imix: 1.0 * imix[0] * imix[1],
-        zip(imix_l2_sizes, imix_ratios))) / sum(imix_ratios)
+
+    imix_avg_l2_size = sum(
+        [1.0 * imix[0] * imix[1] for imix in zip(imix_l2_sizes, imix_ratios)]) / sum(imix_ratios)
+
+    traffic_utils.imix_avg_l2_sizes = imix_avg_l2_size
 
     def __init__(self, config):
         self.config = config
 
     @abc.abstractmethod
-    def get_version():
+    def get_version(self):
         # Must be implemented by sub classes
         return None
 
     @abc.abstractmethod
-    def init():
+    def init(self):
         # Must be implemented by sub classes
         return None
 
     @abc.abstractmethod
-    def connect():
+    def connect(self):
         # Must be implemented by sub classes
         return None
 
     @abc.abstractmethod
-    def config_interface():
+    def config_interface(self):
         # Must be implemented by sub classes
         return None
 
     @abc.abstractmethod
-    def create_traffic():
+    def create_traffic(self):
+        # Must be implemented by sub classes
+        return None
+
+    def modify_rate(self, rate, reverse):
+        port_index = int(reverse)
+        port = self.port_handle[port_index]
+        self.rates[port_index] = traffic_utils.to_rate_str(rate)
+        LOG.info('Modified traffic stream for %s, new rate=%s.', port,
+                 traffic_utils.to_rate_str(rate))
+
+    def modify_traffic(self):
         # Must be implemented by sub classes
         return None
 
     @abc.abstractmethod
-    def modify_traffic():
+    def get_stats(self):
+        # Must be implemented by sub classes
+        return None
+
+    def clear_traffic(self):
         # Must be implemented by sub classes
         return None
 
     @abc.abstractmethod
-    def get_stats():
+    def start_traffic(self):
         # Must be implemented by sub classes
         return None
 
     @abc.abstractmethod
-    def clear_traffic():
+    def stop_traffic(self):
         # Must be implemented by sub classes
         return None
 
     @abc.abstractmethod
-    def start_traffic():
-        # Must be implemented by sub classes
-        return None
-
-    @abc.abstractmethod
-    def stop_traffic():
-        # Must be implemented by sub classes
-        return None
-
-    @abc.abstractmethod
-    def cleanup():
+    def cleanup(self):
         # Must be implemented by sub classes
         return None

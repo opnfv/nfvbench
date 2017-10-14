@@ -47,8 +47,8 @@ class PacketAnalyzer(object):
         transmitted_packets = self.chain[0]['packet_count']
 
         for (index, path_data) in enumerate(self.chain):
-            LOG.info('[Packet Analyze] Interface: %s' % (path_data['interface']))
-            LOG.info('[Packet Analyze]            > Count: %d' % (path_data['packet_count']))
+            LOG.info('[Packet Analyze] Interface: %s', path_data['interface'])
+            LOG.info('[Packet Analyze]            > Count: %d', path_data['packet_count'])
 
             if index:
                 if transmitted_packets:
@@ -56,9 +56,9 @@ class PacketAnalyzer(object):
                         100.0 * path_data['packet_drop_count'] / transmitted_packets
                 else:
                     self.chain[index]['packet_drop_percentage'] = float('nan')
-                LOG.info('[Packet Analyze]            > Packet Drops: %d' %
-                         (path_data['packet_drop_count']))
-                LOG.info('[Packet Analyze]            > Percentage: %s' %
-                         (path_data['packet_drop_percentage']))
+                LOG.info('[Packet Analyze]            > Packet Drops: %d',
+                         path_data['packet_drop_count'])
+                LOG.info('[Packet Analyze]            > Percentage: %s',
+                         path_data['packet_drop_percentage'])
 
         return self.chain

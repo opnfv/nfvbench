@@ -13,13 +13,14 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 #
+import time
+
 
 from log import LOG
 from network import Network
 from packet_analyzer import PacketAnalyzer
 from specs import ChainType
 from stats_collector import IntervalCollector
-import time
 
 
 class StageManager(object):

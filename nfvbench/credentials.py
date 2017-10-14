@@ -13,14 +13,14 @@
 #    under the License.
 #
 
+import os
+import re
+
 # Module for credentials in Openstack
 import getpass
 from keystoneauth1.identity import v2
 from keystoneauth1.identity import v3
 from keystoneauth1 import session
-import os
-import re
-
 from log import LOG
 
 

@@ -14,33 +14,36 @@
 #    under the License.
 #
 
-from __init__ import __version__
 import argparse
-from attrdict import AttrDict
-from chain_runner import ChainRunner
 from collections import defaultdict
-from config import config_load
-from config import config_loads
 import copy
-import credentials
 import datetime
-from factory import BasicFactory
-from fluentd import FluentLogHandler
 import importlib
 import json
+import os
+import sys
+import traceback
+
+from attrdict import AttrDict
+import pbr.version
+from pkg_resources import resource_string
+
+from __init__ import __version__
+from chain_runner import ChainRunner
+from config import config_load
+from config import config_loads
+import credentials as credentials
+from factory import BasicFactory
+from fluentd import FluentLogHandler
 import log
 from log import LOG
 from nfvbenchd import WebSocketIoServer
-import os
-import pbr.version
-from pkg_resources import resource_string
 from specs import ChainType
 from specs import Specs
 from summarizer import NFVBenchSummarizer
-import sys
-import traceback
 from traffic_client import TrafficGeneratorFactory
 import utils
+
 
 fluent_logger = None
 
@@ -115,17 +118,16 @@ class NFVBench(object):
             if self.chain_runner:
                 self.chain_runner.close()
 
-            if status == NFVBench.STATUS_OK:
-                result = utils.dict_to_json_dict(result)
-                return {
-                    'status': status,
-                    'result': result
-                }
-            else:
-                return {
-                    'status': status,
-                    'error_message': message
-                }
+        if status == NFVBench.STATUS_OK:
+            result = utils.dict_to_json_dict(result)
+            return {
+                'status': status,
+                'result': result
+            }
+        return {
+            'status': status,
+            'error_message': message
+        }
 
     def prepare_summary(self, result):
         """Prepares summary of the result to print and send it to logger (eg: fluentd)"""
@@ -158,9 +160,9 @@ class NFVBench(object):
         self.config.flow_count = utils.parse_flow_count(self.config.flow_count)
         required_flow_count = self.config.service_chain_count * 2
         if self.config.flow_count < required_flow_count:
-            LOG.info("Flow count '{}' has been set to minimum value of '{}' "
-                     "for current configuration".format(self.config.flow_count,
-                                                        required_flow_count))
+            LOG.info("Flow count %d has been set to minimum value of '%d' "
+                     "for current configuration", self.config.flow_count,
+                     required_flow_count)
             self.config.flow_count = required_flow_count
 
         if self.config.flow_count % 2 != 0:
@@ -182,7 +184,7 @@ class NFVBench(object):
                             "({tg_profile}) are missing. Please specify them in configuration file."
                             .format(tg_profile=self.config.generator_profile))
 
-        if self.config.traffic is None or len(self.config.traffic) == 0:
+        if self.config.traffic is None or not self.config.traffic:
             raise Exception("No traffic profile found in traffic configuration, "
                             "please fill 'traffic' section in configuration file.")
 
@@ -209,7 +211,7 @@ class NFVBench(object):
 
         self.config.json_file = self.config.json if self.config.json else None
         if self.config.json_file:
-            (path, filename) = os.path.split(self.config.json)
+            (path, _filename) = os.path.split(self.config.json)
             if not os.path.exists(path):
                 raise Exception('Please provide existing path for storing results in JSON file. '
                                 'Path used: {path}'.format(path=path))
@@ -298,7 +300,6 @@ def parse_opts_from_cli():
                         action='store',
                         help='Traffic generator profile to use')
 
-
     parser.add_argument('-0', '--no-traffic', dest='no_traffic',
                         default=None,
                         action='store_true',
@@ -380,7 +381,7 @@ def parse_opts_from_cli():
     parser.add_argument('--log-file', '--logfile', dest='log_file',
                         action='store',
                         help='Filename for saving logs',
-                        metavar='<log_file>'),
+                        metavar='<log_file>')
 
     parser.add_argument('--user-label', '--userlabel', dest='user_label',
                         action='store',
@@ -527,12 +528,12 @@ def main():
         if config.log_file:
             log.add_file_logger(config.log_file)
 
-        nfvbench = NFVBench(config, openstack_spec, config_plugin, factory)
+        nfvbench_instance = NFVBench(config, openstack_spec, config_plugin, factory)
 
         if opts.server:
             if os.path.isdir(opts.server):
-                server = WebSocketIoServer(opts.server, nfvbench, fluent_logger)
-                nfvbench.set_notifier(server)
+                server = WebSocketIoServer(opts.server, nfvbench_instance, fluent_logger)
+                nfvbench_instance.set_notifier(server)
                 try:
                     port = int(opts.port)
                 except ValueError:
@@ -554,13 +555,13 @@ def main():
                 opts = {k: v for k, v in vars(opts).iteritems() if v is not None}
                 # get CLI args
                 params = ' '.join(str(e) for e in sys.argv[1:])
-                result = nfvbench.run(opts, params)
+                result = nfvbench_instance.run(opts, params)
                 if 'error_message' in result:
                     raise Exception(result['error_message'])
 
                 if 'result' in result and result['status']:
-                    nfvbench.save(result['result'])
-                    nfvbench.prepare_summary(result['result'])
+                    nfvbench_instance.save(result['result'])
+                    nfvbench_instance.prepare_summary(result['result'])
     except Exception as exc:
         run_summary_required = True
         LOG.error({

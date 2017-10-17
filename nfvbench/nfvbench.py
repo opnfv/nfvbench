@@ -44,7 +44,6 @@ from summarizer import NFVBenchSummarizer
 from traffic_client import TrafficGeneratorFactory
 import utils
 
-
 fluent_logger = None
 
 
@@ -532,7 +531,8 @@ def main():
 
         if opts.server:
             if os.path.isdir(opts.server):
-                server = WebSocketIoServer(opts.server, nfvbench_instance, fluent_logger)
+                server = WebSocketIoServer(opts.server, nfvbench_instance, fluent_logger,
+                                           config.fluentd.result_tag)
                 nfvbench_instance.set_notifier(server)
                 try:
                     port = int(opts.port)

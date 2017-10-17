@@ -26,7 +26,6 @@ from flask import request
 
 from flask_socketio import emit
 from flask_socketio import SocketIO
-from fluentd import FluentLogHandler
 from summarizer import NFVBenchSummarizer
 
 from log import LOG
@@ -210,17 +209,11 @@ class WebSocketIoServer(object):
     of this class and pass a runner object then invoke the run method
     """
 
-    def __init__(self, http_root, runner, logger, result_tag):
+    def __init__(self, http_root, runner, fluent_loggers, result_loggers):
         self.nfvbench_runner = runner
         setup_flask(http_root)
-        self.fluent_logger = logger
-        self.result_fluent_logger = None
-        if result_tag:
-            self.result_fluent_logger = \
-                FluentLogHandler(result_tag,
-                                 fluentd_ip=self.fluent_logger.sender.host,
-                                 fluentd_port=self.fluent_logger.sender.port)
-            self.result_fluent_logger.runlogdate = self.fluent_logger.runlogdate
+        self.fluent_loggers = fluent_loggers
+        self.result_loggers = result_loggers
 
     def run(self, host='127.0.0.1', port=7556):
 
@@ -240,6 +233,8 @@ class WebSocketIoServer(object):
                 # remove unfilled values as we do not want them to override default values with None
                 config = {k: v for k, v in config.items() if v is not None}
                 with RunLock():
+                    if self.fluent_loggers:
+                        self.fluent_loggers[0].update_runlogdate()
                     results = self.nfvbench_runner.run(config, config)
             except Exception as exc:
                 print 'NFVbench runner exception:'
@@ -252,13 +247,11 @@ class WebSocketIoServer(object):
             else:
                 # this might overwrite a previously unfetched result
                 Ctx.set_result(results)
-            if self.fluent_logger:
-                self.result_fluent_logger.runlogdate = self.fluent_logger.runlogdate
-            summary = NFVBenchSummarizer(results['result'], self.result_fluent_logger)
+            summary = NFVBenchSummarizer(results['result'], self.result_loggers)
             LOG.info(str(summary))
             Ctx.release()
-            if self.fluent_logger:
-                self.fluent_logger.send_run_summary(True)
+            for logger in self.fluent_loggers:
+                logger.send_run_summary(True)
 
     def send_interval_stats(self, time_ms, tx_pps, rx_pps, drop_pct):
         stats = {'time_ms': time_ms, 'tx_pps': tx_pps, 'rx_pps': rx_pps, 'drop_pct': drop_pct}

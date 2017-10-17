@@ -44,7 +44,8 @@ from summarizer import NFVBenchSummarizer
 from traffic_client import TrafficGeneratorFactory
 import utils
 
-fluent_logger = None
+fluent_loggers = []
+result_loggers = []
 
 
 class NFVBench(object):
@@ -82,10 +83,10 @@ class NFVBench(object):
         status = NFVBench.STATUS_OK
         result = None
         message = ''
-        if fluent_logger:
+        for logger in fluent_loggers:
             # take a snapshot of the current time for this new run
             # so that all subsequent logs can relate to this run
-            fluent_logger.start_new_run()
+            logger.start_new_run()
         LOG.info(args)
         try:
             self.update_config(opts)
@@ -130,14 +131,8 @@ class NFVBench(object):
 
     def prepare_summary(self, result):
         """Prepares summary of the result to print and send it to logger (eg: fluentd)"""
-        global fluent_logger
-        sender = None
-        if self.config.fluentd.result_tag:
-            sender = FluentLogHandler(self.config.fluentd.result_tag,
-                                      fluentd_ip=self.config.fluentd.ip,
-                                      fluentd_port=self.config.fluentd.port)
-            sender.runlogdate = fluent_logger.runlogdate
-        summary = NFVBenchSummarizer(result, sender)
+        global result_loggers
+        summary = NFVBenchSummarizer(result, result_loggers)
         LOG.info(str(summary))
 
     def save(self, result):
@@ -428,7 +423,8 @@ def check_physnet(name, netattrs):
 
 
 def main():
-    global fluent_logger
+    global fluent_loggers
+    global result_loggers
     run_summary_required = False
     try:
         log.setup()
@@ -446,17 +442,21 @@ def main():
         config = config_plugin.get_config()
         openstack_spec = config_plugin.get_openstack_spec()
 
-        # setup the fluent logger as soon as possible right after the config plugin is called
-        if config.fluentd.logging_tag:
-            fluent_logger = FluentLogHandler(config.fluentd.logging_tag,
-                                             fluentd_ip=config.fluentd.ip,
-                                             fluentd_port=config.fluentd.port)
-            LOG.addHandler(fluent_logger)
-        else:
-            fluent_logger = None
-
         opts, unknown_opts = parse_opts_from_cli()
         log.set_level(debug=opts.debug)
+
+        # setup the fluent logger as soon as possible right after the config plugin is called
+        for fluentd in config.fluentd:
+            if fluentd.logging_tag:
+                logger = FluentLogHandler(fluentd.logging_tag,
+                                          fluentd_ip=fluentd.ip,
+                                          fluentd_port=fluentd.port)
+                LOG.addHandler(logger)
+                fluent_loggers.append(logger)
+            if fluentd.result_tag:
+                result_loggers.append(FluentLogHandler(fluentd.result_tag,
+                                                       fluentd_ip=fluentd.ip,
+                                                       fluentd_port=fluentd.port))
 
         if opts.version:
             print pbr.version.VersionInfo('nfvbench').version_string_with_vcs()
@@ -467,14 +467,7 @@ def main():
                 result = json.load(json_data)
                 if opts.user_label:
                     result['config']['user_label'] = opts.user_label
-                if config.fluentd.result_tag:
-                    sender = FluentLogHandler(config.fluentd.result_tag,
-                                              fluentd_ip=config.fluentd.ip,
-                                              fluentd_port=config.fluentd.port)
-                    sender.runlogdate = fluent_logger.runlogdate
-                    print NFVBenchSummarizer(result, sender)
-                else:
-                    print NFVBenchSummarizer(result, None)
+                print NFVBenchSummarizer(result, result_loggers)
             sys.exit(0)
 
         # show default config in text/yaml format
@@ -531,8 +524,8 @@ def main():
 
         if opts.server:
             if os.path.isdir(opts.server):
-                server = WebSocketIoServer(opts.server, nfvbench_instance, fluent_logger,
-                                           config.fluentd.result_tag)
+                server = WebSocketIoServer(opts.server, nfvbench_instance, fluent_loggers,
+                                           result_loggers)
                 nfvbench_instance.set_notifier(server)
                 try:
                     port = int(opts.port)
@@ -570,10 +563,10 @@ def main():
         })
         print str(exc)
     finally:
-        if fluent_logger:
+        for logger in fluent_loggers:
             # only send a summary record if there was an actual nfvbench run or
             # if an error/exception was logged.
-            fluent_logger.send_run_summary(run_summary_required)
+            logger.send_run_summary(run_summary_required)
 
 
 if __name__ == '__main__':

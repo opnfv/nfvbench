@@ -30,24 +30,30 @@ class FluentLogHandler(logging.Handler):
     The timestamp is retrieved by the fluentd library.
     '''
 
+    runlogdate = 0
+
     def __init__(self, tag, fluentd_ip='127.0.0.1', fluentd_port=24224):
         logging.Handler.__init__(self)
         self.tag = tag
         self.formatter = logging.Formatter('%(message)s')
         self.sender = sender.FluentSender(self.tag, host=fluentd_ip, port=fluentd_port)
-        self.runlogdate = 0
         self.__warning_counter = 0
         self.__error_counter = 0
 
     def start_new_run(self):
         '''Delimitate a new run in the stream of records with a new timestamp
         '''
-        self.runlogdate = self.__get_timestamp()
+        # for nfvbench server runs, runlogdate needs to be renewed.
+        if not FluentLogHandler.runlogdate:
+            self.update_runlogdate()
         # reset counters
         self.__warning_counter = 0
         self.__error_counter = 0
         # send start record
         self.__send_start_record()
+
+    def update_runlogdate(self):
+        FluentLogHandler.runlogdate = self.__get_timestamp()
 
     def emit(self, record):
         data = {
@@ -56,8 +62,8 @@ class FluentLogHandler(logging.Handler):
             "@timestamp": self.__get_timestamp()
         }
         # if runlogdate is 0, it's a log from server (not an nfvbench run) so do not send runlogdate
-        if self.runlogdate != 0:
-            data["runlogdate"] = self.runlogdate
+        if FluentLogHandler.runlogdate != 0:
+            data["runlogdate"] = FluentLogHandler.runlogdate
 
         self.__update_stats(record.levelno)
         self.sender.emit(None, data)
@@ -69,7 +75,7 @@ class FluentLogHandler(logging.Handler):
     # send START record for each run
     def __send_start_record(self):
         data = {
-            "runlogdate": self.runlogdate,
+            "runlogdate": FluentLogHandler.runlogdate,
             "loglevel": "START",
             "message": "NFVBENCH run is started",
             "numloglevel": 0,
@@ -92,8 +98,8 @@ class FluentLogHandler(logging.Handler):
             }
             # if runlogdate is 0, it's a log from server (not an nfvbench run)
             # so don't send runlogdate
-            if self.runlogdate != 0:
-                data["runlogdate"] = self.runlogdate
+            if FluentLogHandler.runlogdate != 0:
+                data["runlogdate"] = FluentLogHandler.runlogdate
             self.sender.emit(None, data)
 
     def __get_highest_level(self):

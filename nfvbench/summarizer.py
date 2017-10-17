@@ -208,15 +208,15 @@ class NFVBenchSummarizer(Summarizer):
     direction_keys = ['direction-forward', 'direction-reverse', 'direction-total']
     direction_names = ['Forward', 'Reverse', 'Total']
 
-    def __init__(self, result, sender):
+    def __init__(self, result, senders):
         Summarizer.__init__(self)
         self.result = result
         self.config = self.result['config']
         self.record_header = None
         self.record_data = None
-        self.sender = sender
-        # if sender is available initialize record
-        if self.sender:
+        self.senders = senders
+        # if any sender is available initialize record
+        if self.senders:
             self.__record_init()
         self.__summarize()
 
@@ -458,17 +458,17 @@ class NFVBenchSummarizer(Summarizer):
         return chain_analysis_table
 
     def __record_header_put(self, key, value):
-        if self.sender:
+        if self.senders:
             self.record_header[key] = value
 
     def __record_data_put(self, key, data):
-        if self.sender:
+        if self.senders:
             if key not in self.record_data:
                 self.record_data[key] = {}
             self.record_data[key].update(data)
 
     def __record_send(self):
-        if self.sender:
+        if self.senders:
             self.record_header["@timestamp"] = datetime.utcnow().replace(
                 tzinfo=pytz.utc).strftime("%Y-%m-%dT%H:%M:%S.%f%z")
             for frame_size in self.record_data:
@@ -490,13 +490,14 @@ class NFVBenchSummarizer(Summarizer):
                 for key in run_specific_data:
                     data_to_send = data.copy()
                     data_to_send.update(run_specific_data[key])
-                    self.sender.record_send(data_to_send)
+                    for sender in self.senders:
+                        sender.record_send(data_to_send)
             self.__record_init()
 
     def __record_init(self):
-        # init is called after checking for sender
+        # init is called after checking for senders, so senders[0] exists
         self.record_header = {
-            "runlogdate": self.sender.runlogdate,
+            "runlogdate": self.senders[0].__class__.runlogdate,
             "user_label": self.config['user_label']
         }
         self.record_data = {}

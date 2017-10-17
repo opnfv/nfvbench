@@ -786,8 +786,10 @@ def test_config():
 
 def test_fluentd():
     logger = logging.getLogger('fluent-logger')
-    handler = FluentLogHandler('nfvbench', fluentd_port=7081)
-    logger.addHandler(handler)
+    handlers = [FluentLogHandler('nfvbench', fluentd_port=7081),
+                FluentLogHandler('resultnfvbench', fluentd_port=7081)]
+    for handler in handlers:
+        logger.addHandler(handler)
     logger.setLevel(logging.INFO)
     logger.info('test')
     logger.warning('test %d', 100)

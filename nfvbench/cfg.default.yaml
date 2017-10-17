@@ -367,24 +367,29 @@ debug: false
 # Defaults to disabled
 log_file:
 
-# When enabled, all logs will be sent to a fluentd server at the requested IP and port
+# When enabled, all logs will be sent to a fluentd servers at the requested IPs and ports
+# Fluentd servers should be given as list
 # The fluentd "tag" and "label" fields for every message will be set to "nfvbench"
 fluentd:
-    # by default (logging_tag is empty) nfvbench log messages are not sent to fluentd
-    # to enable logging to fluents, specify a valid fluentd tag name to be used for the
-    # log records
-    logging_tag:
+      # by default (logging_tag is empty) nfvbench log messages are not sent to fluentd
+      # to enable logging to fluents, specify a valid fluentd tag name to be used for the
+      # log records
+    - logging_tag:
 
-    # by default (result_tag is empty) nfvbench results are not sent to fluentd
-    # to enable sending nfvbench results to fluentd, specify a valid fluentd tag name
-    # to be used for the results records, which is different than logging_tag
-    result_tag:
+      # by default (result_tag is empty) nfvbench results are not sent to fluentd
+      # to enable sending nfvbench results to fluentd, specify a valid fluentd tag name
+      # to be used for the results records, which is different than logging_tag
+      result_tag:
 
-    # IP address of the server, defaults to loopback
-    ip: 127.0.0.1
+      # IP address of the server, defaults to loopback
+      ip: 127.0.0.1
 
-    # port # to use, by default, use the default fluentd forward port
-    port: 24224
+      # port # to use, by default, use the default fluentd forward port
+      port: 24224
+
+      # by default (logging_tag is empty) nfvbench log messages are not sent to fluentd
+      # to enable logging to fluents, specify a valid fluentd tag name to be used for the
+      # log records
 
 # Module and class name of factory which will be used to provide classes dynamically for other components.
 factory_module: 'nfvbench.factory'

@@ -30,27 +30,8 @@ This is the introductory release for NFVbench. In this release, NFVbench provide
 - fully configurable runs with yaml-JSON configuration
 - detailed results in JSON format
 - summary tabular results
+- can send logs and results to one or more fluentd aggregators (per configuration)
 
-
-Release Data
-------------
-
-+--------------------------------------+--------------------------------------+
-| **Project**                          | opnfv/nfvbench                       |
-|                                      |                                      |
-+--------------------------------------+--------------------------------------+
-| **Repo/commit-ID**                   | opnfv/nfvbench at tag 1.0.0          |
-|                                      |                                      |
-+--------------------------------------+--------------------------------------+
-| **Release designation**              |                                      |
-|                                      |                                      |
-+--------------------------------------+--------------------------------------+
-| **Release date**                     |                                      |
-|                                      |                                      |
-+--------------------------------------+--------------------------------------+
-| **Purpose of the delivery**          |                                      |
-|                                      |                                      |
-+--------------------------------------+--------------------------------------+
 
 
 

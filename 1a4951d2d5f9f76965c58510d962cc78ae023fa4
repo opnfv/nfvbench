@@ -1,0 +1,55 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9a3d3df0_fd20509d",
+        "filename": "docs/testing/user/userguide/fluentd.rst",
+        "patchSetId": 3
+      },
+      "lineNbr": 94,
+      "author": {
+        "id": 5807
+      },
+      "writtenOn": "2017-10-17T19:31:04Z",
+      "side": 1,
+      "message": "use the default fluentd forward port 24424",
+      "revId": "1a4951d2d5f9f76965c58510d962cc78ae023fa4",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9a3d3df0_dd258cac",
+        "filename": "docs/testing/user/userguide/fluentd.rst",
+        "patchSetId": 3
+      },
+      "lineNbr": 131,
+      "author": {
+        "id": 5807
+      },
+      "writtenOn": "2017-10-17T19:31:04Z",
+      "side": 1,
+      "message": "mention if this json obtained in the fluentd aggregator ?",
+      "revId": "1a4951d2d5f9f76965c58510d962cc78ae023fa4",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9a3d3df0_9d2b0482",
+        "filename": "docs/testing/user/userguide/fluentd.rst",
+        "patchSetId": 3
+      },
+      "lineNbr": 143,
+      "author": {
+        "id": 5807
+      },
+      "writtenOn": "2017-10-17T19:31:04Z",
+      "side": 1,
+      "message": "mask/modify all references to cisco\ne.g. here use \"nova:cork-compute-2\"",
+      "revId": "1a4951d2d5f9f76965c58510d962cc78ae023fa4",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": false
+    }
+  ]
+}

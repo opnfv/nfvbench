@@ -1,0 +1,106 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9a3d3df0_daed928d",
+        "filename": "docs/release/release-notes/release-notes.rst",
+        "patchSetId": 1
+      },
+      "lineNbr": 33,
+      "author": {
+        "id": 5807
+      },
+      "writtenOn": "2017-10-17T17:53:45Z",
+      "side": 1,
+      "message": "can send logs and results to one or more fuentd aggregators (per configuration)",
+      "revId": "320e5c2a4e8257d0530863ea8fa310e51a0417e6",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9a3d3df0_7afc463f",
+        "filename": "docs/testing/user/userguide/fluentd.rst",
+        "patchSetId": 1
+      },
+      "lineNbr": 16,
+      "author": {
+        "id": 5807
+      },
+      "writtenOn": "2017-10-17T17:53:45Z",
+      "side": 1,
+      "message": "mention that below is an example of fluentd configuration that redrects matching tags to a local elastic search server at port 9200.\n\n(ES is just one possible target out of many others since fluentd supports plugins for many backends).\n\nalso use a real example tag such as \"nfvbench-log\" than \"TAG\"",
+      "revId": "320e5c2a4e8257d0530863ea8fa310e51a0417e6",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9a3d3df0_3a02be3e",
+        "filename": "docs/testing/user/userguide/fluentd.rst",
+        "patchSetId": 1
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 5807
+      },
+      "writtenOn": "2017-10-17T17:53:45Z",
+      "side": 1,
+      "message": "remove the out-syslog stuff as this is mercury specific)",
+      "revId": "320e5c2a4e8257d0530863ea8fa310e51a0417e6",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9a3d3df0_ba952ee6",
+        "filename": "docs/testing/user/userguide/fluentd.rst",
+        "patchSetId": 1
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 5807
+      },
+      "writtenOn": "2017-10-17T17:53:45Z",
+      "side": 1,
+      "message": "ditto, use a real looking tag like \"results-nfvbench\" and remove the syslog line",
+      "revId": "320e5c2a4e8257d0530863ea8fa310e51a0417e6",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9a3d3df0_9a9aea12",
+        "filename": "docs/testing/user/userguide/fluentd.rst",
+        "patchSetId": 1
+      },
+      "lineNbr": 79,
+      "author": {
+        "id": 5807
+      },
+      "writtenOn": "2017-10-17T17:53:45Z",
+      "side": 1,
+      "message": "here add the 2 example tags used above",
+      "revId": "320e5c2a4e8257d0530863ea8fa310e51a0417e6",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9a3d3df0_fa9fb601",
+        "filename": "docs/testing/user/userguide/fluentd.rst",
+        "patchSetId": 1
+      },
+      "lineNbr": 91,
+      "author": {
+        "id": 5807
+      },
+      "writtenOn": "2017-10-17T17:53:45Z",
+      "side": 1,
+      "message": "can you add a copy of the log and perf results records sent?",
+      "revId": "320e5c2a4e8257d0530863ea8fa310e51a0417e6",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": false
+    }
+  ]
+}

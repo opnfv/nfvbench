@@ -786,11 +786,32 @@ def test_config():
 
 def test_fluentd():
     logger = logging.getLogger('fluent-logger')
-    handler = FluentLogHandler('nfvbench', fluentd_port=7081)
+
+    class FluentdConfig(dict):
+        def __getattr__(self, attr):
+            return self.get(attr)
+
+    fluentd_configs = [
+        FluentdConfig({
+            'logging_tag': 'nfvbench',
+            'result_tag': 'resultnfvbench',
+            'ip': '127.0.0.1',
+            'port': 7081
+        }),
+        FluentdConfig({
+            'logging_tag': 'nfvbench',
+            'result_tag': 'resultnfvbench',
+            'ip': '127.0.0.1',
+            'port': 24224
+        })
+    ]
+
+    handler = FluentLogHandler(fluentd_configs=fluentd_configs)
     logger.addHandler(handler)
     logger.setLevel(logging.INFO)
     logger.info('test')
     logger.warning('test %d', 100)
+
     try:
         raise Exception("test")
     except Exception:

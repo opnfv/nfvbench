@@ -215,7 +215,7 @@ class NFVBenchSummarizer(Summarizer):
         self.record_header = None
         self.record_data = None
         self.sender = sender
-        # if sender is available initialize record
+        # if any sender is available initialize record
         if self.sender:
             self.__record_init()
         self.__summarize()
@@ -494,7 +494,7 @@ class NFVBenchSummarizer(Summarizer):
             self.__record_init()
 
     def __record_init(self):
-        # init is called after checking for sender
+        # init is called after checking for senders
         self.record_header = {
             "runlogdate": self.sender.runlogdate,
             "user_label": self.config['user_label']

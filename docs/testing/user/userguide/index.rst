@@ -23,6 +23,7 @@ Table of Content
    installation
    examples
    advanced
+   fluentd
    sriov
    server
    faq

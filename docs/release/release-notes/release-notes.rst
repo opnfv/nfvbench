@@ -30,6 +30,7 @@ This is the introductory release for NFVbench. In this release, NFVbench provide
 - fully configurable runs with yaml-JSON configuration
 - detailed results in JSON format
 - summary tabular results
+- can send logs and results to one or more fuentd aggregators (per configuration)
 
 
 Release Data

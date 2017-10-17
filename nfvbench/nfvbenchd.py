@@ -33,7 +33,6 @@ from log import LOG
 from utils import byteify
 from utils import RunLock
 
-
 # this global cannot reside in Ctx because of the @app and @socketio decorators
 app = None
 socketio = None
@@ -211,14 +210,14 @@ class WebSocketIoServer(object):
     of this class and pass a runner object then invoke the run method
     """
 
-    def __init__(self, http_root, runner, logger):
+    def __init__(self, http_root, runner, logger, result_tag):
         self.nfvbench_runner = runner
         setup_flask(http_root)
         self.fluent_logger = logger
         self.result_fluent_logger = None
-        if self.fluent_logger:
+        if result_tag:
             self.result_fluent_logger = \
-                FluentLogHandler("resultnfvbench",
+                FluentLogHandler(result_tag,
                                  fluentd_ip=self.fluent_logger.sender.host,
                                  fluentd_port=self.fluent_logger.sender.port)
             self.result_fluent_logger.runlogdate = self.fluent_logger.runlogdate

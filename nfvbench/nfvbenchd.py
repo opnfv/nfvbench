@@ -26,7 +26,6 @@ from flask import request
 
 from flask_socketio import emit
 from flask_socketio import SocketIO
-from fluentd import FluentLogHandler
 from summarizer import NFVBenchSummarizer
 
 from log import LOG
@@ -210,17 +209,10 @@ class WebSocketIoServer(object):
     of this class and pass a runner object then invoke the run method
     """
 
-    def __init__(self, http_root, runner, logger, result_tag):
+    def __init__(self, http_root, runner, fluent_logger):
         self.nfvbench_runner = runner
         setup_flask(http_root)
-        self.fluent_logger = logger
-        self.result_fluent_logger = None
-        if result_tag:
-            self.result_fluent_logger = \
-                FluentLogHandler(result_tag,
-                                 fluentd_ip=self.fluent_logger.sender.host,
-                                 fluentd_port=self.fluent_logger.sender.port)
-            self.result_fluent_logger.runlogdate = self.fluent_logger.runlogdate
+        self.fluent_logger = fluent_logger
 
     def run(self, host='127.0.0.1', port=7556):
 
@@ -240,6 +232,8 @@ class WebSocketIoServer(object):
                 # remove unfilled values as we do not want them to override default values with None
                 config = {k: v for k, v in config.items() if v is not None}
                 with RunLock():
+                    if self.fluent_logger:
+                        self.fluent_logger.start_new_run()
                     results = self.nfvbench_runner.run(config, config)
             except Exception as exc:
                 print 'NFVbench runner exception:'
@@ -252,9 +246,7 @@ class WebSocketIoServer(object):
             else:
                 # this might overwrite a previously unfetched result
                 Ctx.set_result(results)
-            if self.fluent_logger:
-                self.result_fluent_logger.runlogdate = self.fluent_logger.runlogdate
-            summary = NFVBenchSummarizer(results['result'], self.result_fluent_logger)
+            summary = NFVBenchSummarizer(results['result'], self.fluent_logger)
             LOG.info(str(summary))
             Ctx.release()
             if self.fluent_logger:

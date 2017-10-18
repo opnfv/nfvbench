@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9a3d3df0_f00fd7df",
+        "filename": "nfvbench/fluentd.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 5807
+      },
+      "writtenOn": "2017-10-18T01:58:55Z",
+      "side": 1,
+      "message": "need to check if enabled or not for both lists",
+      "revId": "13ff0ed1bc574fd6625f63e97d1f98bcc891d53d",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9a3d3df0_900acbd0",
+        "filename": "test/test_nfvbench.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 814,
+      "author": {
+        "id": 5807
+      },
+      "writtenOn": "2017-10-18T01:58:55Z",
+      "side": 1,
+      "message": "add a list element with only 1 tag enabled.",
+      "revId": "13ff0ed1bc574fd6625f63e97d1f98bcc891d53d",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": false
+    }
+  ]
+}

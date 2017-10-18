@@ -43,7 +43,7 @@ flavor:
   # Number of vCPUs for the flavor
   vcpus: 2
   # Memory for the flavor in MB
-  ram: 8192
+  ram: 4096
   # Size of local disk in GB
   disk: 0
   # metadata are supported and can be added if needed, optional

@@ -1,0 +1,72 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9a3d3df0_7d2f20a2",
+        "filename": "nfvbench/cfg.default.yaml",
+        "patchSetId": 1
+      },
+      "lineNbr": 371,
+      "author": {
+        "id": 5807
+      },
+      "writtenOn": "2017-10-18T00:38:30Z",
+      "side": 1,
+      "message": "mention that this is a list of 1 or more fluentd recipients identified by their IP and port, for each recipient, it is possible to enable individually if they should be sent log records and/or perf result records.",
+      "revId": "0510ba4d48232c445be229250065523034f265d6",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9a3d3df0_1d2254b9",
+        "filename": "nfvbench/cfg.default.yaml",
+        "patchSetId": 1
+      },
+      "lineNbr": 372,
+      "author": {
+        "id": 5807
+      },
+      "writtenOn": "2017-10-18T00:38:30Z",
+      "side": 1,
+      "message": "this comment no longer true?",
+      "revId": "0510ba4d48232c445be229250065523034f265d6",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9a3d3df0_fd121061",
+        "filename": "nfvbench/fluentd.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 33,
+      "author": {
+        "id": 5807
+      },
+      "writtenOn": "2017-10-18T00:38:30Z",
+      "side": 1,
+      "message": "session level variable (good here but could be defined as a class variable)",
+      "revId": "0510ba4d48232c445be229250065523034f265d6",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9a3d3df0_bd188885",
+        "filename": "nfvbench/fluentd.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 51,
+      "author": {
+        "id": 5807
+      },
+      "writtenOn": "2017-10-18T00:38:30Z",
+      "side": 1,
+      "message": "those counters are also session level as well",
+      "revId": "0510ba4d48232c445be229250065523034f265d6",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": false
+    }
+  ]
+}

@@ -16,7 +16,6 @@
 
 import json
 import Queue
-import traceback
 import uuid
 
 from flask import Flask
@@ -236,10 +235,8 @@ class WebSocketIoServer(object):
                         self.fluent_logger.start_new_run()
                     results = self.nfvbench_runner.run(config, config)
             except Exception as exc:
-                print 'NFVbench runner exception:'
-                traceback.print_exc()
                 results = result_json(STATUS_ERROR, str(exc))
-                LOG.exception()
+                LOG.exception('NFVbench runner exception:')
 
             if Ctx.request_from_socketio:
                 socketio.emit('run_end', results)

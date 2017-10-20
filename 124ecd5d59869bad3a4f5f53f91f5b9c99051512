@@ -1,0 +1,7 @@
+Code-Review+2: Alec Hothan <ahothan@cisco.com>
+Verified+1: Alec Hothan <ahothan@cisco.com>
+Submitted-by: Alec Hothan <ahothan@cisco.com>
+Submitted-at: Fri, 20 Oct 2017 08:06:57 +0000
+Reviewed-on: https://gerrit.opnfv.org/gerrit/45999
+Project: nfvbench
+Branch: refs/heads/stable/euphrates

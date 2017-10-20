@@ -2,7 +2,7 @@
 FROM ubuntu:16.04
 
 ENV TREX_VER "v2.29"
-ENV NFVBENCH_TAG "1.0.11"
+ENV NFVBENCH_TAG "1.1.1"
 ENV VM_IMAGE_VER "0.4"
 
 RUN apt-get update && apt-get install -y \

@@ -29,11 +29,10 @@ class AbstractTrafficGenerator(object):
     imix_l2_sizes = [64, 594, 1518]
     imix_l3_sizes = [size - l2_header_size for size in imix_l2_sizes]
     imix_ratios = [7, 4, 1]
-
     imix_avg_l2_size = sum(
         [1.0 * imix[0] * imix[1] for imix in zip(imix_l2_sizes, imix_ratios)]) / sum(imix_ratios)
 
-    traffic_utils.imix_avg_l2_sizes = imix_avg_l2_size
+    traffic_utils.imix_avg_l2_size = imix_avg_l2_size
 
     def __init__(self, config):
         self.config = config

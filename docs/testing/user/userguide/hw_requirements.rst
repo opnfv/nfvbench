@@ -25,9 +25,7 @@ To run the TRex traffic generator (that is bundled with NFVbench) you will need 
 
 Switch Configuration
 --------------------
-For VLAN encapsulation, the 2 corresponding ports on the switch(es) facing the Trex ports on the Linux server should be configured in trunk mode (NFVbench will instruct TRex to insert the appropriate vlan tag).
-
-For VxLAN encapsulation, the switch(es) must support the VTEP feature (VxLAN Tunnel End Point) with the ability to attach an interface to a VTEP (this is an advanced feature that requires an NFVbench plugin for the switch).
+The 2 corresponding ports on the switch(es) facing the Trex ports on the Linux server should be configured in trunk mode (NFVbench will instruct TRex to insert the appropriate vlan tag).
 
 Using a TOR switch is more representative of a real deployment and allows to measure packet flows on any compute node in the rack without rewiring and includes the overhead of the TOR switch.
 
@@ -70,10 +68,3 @@ Finally, the correct iommu options and huge pages to be configured on the Linux 
 - for Trex, pre-allocate 1024 huge pages of 2MB each (for a total of 2GB): "hugepagesz=2M hugepages=1024"
 
 More detailed instructions can be found in the DPDK documentation (https://media.readthedocs.org/pdf/dpdk/latest/dpdk.pdf).
-
-
-NFVbench loopback VM image Upload
----------------------------------
-
-The NFVbench loopback VM image should be uploaded to OpenStack prior to running NFVbench.
-The NFVbench VM qcow2 image can be rebuilt from script or can be copied from the OPNFV artifact repository [URL TBP].

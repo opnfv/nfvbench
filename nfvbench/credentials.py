@@ -145,8 +145,8 @@ class Credentials(object):
                     self.rc_username = os.environ['OS_USERNAME']
                     self.rc_auth_url = os.environ['OS_AUTH_URL']
                     self.rc_project_name = os.environ['OS_PROJECT_NAME']
-                    self.rc_project_domain_id = os.environ['OS_PROJECT_DOMAIN_NAME']
-                    self.rc_user_domain_id = os.environ['OS_USER_DOMAIN_NAME']
+                    self.rc_project_domain_name = os.environ['OS_PROJECT_DOMAIN_NAME']
+                    self.rc_user_domain_name = os.environ['OS_USER_DOMAIN_NAME']
             if 'OS_CACERT' in os.environ:
                 self.rc_cacert = os.environ['OS_CACERT']
 

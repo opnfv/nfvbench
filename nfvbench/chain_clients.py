@@ -145,11 +145,11 @@ class BasicStageClient(object):
         LOG.info('Created network: %s.', name)
         return network
 
-    def _create_port(self, net):
+    def _create_port(self, net, vnic_type='normal'):
         body = {
             "port": {
                 'network_id': net['id'],
-                'binding:vnic_type': 'direct' if self.config.sriov else 'normal'
+                'binding:vnic_type': vnic_type
             }
         }
         port = self.neutron.create_port(body)
@@ -483,7 +483,8 @@ class PVPStageClient(BasicStageClient):
                                                    self.config.generator_config.src_device.mac,
                                                    self.config.generator_config.dst_device.mac)
 
-                ports = [self._create_port(net) for net in self.nets]
+                vnic_type = 'direct' if self.config.sriov else 'normal'
+                ports = [self._create_port(net, vnic_type) for net in self.nets]
                 self.created_ports.extend(ports)
                 self.vms.append(self._create_server(name, ports, az, config_file))
         self._ensure_vms_active()
@@ -542,11 +543,15 @@ class PVVPStageClient(BasicStageClient):
             if reusable_vm0 and reusable_vm1:
                 self.vms.extend([reusable_vm0, reusable_vm1])
             else:
-                vm0_port_net0 = self._create_port(vm0_nets[0])
-                vm0_port_net2 = self._create_port(vm0_nets[1])
+                edge_vnic_type = 'direct' if self.config.sriov else 'normal'
+                middle_vnic_type = 'direct' \
+                    if self.config.sriov and self.config.use_sriov_middle_net \
+                    else 'normal'
+                vm0_port_net0 = self._create_port(vm0_nets[0], edge_vnic_type)
+                vm0_port_net2 = self._create_port(vm0_nets[1], middle_vnic_type)
 
-                vm1_port_net2 = self._create_port(vm1_nets[1])
-                vm1_port_net1 = self._create_port(vm1_nets[0])
+                vm1_port_net2 = self._create_port(vm1_nets[1], middle_vnic_type)
+                vm1_port_net1 = self._create_port(vm1_nets[0], edge_vnic_type)
 
                 self.created_ports.extend([vm0_port_net0,
                                            vm0_port_net2,

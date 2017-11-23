@@ -145,11 +145,11 @@ class BasicStageClient(object):
         LOG.info('Created network: %s.', name)
         return network
 
-    def _create_port(self, net):
+    def _create_port(self, net, vnic_type='normal'):
         body = {
             "port": {
                 'network_id': net['id'],
-                'binding:vnic_type': 'direct' if self.config.sriov else 'normal'
+                'binding:vnic_type': vnic_type
             }
         }
         port = self.neutron.create_port(body)
@@ -305,7 +305,7 @@ class BasicStageClient(object):
         else:
             LOG.error('Unable to delete flavor: %s', self.config.flavor_type)
 
-    def get_config_file(self, chain_index, src_mac, dst_mac):
+    def get_config_file(self, chain_index, src_mac, dst_mac, intf_mac1, intf_mac2):
         boot_script_file = os.path.join(os.path.dirname(os.path.abspath(__file__)),
                                         'nfvbenchvm/', self.nfvbenchvm_config_name)
 
@@ -317,6 +317,8 @@ class BasicStageClient(object):
 
         vm_config = {
             'forwarder': self.config.vm_forwarder,
+            'intf_mac1': intf_mac1,
+            'intf_mac2': intf_mac2,
             'tg_gateway1_ip': self.config.traffic_generator.tg_gateway_ip_addrs[0],
             'tg_gateway2_ip': self.config.traffic_generator.tg_gateway_ip_addrs[1],
             'tg_net1': self.config.traffic_generator.ip_addrs[0],
@@ -479,11 +481,13 @@ class PVPStageClient(BasicStageClient):
             if reusable_vm:
                 self.vms.append(reusable_vm)
             else:
+                vnic_type = 'direct' if self.config.sriov else 'normal'
+                ports = [self._create_port(net, vnic_type) for net in self.nets]
                 config_file = self.get_config_file(chain_index,
                                                    self.config.generator_config.src_device.mac,
-                                                   self.config.generator_config.dst_device.mac)
-
-                ports = [self._create_port(net) for net in self.nets]
+                                                   self.config.generator_config.dst_device.mac,
+                                                   ports[0]['mac_address'],
+                                                   ports[1]['mac_address'])
                 self.created_ports.extend(ports)
                 self.vms.append(self._create_server(name, ports, az, config_file))
         self._ensure_vms_active()
@@ -542,11 +546,15 @@ class PVVPStageClient(BasicStageClient):
             if reusable_vm0 and reusable_vm1:
                 self.vms.extend([reusable_vm0, reusable_vm1])
             else:
-                vm0_port_net0 = self._create_port(vm0_nets[0])
-                vm0_port_net2 = self._create_port(vm0_nets[1])
+                edge_vnic_type = 'direct' if self.config.sriov else 'normal'
+                middle_vnic_type = 'direct' \
+                    if self.config.sriov and self.config.use_sriov_middle_net \
+                    else 'normal'
+                vm0_port_net0 = self._create_port(vm0_nets[0], edge_vnic_type)
+                vm0_port_net2 = self._create_port(vm0_nets[1], middle_vnic_type)
 
-                vm1_port_net2 = self._create_port(vm1_nets[1])
-                vm1_port_net1 = self._create_port(vm1_nets[0])
+                vm1_port_net2 = self._create_port(vm1_nets[1], middle_vnic_type)
+                vm1_port_net1 = self._create_port(vm1_nets[0], edge_vnic_type)
 
                 self.created_ports.extend([vm0_port_net0,
                                            vm0_port_net2,
@@ -558,10 +566,14 @@ class PVVPStageClient(BasicStageClient):
                 # TG0 (net0) -> VM0 (net2) -> VM1 (net2) -> TG1 (net1)
                 config_file0 = self.get_config_file(chain_index,
                                                     self.config.generator_config.src_device.mac,
-                                                    vm1_port_net2['mac_address'])
+                                                    vm1_port_net2['mac_address'],
+                                                    vm0_port_net0['mac_address'],
+                                                    vm0_port_net2['mac_address'])
                 config_file1 = self.get_config_file(chain_index,
                                                     vm0_port_net2['mac_address'],
-                                                    self.config.generator_config.dst_device.mac)
+                                                    self.config.generator_config.dst_device.mac,
+                                                    vm1_port_net2['mac_address'],
+                                                    vm1_port_net1['mac_address'])
 
                 self.vms.append(self._create_server(name0,
                                                     [vm0_port_net0, vm0_port_net2],

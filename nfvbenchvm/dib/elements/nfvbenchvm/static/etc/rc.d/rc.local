@@ -34,6 +34,25 @@ for irq in `ls /proc/irq/`; do
 done
 tuna -c $(seq -s, 1 1 $WORKER_CORES) --isolate
 
+# Sometimes the interfaces on the loopback VM will use different drivers, e.g.
+# one from vswitch which is virtio based, one is from SRIOV VF. In this case,
+# we have to make sure the forwarder uses them in the right order, which is
+# especially important if the VM is in a PVVP chain.
+if [ -z $INTF_MAC1 ] && [ -z $INTF_MAC2 ]; then
+    NET_PATH=/sys/class/net
+    EXP_INTF_1=$(for f in $(ls $NET_PATH/); do if [ ! $(grep -o "$INTF_MAC1" $NET_PATH/$f/address) ]; then break; fi; done)
+    EXP_PCI_ADDRESS_1=$(basename $(readlink $NET_PATH/$EXP_INTF_1/device))
+    EXP_INTF_2=$(for f in $(ls $NET_PATH/); do if [ ! $(grep -o "$INTF_MAC2" $NET_PATH/$f/address) ]; then break; fi; done)
+    EXP_PCI_ADDRESS_2=$(basename $(readlink $NET_PATH/$EXP_INTF_2/device))
+    if [ "$PCI_ADDRESS_1" == "$EXP_PCI_ADDRESS_2" ] && [ "$PCI_ADDRESS_2" == "$EXP_PCI_ADDRESS_1" ]; then
+        # Interfaces are not coming in the expected order:
+        #     (1) Swap the MAC in the case of testpmd;
+        #     (2) Swap the interface order in the case of VPP;
+        TEMP=$PCI_ADDRESS_1; PCI_ADDRESS_1=$PCI_ADDRESS_2; PCI_ADDRESS_2=$TEMP
+        TEMP=$TG_MAC1; TG_MAC1=$TG_MAC2; TG_MAC2=$TEMP
+    fi
+fi
+
 # Configure the forwarder
 if [ "$FORWARDER" == "testpmd" ]; then
     echo "Configuring testpmd..."
@@ -56,8 +75,9 @@ if [ "$FORWARDER" == "testpmd" ]; then
                              --eth-peer=0,$TG_MAC1 \
                              --eth-peer=1,$TG_MAC2 \
                              --forward-mode=mac \
-                             --nb-cores=$WORKER_CORES\
-                             --max-pkt-len 9000
+                             --nb-cores=$WORKER_CORES \
+                             --max-pkt-len=9000 \
+                             --cmdline-file=/dpdk/testpmd_cmd.txt
 else
     echo "Configuring vpp..."
     cp /vpp/startup.conf /etc/vpp/startup.conf
@@ -81,6 +101,5 @@ else
     sed -i "s/{{TG_NET2}}/${TG_NET2//\//\/}/g" /etc/vpp/vm.conf
     sed -i "s/{{TG_GATEWAY1_IP}}/${TG_GATEWAY1_IP}/g" /etc/vpp/vm.conf
     sed -i "s/{{TG_GATEWAY2_IP}}/${TG_GATEWAY2_IP}/g" /etc/vpp/vm.conf
-
     service vpp restart
 fi

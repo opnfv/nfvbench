@@ -6,6 +6,8 @@ screen:
 telnet:
 python-devel:
 libyaml-devel:
+numactl-libs:
+numactl-devel:
 vpp:
 vpp-plugins:
 kernel-firmware:

@@ -8,7 +8,7 @@ fi
 rpm --import https://www.elrepo.org/RPM-GPG-KEY-elrepo.org
 rpm -Uvh http://www.elrepo.org/elrepo-release-7.0-2.el7.elrepo.noarch.rpm
 yum remove -y kernel-firmware kernel-headers kernel-devel
-yum install -y --enablerepo=elrepo-kernel kernel-ml kernel-ml-headers kernel-ml-devel
+yum install -y --enablerepo=elrepo-kernel kernel-lt kernel-lt-headers kernel-lt-devel
 
 # gcc will be removed with old kernel as dependency, so reinstalling it back
 yum install -y gcc

@@ -253,6 +253,11 @@ internal_networks:
         segmentation_id:
         physical_network:
 
+# In the scenario of PVVP + SRIOV, there is choice of how the traffic will be
+# handled in the middle network. The default (false) will use vswitch, while
+# SRIOV can be used by toggling below setting.
+use_sriov_middle_net: false
+
 # EXT chain only. Names of edge networks which will be used to send traffic via traffic generator.
 external_networks:
     left: 'nfvbench-net0'

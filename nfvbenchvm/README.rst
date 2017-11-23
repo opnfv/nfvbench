@@ -1,4 +1,4 @@
-NFVBENCH VM IMAGE FOR OPENSTACK 
+NFVBENCH VM IMAGE FOR OPENSTACK
 +++++++++++++++++++++++++++++++
 
 This repo will build a centos 7 image with testpmd and VPP installed.
@@ -18,7 +18,7 @@ Pre-requisites
 Build the image
 ---------------
 - cd dib
-- update the version number for the image (if needed) by modifying __version__ in build-image.sh 
+- update the version number for the image (if needed) by modifying __version__ in build-image.sh
 - setup your http_proxy if needed
 - bash build-image.sh
 
@@ -48,15 +48,17 @@ nfvbenchvm config file is located at ``/etc/nfvbenchvm.conf``.
 
 .. code-block:: bash
 
-    FORWARDER=VPP
-    TG_MAC0=00:10:94:00:0A:00
-    TG_MAC1=00:11:94:00:0A:00
-    VNF1_GATEWAY_CIDR=1.1.0.2/8
-    VNF2_GATEWAY_CIDR=2.2.0.2/8
-    TG1_NET=10.0.0.0/8
-    TG2_NET=20.0.0.0/8
-    TG1_GATEWAY_IP=1.1.0.100
-    TG1_GATEWAY_IP=2.2.0.100
+    FORWARDER=testpmd
+    INTF_MAC1=FA:16:3E:A2:30:41
+    INTF_MAC2=FA:16:3E:10:DA:10
+    TG_MAC1=00:10:94:00:0A:00
+    TG_MAC2=00:11:94:00:0A:00
+    VNF_GATEWAY1_CIDR=1.1.0.2/8
+    VNF_GATEWAY2_CIDR=2.2.0.2/8
+    TG_NET1=10.0.0.0/8
+    TG_NET2=20.0.0.0/8
+    TG_GATEWAY1_IP=1.1.0.100
+    TG_GATEWAY2_IP=2.2.0.100
 
 
 Launching nfvbenchvm VM
@@ -79,6 +81,6 @@ To check if VPP is running, you can run this command in VNC console:
 
 Hardcoded Username and Password
 --------------------------------
-- Username: nfvbench 
-- Password: nfvbench 
+- Username: nfvbench
+- Password: nfvbench
 

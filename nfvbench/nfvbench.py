@@ -284,6 +284,12 @@ def parse_opts_from_cli():
                         action='store_true',
                         help='Use SRIOV (no vswitch - requires SRIOV support in compute nodes)')
 
+    parser.add_argument('--use-sriov-middle-net', dest='use_sriov_middle_net',
+                        default=None,
+                        action='store_true',
+                        help='Use SRIOV to handle the middle network traffic '
+                             '(PVVP with SRIOV only)')
+
     parser.add_argument('-d', '--debug', dest='debug',
                         action='store_true',
                         default=None,
@@ -491,19 +497,28 @@ def main():
             config.sriov = True
         if opts.log_file:
             config.log_file = opts.log_file
+        if opts.service_chain:
+            config.service_chain = opts.service_chain
+        if opts.service_chain_count:
+            config.service_chain_count = opts.service_chain_count
 
-        # show running config in json format
-        if opts.show_config:
-            print json.dumps(config, sort_keys=True, indent=4)
-            sys.exit(0)
+        if opts.use_sriov_middle_net:
+            if (not config.sriov) or (not config.service_chain == ChainType.PVVP):
+                raise Exception("--use-sriov-middle-net is only valid for PVVP with SRIOV")
+            config.use_sriov_middle_net = True
 
         if config.sriov and config.service_chain != ChainType.EXT:
             # if sriov is requested (does not apply to ext chains)
             # make sure the physnet names are specified
             check_physnet("left", config.internal_networks.left)
             check_physnet("right", config.internal_networks.right)
-            if config.service_chain == ChainType.PVVP:
+            if config.service_chain == ChainType.PVVP and config.use_sriov_middle_net:
                 check_physnet("middle", config.internal_networks.middle)
+
+        # show running config in json format
+        if opts.show_config:
+            print json.dumps(config, sort_keys=True, indent=4)
+            sys.exit(0)
 
         # update the config in the config plugin as it might have changed
         # in a copy of the dict (config plugin still holds the original dict)

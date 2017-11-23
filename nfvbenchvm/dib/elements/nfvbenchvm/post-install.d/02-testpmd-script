@@ -1,7 +1,7 @@
 #!/bin/bash
 
-DPDK=dpdk-17.05.2
-DPDK_UNTAR=dpdk-stable-17.05.2
+DPDK=dpdk-17.08
+DPDK_UNTAR=dpdk-17.08
 
 # pick up the kernel version for the target image
 kernel_version=`ls -t /lib/modules | awk 'NR==1 {print}'`
@@ -19,6 +19,7 @@ cp usertools/dpdk-devbind.py ../dpdk
 # cp tools/dpdk_nic_bind.py ../dpdk/dpdk-devbind.py
 cp x86_64-native-linuxapp-gcc/app/testpmd ../dpdk
 cp x86_64-native-linuxapp-gcc/kmod/igb_uio.ko ../dpdk
+echo "set promisc all off" > /dpdk/testpmd_cmd.txt
 
 cd ..
 rm -f $DPDK.tar.xz

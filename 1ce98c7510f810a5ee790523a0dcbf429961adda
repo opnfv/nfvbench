@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9a3d3df0_074f5a93",
+        "filename": "nfvbenchvm/dib/elements/nfvbenchvm/static/etc/rc.d/rc.local",
+        "patchSetId": 2
+      },
+      "lineNbr": 80,
+      "author": {
+        "id": 5807
+      },
+      "writtenOn": "2017-11-27T22:46:16Z",
+      "side": 1,
+      "message": "this is still needed?",
+      "revId": "1ce98c7510f810a5ee790523a0dcbf429961adda",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": false
+    }
+  ]
+}

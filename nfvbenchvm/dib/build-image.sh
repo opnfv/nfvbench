@@ -15,9 +15,13 @@ __version__=0.5
 image_name=nfvbenchvm_centos-$__version__
 
 # if image exists skip building
-if  gsutil -q stat gs://$gs_url/$image_name.qcow2; then
-	echo "Image already exists at http://$gs_url/$image_name.qcow2"
-	exit 0
+if  command -v gsutil >/dev/null; then
+    if gsutil -q stat gs://$gs_url/$image_name.qcow2; then
+	    echo "Image already exists at http://$gs_url/$image_name.qcow2"
+	    exit 0
+    fi
+else
+    echo "Cannot check image availability in OPNFV artifact repository (gsutil not available)"
 fi
 
 # install diskimage-builder
@@ -50,6 +54,10 @@ echo "Building $image_name.qcow2..."
 time disk-image-create -o $image_name centos7 nfvbenchvm
 ls -l $image_name.qcow2
 
-echo "Uploading $image_name.qcow2..."
-gsutil cp $image_name.qcow2 gs://$gs_url/$image_name.qcow2
-echo "You can access to image at http://$gs_url/$image_name.qcow2"
+if command -v gsutil >/dev/null; then
+    echo "Uploading $image_name.qcow2..."
+    gsutil cp $image_name.qcow2 gs://$gs_url/$image_name.qcow2
+    echo "You can access to image at http://$gs_url/$image_name.qcow2"
+else
+    echo "Cannot upload new image to the OPNFV artifact repository (gsutil not available)"
+fi

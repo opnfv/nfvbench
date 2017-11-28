@@ -20,6 +20,7 @@ running at localhost:9200.
 
 
 .. code-block:: bash
+
     <match nfvbench.**>
     @type copy
     <store>
@@ -40,6 +41,7 @@ under NFVbench configuration), and storage backend is elasticsearch which is
 running at localhost:9200.
 
 .. code-block:: bash
+
     <match resultnfvbench.**>
     @type copy
     <store>
@@ -77,6 +79,7 @@ An example of configuration for Fluentd working at 127.0.0.1:24224 and tags for 
 and result is resultnfvbench
 
 .. code-block:: bash
+
     fluentd:
         # by default (logging_tag is empty) nfvbench log messages are not sent to fluentd
         # to enable logging to fluents, specify a valid fluentd tag name to be used for the
@@ -126,6 +129,7 @@ For each packet size and rate a result record is sent. Users can label those res
 --user-label parameter to NFVbench run
 
 .. code-block::bash
+
     nfvbench --rate 1% --user-label nfvbench-label
 
 And the results of this command obtained from fluentd by elasticsearch:

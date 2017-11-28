@@ -38,6 +38,7 @@ This exception means that NFVbench cannot pass any traffic in the service chain.
 The most common issues that prevent traffic from passing are:
 - incorrect wiring of the NFVbench/TRex interfaces
 - incorrect vlan_tagging setting in the NFVbench configuration, this needs to match how the NFVbench ports on the switch are configured (trunk or access port)
+
    - if the switch port is configured as access port, you must disable vlan_tagging in the NFVbench configuration
    - of the switch port is configured as trunk (recommended method), you must enable it
 

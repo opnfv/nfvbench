@@ -12,3 +12,6 @@ nfvbenchvm/dib/nfvbenchvm_centos-*.d/
 docs/_build
 docs/conf.py
 docs/_static
+build/
+AUTHORS
+ChangeLog

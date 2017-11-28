@@ -44,11 +44,15 @@ HTTP Interface
 
 This request simply returns whatever content is sent in the body of the request (body should be in json format, only used for testing)
 
-Example request: curl -XGET '127.0.0.1:7556/echo' -H "Content-Type: application/json" -d '{"nfvbench": "test"}'
-Response:
-{
-  "nfvbench": "test"
-}
+Example request: 
+
+.. code-block:: bash
+
+    curl -XGET '127.0.0.1:7556/echo' -H "Content-Type: application/json" -d '{"nfvbench": "test"}'
+    Response:
+    {
+      "nfvbench": "test"
+    }
 
 
 <http-url>/status (GET)
@@ -82,7 +86,7 @@ Example of return when the run completes:
 
 
 <http-url>/start_run (POST)
-^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 This request starts an NFVBench run with passed configurations. If no configuration is passed, a run with default configurations will be executed.
 
@@ -101,7 +105,7 @@ Example of return when the submission is successful:
       "status": "PENDING"
     }
 
-If there is already an NFVBench running then it will return
+If there is already an NFVBench running then it will return:
 
 .. code-block:: bash
 

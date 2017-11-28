@@ -14,7 +14,7 @@ NFVbench supports the following main measurement capabilities:
     - *fixed rate* mode to generate traffic at a fixed rate for a fixed duration
     - NDR (No Drop Rate) and PDR (Partial Drop Rate) measurement mode
 - configurable frame sizes (any list of fixed sizes or 'IMIX')
-- built-in packet paths
+- built-in packet paths (PVP, PVVP)
 - built-in loopback VNFs based on fast L2 or L3 forwarders running in VMs
 - configurable number of flows and service chains
 - configurable traffic direction (single or bi-directional)
@@ -96,7 +96,7 @@ PVP Packet Path
 
 This packet path represents a single service chain with 1 loopback VNF and 2 Neutron networks:
 
-.. image:: images/nfvbench-pvp.svg
+.. image:: images/nfvbench-pvp.png
 
 
 PVVP Packet Path
@@ -105,12 +105,11 @@ PVVP Packet Path
 This packet path represents a single service chain with 2 loopback VNFs in sequence and 3 Neutron networks.
 The 2 VNFs can run on the same compute node (PVVP intra-node):
 
-.. image:: images/nfvbench-pvvp-intra.svg
+.. image:: images/nfvbench-pvvp.png
 
 or on different compute nodes (PVVP inter-node) based on a configuration option:
 
-.. image:: images/nfvbench-pvvp-inter.svg
-
+.. image:: images/nfvbench-pvvp2.png
 
 
 Multi-Chaining (N*PVP or N*PVVP)
@@ -121,12 +120,37 @@ In the case of multiple service chains, NFVbench will instruct the traffic gener
 
 Example of multi-chaining with 2 concurrent PVP service chains:
 
-.. image:: images/nfvbench-npvp.svg
+.. image:: images/nfvbench-npvp.png
 
 This innovative feature will allow to measure easily the performance of a fully loaded compute node running multiple service chains.
 
 Multi-chaining is currently limited to 1 compute node (PVP or PVVP intra-node) or 2 compute nodes (for PVVP inter-node).
 The 2 edge interfaces for all service chains will share the same 2 networks.
+
+SR-IOV
+^^^^^^
+
+By default, service chains will be based on virtual switch interfaces.
+
+NFVbench provides an option to select SR-IOV based virtual interfaces instead (thus bypassing any virtual switch) for those OpenStack system that include and support SR-IOV capable NICs on compute nodes.
+
+The PVP packet path will bypass the virtual switch completely when the SR-IOV option is selected:
+
+.. image:: images/nfvbench-sriov-pvp.png
+
+The PVVP packet path will use SR-IOV for the left and right networks and the virtual switch for the middle network by default:
+
+.. image:: images/nfvbench-sriov-pvvp.png
+
+Or in the case of inter-node:
+
+.. image:: images/nfvbench-sriov-pvvp2.png
+
+This packet path is a good way to approximate VM to VM (V2V) performance (middle network) given the high efficiency of the left and right networks. The V2V throughput will likely be very close to the PVVP throughput while its latency will be very close to the difference between the SR-IOV PVVP latency and the SR-IOV PVP latency.
+
+It is possible to also force the middle network to use SR-IOV (in this version, the middle network is limited to use the same SR-IOV phys net):
+
+.. image:: images/nfvbench-all-sriov-pvvp.png
 
 
 Other Misc Packet Paths
@@ -134,7 +158,7 @@ Other Misc Packet Paths
 
 P2P (Physical interface to Physical interface - no VM) can be supported using the external chain/L2 forwarding mode.
 
-V2V (VM to VM) is not supported but PVVP provides a more complete (and mroe realistic) alternative.
+V2V (VM to VM) is not supported but PVVP provides a more complete (and more realistic) alternative.
 
 
 Supported Neutron Network Plugins and vswitches
@@ -149,12 +173,6 @@ NFVbench is agnostic of the virtual switch implementation and has been tested wi
 - OVS/VLAN and OVS-DPDK/VLAN
 - ML2/ODL/VPP (OPNFV Fast Data Stack)
 
-SR-IOV
-^^^^^^
-
-By default, service chains will be based on virtual switch interfaces.
-
-NFVbench provides an option to select SR-IOV based virtual interfaces instead (thus bypassing any virtual switch) for those OpenStack system that include and support SR-IOV capable NICs on compute nodes.
 
 
 

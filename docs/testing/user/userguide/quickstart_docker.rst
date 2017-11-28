@@ -50,6 +50,7 @@ The NFVbench container requires the following Docker options to operate properly
 +------------------------------------------------------+------------------------------------------------------+
 | -e CONFIG_FILE="/root/nfvbenchconfig.json            | (optional) required if REST server is enabled        |
 +------------------------------------------------------+------------------------------------------------------+
+
 It can be convenient to write a shell script (or an alias) to automatically insert the necessary options.
 
 The minimal configuration file required must specify the openrc file to use (using in-container path), the PCI addresses of the 2 NIC ports to use
@@ -60,6 +61,7 @@ the openrc file is located on the host current directory which is mapped under /
 the 2 NIC ports to use for generating traffic have the PCI addresses "04:00.0" and "04:00.1"
 
 .. code-block:: bash
+
     {
         "openrc_file": "/tmp/nfvbench/openrc",
         "traffic_generator": {

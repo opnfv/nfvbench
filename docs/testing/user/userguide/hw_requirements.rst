@@ -20,7 +20,7 @@ To run the TRex traffic generator (that is bundled with NFVbench) you will need 
     - if you have only 1 TOR, wire both interfaces to that same TOR
     - 1 interface to each TOR if you have 2 TORs and want to use bonded links to your compute nodes
 
-.. image:: images/nfvbench-trex-setup.svg
+.. image:: images/nfvbench-trex-setup.png
 
 
 Switch Configuration

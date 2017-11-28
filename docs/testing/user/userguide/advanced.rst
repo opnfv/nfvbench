@@ -225,7 +225,7 @@ To run NFVbench on such external service chains:
 - specify the packet source and destination IPs for the virtual devices that are simulated (10.0.0.0/8 and 20.0.0.0/8)
 
 
-.. image:: images/extchain-config.svg
+.. image:: images/extchain-config.png
 
 L3 routing must be enabled in the VNF and configured to:
 

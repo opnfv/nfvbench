@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9a3d3df0_2884eb5c",
+        "filename": "nfvbenchvm/dib/build-image.sh",
+        "patchSetId": 1
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 5807
+      },
+      "writtenOn": "2017-11-29T00:19:29Z",
+      "side": 1,
+      "message": "should display an informational msg if gsutil is not install (print something like \"Cannot check image availability in OPNFV artifact repository (gsutil not available)\"",
+      "revId": "9bbd2f209f485ff66422908fe4696f8a5f1c94d8",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9a3d3df0_08876762",
+        "filename": "nfvbenchvm/dib/build-image.sh",
+        "patchSetId": 1
+      },
+      "lineNbr": 57,
+      "author": {
+        "id": 5807
+      },
+      "writtenOn": "2017-11-29T00:19:29Z",
+      "side": 1,
+      "message": "if not installed display a message \"Cannot upload new image to the OPNFV artifact repository (gsutil not available)\"",
+      "revId": "9bbd2f209f485ff66422908fe4696f8a5f1c94d8",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": false
+    }
+  ]
+}

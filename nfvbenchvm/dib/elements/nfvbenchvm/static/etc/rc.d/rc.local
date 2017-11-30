@@ -38,27 +38,30 @@ tuna -c $(seq -s, 1 1 $WORKER_CORES) --isolate
 # one from vswitch which is virtio based, one is from SRIOV VF. In this case,
 # we have to make sure the forwarder uses them in the right order, which is
 # especially important if the VM is in a PVVP chain.
-if [ -z $INTF_MAC1 ] && [ -z $INTF_MAC2 ]; then
+SWAP_FLAG=0
+if [ $INTF_MAC1 ] && [ $INTF_MAC2 ]; then
     NET_PATH=/sys/class/net
-    EXP_INTF_1=$(for f in $(ls $NET_PATH/); do if [ ! $(grep -o "$INTF_MAC1" $NET_PATH/$f/address) ]; then break; fi; done)
-    EXP_PCI_ADDRESS_1=$(basename $(readlink $NET_PATH/$EXP_INTF_1/device))
-    EXP_INTF_2=$(for f in $(ls $NET_PATH/); do if [ ! $(grep -o "$INTF_MAC2" $NET_PATH/$f/address) ]; then break; fi; done)
-    EXP_PCI_ADDRESS_2=$(basename $(readlink $NET_PATH/$EXP_INTF_2/device))
+    EXP_INTF_1=$(for f in $(ls $NET_PATH/); do if grep -q "$INTF_MAC1" $NET_PATH/$f/address; then echo $f; break; fi; done)
+    EXP_PCI_ADDRESS_1=$(ethtool -i $EXP_INTF_1 | grep "bus-info" | awk -F' ' '{ print $2 }')
+    EXP_INTF_2=$(for f in $(ls $NET_PATH/); do if grep -q "$INTF_MAC2" $NET_PATH/$f/address; then echo $f; break; fi; done)
+    EXP_PCI_ADDRESS_2=$(ethtool -i $EXP_INTF_2 | grep "bus-info" | awk -F' ' '{ print $2 }')
     if [ "$PCI_ADDRESS_1" == "$EXP_PCI_ADDRESS_2" ] && [ "$PCI_ADDRESS_2" == "$EXP_PCI_ADDRESS_1" ]; then
         # Interfaces are not coming in the expected order:
-        #     (1) Swap the MAC in the case of testpmd;
-        #     (2) Swap the interface order in the case of VPP;
-        TEMP=$PCI_ADDRESS_1; PCI_ADDRESS_1=$PCI_ADDRESS_2; PCI_ADDRESS_2=$TEMP
-        TEMP=$TG_MAC1; TG_MAC1=$TG_MAC2; TG_MAC2=$TEMP
+        #     (1) Swap the traffic generator MAC in the case of testpmd;
+        #     (2) Swap the interface configs in the case of VPP;
+        SWAP_FLAG=1
     fi
 fi
 
 # Configure the forwarder
+if [ -z "`lsmod | grep igb_uio`" ]; then
+    modprobe uio
+    insmod /dpdk/igb_uio.ko
+fi
 if [ "$FORWARDER" == "testpmd" ]; then
     echo "Configuring testpmd..."
-    if [ -z "`lsmod | grep igb_uio`" ]; then
-        modprobe uio
-        insmod /dpdk/igb_uio.ko
+    if [ $SWAP_FLAG -eq 1 ]; then
+        TEMP=$TG_MAC1; TG_MAC1=$TG_MAC2; TG_MAC2=$TEMP
     fi
     # Binding ports to DPDK
     /dpdk/dpdk-devbind.py -b igb_uio $PCI_ADDRESS_1
@@ -68,8 +71,8 @@ if [ "$FORWARDER" == "testpmd" ]; then
                          -n 4 \
                          -- \
                              --burst=32 \
-                             --txd=256 \
-                             --rxd=1024 \
+                             --txd=2048 \
+                             --rxd=2048 \
                              --txqflags=0xf00 \
                              --disable-hw-vlan \
                              --eth-peer=0,$TG_MAC1 \
@@ -87,10 +90,14 @@ else
     sed -i "s/{{PCI_ADDRESS_2}}/$PCI_ADDRESS_2/g" /etc/vpp/startup.conf
     sed -i "s/{{WORKER_CORES}}/$WORKER_CORES/g" /etc/vpp/startup.conf
     service vpp start
+    sleep 10
 
     INTFS=`vppctl show int | grep Ethernet | xargs`
     INTF_1=`echo $INTFS | awk '{ print $1 }'`
     INTF_2=`echo $INTFS | awk '{ print $4 }'`
+    if [ $SWAP_FLAG -eq 1 ]; then
+        TEMP=$INTF_1; INTF_1=$INTF_2; INTF_2=$TEMP
+    fi
     sed -i "s/{{INTF_1}}/${INTF_1//\//\/}/g" /etc/vpp/vm.conf
     sed -i "s/{{INTF_2}}/${INTF_2//\//\/}/g" /etc/vpp/vm.conf
     sed -i "s/{{VNF_GATEWAY1_CIDR}}/${VNF_GATEWAY1_CIDR//\//\/}/g" /etc/vpp/vm.conf

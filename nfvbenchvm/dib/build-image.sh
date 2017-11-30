@@ -17,8 +17,8 @@ image_name=nfvbenchvm_centos-$__version__
 # if image exists skip building
 if  command -v gsutil >/dev/null; then
     if gsutil -q stat gs://$gs_url/$image_name.qcow2; then
-	    echo "Image already exists at http://$gs_url/$image_name.qcow2"
-	    exit 0
+        echo "Image already exists at http://$gs_url/$image_name.qcow2"
+        exit 0
     fi
 else
     echo "Cannot check image availability in OPNFV artifact repository (gsutil not available)"

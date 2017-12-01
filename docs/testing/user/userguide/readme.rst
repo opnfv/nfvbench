@@ -152,6 +152,10 @@ It is possible to also force the middle network to use SR-IOV (in this version, 
 
 .. image:: images/nfvbench-all-sriov-pvvp.png
 
+The chain can also span across 2 nodes with the use of 2 SR-IOV ports in each node:
+
+.. image:: images/nfvbench-all-sriov-pvvp2.png
+
 
 Other Misc Packet Paths
 ^^^^^^^^^^^^^^^^^^^^^^^

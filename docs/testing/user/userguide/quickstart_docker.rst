@@ -18,7 +18,7 @@ To pull the latest NFVbench container image:
 
 .. code-block:: bash
 
-    docker pull opnfv/nfvbench/nfvbench
+    docker pull opnfv/nfvbench
 
 2. Docker Container configuration
 ---------------------------------

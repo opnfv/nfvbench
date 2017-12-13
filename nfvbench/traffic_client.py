@@ -681,6 +681,15 @@ class TrafficClient(object):
                     'timestamp_sec': None
                 })
                 right_targets[tag] = target
+                if stats.get('warning'):
+                    err_msg = 'ERROR: TRex cannot generate enough packets to find ' \
+                              'out the accurate %s value of the cloud. Make sure '\
+                              'TRex is not running under software mode, and consider '\
+                              'to give more cores for TRex.'
+                    stats['warning'] = err_msg % 'PDR/NDR'
+                    LOG.error(err_msg % tag.upper())
+                    # No need to continue binary search
+                    left = middle = right
             else:
                 # initialize to 0 all fields of result for
                 # the worst case scenario of the binary search (if ndr/pdr is not found)

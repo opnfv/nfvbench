@@ -25,31 +25,33 @@ To pull the latest NFVbench container image:
 
 The NFVbench container requires the following Docker options to operate properly.
 
-+------------------------------------------------------+------------------------------------------------------+
-| Docker options                                       | Description                                          |
-+======================================================+======================================================+
-| -v /lib/modules/$(uname -r):/lib/modules/$(uname -r) | needed by kernel modules in the container            |
-+------------------------------------------------------+------------------------------------------------------+
-| -v /dev:/dev                                         | needed by kernel modules in the container            |
-+------------------------------------------------------+------------------------------------------------------+
-| -v $PWD:/tmp/nfvbench                                | optional but recommended to pass files between the   |
-|                                                      | host and the docker space (see examples below)       |
-|                                                      | Here we map the current directory on the host to the |
-|                                                      | /tmp/nfvbench director in the container but any      |
-|                                                      | other similar mapping can work as well               |
-+------------------------------------------------------+------------------------------------------------------+
-| --net=host                                           | (optional) needed if you run the NFVbench ok         |
-|                                                      | server in the container (or use any appropriate      |
-|                                                      | docker network mode other than "host")               |
-+------------------------------------------------------+------------------------------------------------------+
-| --privileged                                         | (optional) required if SELinux is enabled on the host|
-+------------------------------------------------------+------------------------------------------------------+
-| -e HOST="127.0.0.1"                                  | (optional) required if REST server is enabled        |
-+------------------------------------------------------+------------------------------------------------------+
-| -e PORT=7556                                         | (optional) required if REST server is enabled        |
-+------------------------------------------------------+------------------------------------------------------+
-| -e CONFIG_FILE="/root/nfvbenchconfig.json            | (optional) required if REST server is enabled        |
-+------------------------------------------------------+------------------------------------------------------+
++-------------------------------------------------------+-------------------------------------------------------+
+| Docker options                                        | Description                                           |
++=======================================================+=======================================================+
+| -v /lib/modules/$(uname -r):/lib/modules/$(uname -r)  | needed by kernel modules in the container             |
++-------------------------------------------------------+-------------------------------------------------------+
+| -v /usr/src/kernels:/usr/src/kernels                  | needed by TRex to build kernel modules when needed    |
++-------------------------------------------------------+-------------------------------------------------------+
+| -v /dev:/dev                                          | needed by kernel modules in the container             |
++-------------------------------------------------------+-------------------------------------------------------+
+| -v $PWD:/tmp/nfvbench                                 | optional but recommended to pass files between the    |
+|                                                       | host and the docker space (see examples below)        |
+|                                                       | Here we map the current directory on the host to the  |
+|                                                       | /tmp/nfvbench director in the container but any       |
+|                                                       | other similar mapping can work as well                |
++-------------------------------------------------------+-------------------------------------------------------+
+| --net=host                                            | (optional) needed if you run the NFVbench ok          |
+|                                                       | server in the container (or use any appropriate       |
+|                                                       | docker network mode other than "host")                |
++-------------------------------------------------------+-------------------------------------------------------+
+| --privileged                                          | (optional) required if SELinux is enabled on the host |
++-------------------------------------------------------+-------------------------------------------------------+
+| -e HOST="127.0.0.1"                                   | (optional) required if REST server is enabled         |
++-------------------------------------------------------+-------------------------------------------------------+
+| -e PORT=7556                                          | (optional) required if REST server is enabled         |
++-------------------------------------------------------+-------------------------------------------------------+
+| -e CONFIG_FILE="/root/nfvbenchconfig.json             | (optional) required if REST server is enabled         |
++-------------------------------------------------------+-------------------------------------------------------+
 
 It can be convenient to write a shell script (or an alias) to automatically insert the necessary options.
 
@@ -80,6 +82,7 @@ the 2 NIC ports to use for generating traffic have the PCI addresses "04:00.0" a
                     "intf_speed": "10Gbps",
                     "ip": "127.0.0.1",
                     "name": "trex-local",
+                    "software_mode": false,
                     "tool": "TRex"
                 }
             ]
@@ -98,17 +101,21 @@ The second approach is more responsive as the delay is only incurred once when s
 
 We will take the second approach and start the NFVbench container in detached mode with the name "nfvbench" (this works with bash, prefix with "sudo" if you do not use the root login)
 
+First create a new working directory, and change the current working directory to there. A "nfvbench_ws" directory under your home directory is good place for that, and this is where the OpenStack RC file and NFVbench config file will sit.
+
 To run NFVBench without server mode
 
 .. code-block:: bash
 
-    docker run --detach --net=host --privileged -v $PWD:/tmp/nfvbench -v /dev:/dev -v /lib/modules/$(uname -r):/lib/modules/$(uname -r) --name nfvbench opnfv/nfvbench
+    cd ~/nfvbench_ws
+    docker run --detach --net=host --privileged -v $PWD:/tmp/nfvbench -v /dev:/dev -v /lib/modules/$(uname -r):/lib/modules/$(uname -r) -v /usr/src/kernels:/usr/src/kernels --name nfvbench opnfv/nfvbench
 
 To run NFVBench enabling REST server (mount the configuration json and the path for openrc)
 
 .. code-block:: bash
 
-    docker run --detach --net=host --privileged -e HOST="127.0.0.1" -e PORT=7556 --e CONFIG_FILE="/tmp/nfvbench/nfvbenchconfig.json -v $PWD:/tmp/nfvbench -v /dev:/dev -v /lib/modules/$(uname -r):/lib/modules/$(uname -r) --name nfvbench opnfv/nfvbench start_rest_server
+    cd ~/nfvbench_ws
+    docker run --detach --net=host --privileged -e HOST="127.0.0.1" -e PORT=7556 --e CONFIG_FILE="/tmp/nfvbench/nfvbenchconfig.json -v $PWD:/tmp/nfvbench -v /dev:/dev -v /lib/modules/$(uname -r):/lib/modules/$(uname -r) -v /usr/src/kernels:/usr/src/kernels --name nfvbench opnfv/nfvbench start_rest_server
 
 
 The create an alias to make it easy to execute nfvbench commands directly from the host shell prompt:
@@ -141,6 +148,7 @@ Create a new file containing the minimal configuration for NFVbench, we can call
             tool: TRex
             ip: 127.0.0.1
             cores: 3
+            software_mode: false,
             interfaces:
               - port: 0
                 switch_port:
@@ -176,14 +184,19 @@ PCI addresses "0a:00.0" and "0a:00.1" (first 2 ports of the quad port NIC):
             tool: TRex
             ip: 127.0.0.1
             cores: 3
+            software_mode: false,
             interfaces:
               - port: 0
                 switch_port:
-                pci: 0a:00.0
+                pci: "0a:00.0"
               - port: 1
                 switch_port:
-                pci: 0a:00.1
+                pci: "0a:00.1"
             intf_speed: 10Gbps
+
+.. warning::
+
+    You have to put quotes around the pci addresses as shown in the above example, otherwise TRex will read it wrong.
 
 Alternatively, the full template with comments can be obtained using the --show-default-config option in yaml format:
 
@@ -191,7 +204,9 @@ Alternatively, the full template with comments can be obtained using the --show-
 
     nfvbench --show-default-config > my_nfvbench.cfg
 
-Edit the nfvbench.cfg file to only keep those properties that need to be modified (preserving the nesting)
+Edit the nfvbench.cfg file to only keep those properties that need to be modified (preserving the nesting).
+
+Make sure you have your nfvbench configuration file (my_nfvbench.cfg) and OpenStack RC file in your pre-created working directory.
 
 
 5. Run NFVbench

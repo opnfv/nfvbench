@@ -18,13 +18,12 @@ import os
 import re
 import time
 
-import compute
-from log import LOG
-
 from glanceclient.v2 import client as glanceclient
 from neutronclient.neutron import client as neutronclient
 from novaclient.client import Client
 
+import compute
+from log import LOG
 
 class StageClientException(Exception):
     pass
@@ -109,7 +108,7 @@ class BasicStageClient(object):
                                                        phys1=network['provider:physical_network'],
                                                        phys2=physical_network))
 
-            LOG.info('Reusing existing network: ' + name)
+            LOG.info('Reusing existing network: %s', name)
             network['is_reuse'] = True
             return network
 
@@ -347,13 +346,18 @@ class BasicStageClient(object):
         for net in self.nets:
             for port in self.ports[net['id']]:
                 if port['device_id'] in vm_ids:
-                    self.neutron.update_port(port['id'], {
-                        'port': {
-                            'security_groups': [],
-                            'port_security_enabled': False,
-                        }
-                    })
-                    LOG.info('Security disabled on port %s', port['id'])
+                    try:
+                        self.neutron.update_port(port['id'], {
+                            'port': {
+                                'security_groups': [],
+                                'port_security_enabled': False,
+                            }
+                        })
+                        LOG.info('Security disabled on port %s', port['id'])
+                    except Exception:
+                        LOG.warning('Failed to disable port security on port %s, ignoring...',
+                                    port['id'])
+
 
     def get_loop_vm_hostnames(self):
         return [getattr(vm, 'OS-EXT-SRV-ATTR:hypervisor_hostname') for vm in self.vms]

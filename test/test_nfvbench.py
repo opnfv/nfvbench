@@ -18,6 +18,8 @@ import logging
 import os
 import sys
 
+import pytest
+
 from attrdict import AttrDict
 from nfvbench.config import config_loads
 from nfvbench.credentials import Credentials
@@ -28,7 +30,6 @@ from nfvbench.network import Network
 from nfvbench.specs import ChainType
 from nfvbench.specs import Encaps
 import nfvbench.traffic_gen.traffic_utils as traffic_utils
-import pytest
 
 __location__ = os.path.realpath(os.path.join(os.getcwd(),
                                              os.path.dirname(__file__)))
@@ -474,6 +475,8 @@ def test_parse_rate_str():
             return True
         else:
             assert False
+
+        return False
 
     assert should_raise_error('101')
     assert should_raise_error('201%')

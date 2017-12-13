@@ -131,7 +131,7 @@ def to_rate_str(rate):
         load = rate['rate_percent']
         return '{}%'.format(load)
     else:
-        assert False
+        raise Exception("Cannot format %s into string." % rate)
 
 
 def nan_replace(d):

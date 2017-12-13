@@ -111,7 +111,7 @@ class StatsManager(object):
 
     def _generate_traffic(self):
         if self.config.no_traffic:
-            return
+            return None
 
         self.interval_collector = IntervalCollector(time.time())
         self.interval_collector.attach_notifier(self.notifier)

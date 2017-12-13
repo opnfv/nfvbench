@@ -14,8 +14,9 @@
 #
 
 from attrdict import AttrDict
-from log import LOG
 import yaml
+
+from log import LOG
 
 
 def config_load(file_name, from_cfg=None, whitelist_keys=None):

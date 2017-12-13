@@ -61,7 +61,7 @@ def save_json_result(result, json_file, std_json_path, service_chain, service_ch
 
     if filepaths:
         for file_path in filepaths:
-            LOG.info('Saving results in json file: ' + file_path + "...")
+            LOG.info('Saving results in json file: %s...', file_path)
             with open(file_path, 'w') as jfp:
                 json.dump(result,
                           jfp,

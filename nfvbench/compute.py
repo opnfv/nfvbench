@@ -16,16 +16,15 @@ import os
 import time
 import traceback
 
-import keystoneauth1
-from log import LOG
-import novaclient
-
 from glanceclient import exc as glance_exception
-
 try:
     from glanceclient.openstack.common.apiclient.exceptions import NotFound as GlanceImageNotFound
 except ImportError:
     from glanceclient.v1.apiclient.exceptions import NotFound as GlanceImageNotFound
+import keystoneauth1
+import novaclient
+
+from log import LOG
 
 
 class Compute(object):
@@ -75,7 +74,7 @@ class Compute(object):
                       "image at the specified location %s is correct.", image_file)
             return False
         except keystoneauth1.exceptions.http.NotFound as exc:
-            LOG.error("Authentication error while uploading the image:" + str(exc))
+            LOG.error("Authentication error while uploading the image: %s", str(exc))
             return False
         except Exception:
             LOG.error(traceback.format_exc())
@@ -258,7 +257,7 @@ class Compute(object):
                 if hyp.host == host:
                     return self.normalize_az_host(hyp.zone, host)
             # no match on host
-            LOG.error('Passed host name does not exist: ' + host)
+            LOG.error('Passed host name does not exist: %s', host)
             return None
         if self.config.availability_zone:
             return self.normalize_az_host(None, host)
@@ -290,7 +289,7 @@ class Compute(object):
                         return az_host
                         # else continue - another zone with same host name?
             # no match
-            LOG.error('No match for availability zone and host ' + az_host)
+            LOG.error('No match for availability zone and host %s', az_host)
             return None
         else:
             return self.auto_fill_az(host_list, az_host)
@@ -348,7 +347,7 @@ class Compute(object):
             if not self.config.availability_zone:
                 LOG.error('Availability_zone must be configured')
             elif host_list:
-                LOG.error('No host matching the selection for availability zone: ' +
+                LOG.error('No host matching the selection for availability zone: %s',
                           self.config.availability_zone)
                 avail_list = []
             else:

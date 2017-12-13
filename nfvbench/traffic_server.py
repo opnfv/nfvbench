@@ -43,9 +43,10 @@ class TRexTrafficServer(TrafficServer):
         """
         cfg = self.__save_config(traffic_profile, filename)
         cores = traffic_profile.cores
+        sw_mode = "--software" if traffic_profile.software_mode else ""
         subprocess.Popen(['nohup', '/bin/bash', '-c',
-                          './t-rex-64 -i -c {} --iom 0 --no-scapy-server --close-at-end --vlan'
-                          ' --cfg {} &> /tmp/trex.log & disown'.format(cores, cfg)],
+                          './t-rex-64 -i -c {} --iom 0 --no-scapy-server --close-at-end {} '
+                          '--vlan --cfg {} &> /tmp/trex.log & disown'.format(cores, sw_mode, cfg)],
                          cwd=self.trex_dir)
         LOG.info('TRex server is running...')
 

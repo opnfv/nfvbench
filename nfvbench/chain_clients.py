@@ -346,13 +346,18 @@ class BasicStageClient(object):
         for net in self.nets:
             for port in self.ports[net['id']]:
                 if port['device_id'] in vm_ids:
-                    self.neutron.update_port(port['id'], {
-                        'port': {
-                            'security_groups': [],
-                            'port_security_enabled': False,
-                        }
-                    })
-                    LOG.info('Security disabled on port %s', port['id'])
+                    try:
+                        self.neutron.update_port(port['id'], {
+                            'port': {
+                                'security_groups': [],
+                                'port_security_enabled': False,
+                            }
+                        })
+                        LOG.info('Security disabled on port %s', port['id'])
+                    except Exception:
+                        LOG.warning('Failed to disable port security on port %s, ignoring...',
+                                    port['id'])
+
 
     def get_loop_vm_hostnames(self):
         return [getattr(vm, 'OS-EXT-SRV-ATTR:hypervisor_hostname') for vm in self.vms]

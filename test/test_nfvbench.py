@@ -299,6 +299,8 @@ def test_parse_rate_str():
         else:
             return False
 
+        return False
+
     assert should_raise_error('101')
     assert should_raise_error('201%')
     assert should_raise_error('10Kbps')

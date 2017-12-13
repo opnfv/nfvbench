@@ -14,6 +14,7 @@ RUN apt-get update && apt-get install -y \
        vim \
        wget \
        net-tools \
+       libelf1 \
        && mkdir /tmp/http_root \
        && mkdir -p /opt/trex \
        && mkdir /var/log/nfvbench \

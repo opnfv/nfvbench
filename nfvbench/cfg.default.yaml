@@ -167,6 +167,10 @@ traffic_generator:
     # `tool`: Traffic generator tool to be used (currently supported is `TRex`).
     # `ip`: IP address of the traffic generator.
     # `cores`: Specify the number of cores for TRex traffic generator. ONLY applies to trex-local.
+    # `software_mode`: Advice TRex to use software mode which provides the best compability. But
+    #                  note that TRex will not use any hardware acceleration technology under
+    #                  software mode, therefore the performance of TRex will be significantly
+    #                  lower. ONLY applies to trex-local.
     # `interfaces`: Configuration of traffic generator interfaces.
     # `interfaces.port`: The port of the traffic generator to be used (leave as 0 and 1 resp.)
     # `interfaces.switch_port`: Leave empty (reserved for advanced use cases)
@@ -178,6 +182,7 @@ traffic_generator:
           tool: TRex
           ip: 127.0.0.1
           cores: 3
+          software_mode: false
           interfaces:
             - port: 0
               switch_port:

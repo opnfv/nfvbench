@@ -33,7 +33,9 @@ This is the introductory release for NFVbench. In this release, NFVbench provide
 - can send logs and results to one or more fluentd aggregators (per configuration)
 
 
-
+Euphrates 5.1.0 Release
+-----------------------
+Pick NFVBENCH-45 (fix typo in calculation of IMIX average size)
 
 
 

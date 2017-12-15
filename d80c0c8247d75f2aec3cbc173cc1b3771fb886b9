@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9a3d3df0_6450c0d4",
+        "filename": "nfvbench/traffic_client.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 689,
+      "author": {
+        "id": 5807
+      },
+      "writtenOn": "2017-12-15T17:22:29Z",
+      "side": 1,
+      "message": "why the % \u0027NDR?PDR\u0027?\nInstead of error, we might prefer to keep it as a warning so we can display the highest measured throughput (and still exit the binary search).",
+      "revId": "d80c0c8247d75f2aec3cbc173cc1b3771fb886b9",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": false
+    }
+  ]
+}

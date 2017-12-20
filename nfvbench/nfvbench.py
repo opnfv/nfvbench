@@ -164,6 +164,25 @@ class NFVBench(object):
         self.config.duration_sec = float(self.config.duration_sec)
         self.config.interval_sec = float(self.config.interval_sec)
 
+        # Check length of mac_addrs_left/right for serivce_chain EXT with no_arp
+        if self.config.service_chain == ChainType.EXT and self.config.no_arp:
+            if not (self.config.generator_config.mac_addrs_left is None and
+                    self.config.generator_config.mac_addrs_right is None):
+                if (self.config.generator_config.mac_addrs_left is None or
+                        self.config.generator_config.mac_addrs_right is None):
+                    raise Exception("mac_addrs_left and mac_addrs_right must either "
+                                      "both be None or have a number of entries matching "
+                                      "service_chain_count")
+                if not (len(self.config.generator_config.mac_addrs_left) is
+                        self.config.service_chain_count and
+                        len(self.config.generator_config.mac_addrs_right) is
+                        self.config.service_chain_count):
+                    raise Exception("length of mac_addrs_left ({a}) and/or mac_addrs_right ({b}) "
+                                    "does not match service_chain_count ({c})"
+                                    .format(a=len(self.config.generator_config.mac_addrs_left),
+                                            b=len(self.config.generator_config.mac_addrs_right),
+                                            c=self.config.service_chain_count))
+
         # Get traffic generator profile config
         if not self.config.generator_profile:
             self.config.generator_profile = self.config.traffic_generator.default_profile

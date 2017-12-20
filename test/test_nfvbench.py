@@ -707,11 +707,12 @@ def check_config(configs, cc, fc, src_ip, dst_ip, step_ip):
     assert cfc == fc
 
 
-def create_device(fc, cc, ip, gip, tggip, step_ip):
+def create_device(fc, cc, ip, gip, tggip, step_ip, mac):
     return Device(0, 0, flow_count=fc, chain_count=cc, ip=ip, gateway_ip=gip, tg_gateway_ip=tggip,
                   ip_addrs_step=step_ip,
                   tg_gateway_ip_addrs_step=step_ip,
-                  gateway_ip_addrs_step=step_ip)
+                  gateway_ip_addrs_step=step_ip,
+                  dst_mac=mac)
 
 
 def check_device_flow_config(step_ip):
@@ -721,8 +722,9 @@ def check_device_flow_config(step_ip):
     ip1 = '20.0.0.0'
     tggip = '50.0.0.0'
     gip = '60.0.0.0'
-    dev0 = create_device(fc, cc, ip0, gip, tggip, step_ip)
-    dev1 = create_device(fc, cc, ip1, gip, tggip, step_ip)
+    mac = '00:11:22:33:44:55'
+    dev0 = create_device(fc, cc, ip0, gip, tggip, step_ip, mac)
+    dev1 = create_device(fc, cc, ip1, gip, tggip, step_ip, mac)
     dev0.set_destination(dev1)
     configs = dev0.get_stream_configs(ChainType.EXT)
     check_config(configs, cc, fc, ip0, ip1, step_ip)
@@ -737,8 +739,9 @@ def test_device_ip_range():
     def ip_range_overlaps(ip0, ip1, flows):
         tggip = '50.0.0.0'
         gip = '60.0.0.0'
-        dev0 = create_device(flows, 10, ip0, gip, tggip, '0.0.0.1')
-        dev1 = create_device(flows, 10, ip1, gip, tggip, '0.0.0.1')
+        mac = None
+        dev0 = create_device(flows, 10, ip0, gip, tggip, '0.0.0.1', mac)
+        dev1 = create_device(flows, 10, ip1, gip, tggip, '0.0.0.1', mac)
         dev0.set_destination(dev1)
         return dev0.ip_range_overlaps()
 

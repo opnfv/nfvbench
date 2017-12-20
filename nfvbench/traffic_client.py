@@ -119,7 +119,7 @@ class Device(object):
     def __init__(self, port, pci, switch_port=None, vtep_vlan=None, ip=None, tg_gateway_ip=None,
                  gateway_ip=None, ip_addrs_step=None, tg_gateway_ip_addrs_step=None,
                  gateway_ip_addrs_step=None, udp_src_port=None, udp_dst_port=None,
-                 chain_count=1, flow_count=1, vlan_tagging=False):
+                 dst_mac=None, chain_count=1, flow_count=1, vlan_tagging=False):
         self.chain_count = chain_count
         self.flow_count = flow_count
         self.dst = None
@@ -130,6 +130,7 @@ class Device(object):
         self.vlan_tagging = vlan_tagging
         self.pci = pci
         self.mac = None
+        self.dst_mac = dst_mac
         self.vm_mac_list = None
         subnet = IPNetwork(ip)
         self.ip = subnet.ip.format()
@@ -186,10 +187,16 @@ class Device(object):
         for chain_idx in xrange(self.chain_count):
             src_ip_first, src_ip_last = self.ip_block.reserve_ip_range(cur_chain_flow_count)
             dst_ip_first, dst_ip_last = self.dst.ip_block.reserve_ip_range(cur_chain_flow_count)
+
+            dst_mac = self.dst_mac[chain_idx] if self.dst_mac is not None else self.dst.mac
+            if not re.match("[0-9a-f]{2}([-:])[0-9a-f]{2}(\\1[0-9a-f]{2}){4}$", dst_mac.lower()):
+                raise TrafficClientException("Invalid MAC address '{mac}' specified in "
+                                             "mac_addrs_left/right".format(mac=dst_mac))
+
             configs.append({
                 'count': cur_chain_flow_count,
                 'mac_src': self.mac,
-                'mac_dst': self.dst.mac if service_chain == ChainType.EXT else self.vm_mac_list[
+                'mac_dst': dst_mac if service_chain == ChainType.EXT else self.vm_mac_list[
                     chain_idx],
                 'ip_src_addr': src_ip_first,
                 'ip_src_addr_max': src_ip_last,
@@ -267,6 +274,8 @@ class RunningTrafficProfile(object):
         self.src_device = None
         self.dst_device = None
         self.vm_mac_list = None
+        self.mac_addrs_left = generator_config.mac_addrs_left
+        self.mac_addrs_right = generator_config.mac_addrs_right
         self.__prep_interfaces(generator_config)
 
     def to_json(self):
@@ -302,7 +311,8 @@ class RunningTrafficProfile(object):
             'tg_gateway_ip_addrs_step': self.tg_gateway_ip_addrs_step,
             'udp_src_port': generator_config.udp_src_port,
             'udp_dst_port': generator_config.udp_dst_port,
-            'vlan_tagging': self.vlan_tagging
+            'vlan_tagging': self.vlan_tagging,
+            'dst_mac': generator_config.mac_addrs_left
         }
         dst_config = {
             'chain_count': self.service_chain_count,
@@ -315,7 +325,8 @@ class RunningTrafficProfile(object):
             'tg_gateway_ip_addrs_step': self.tg_gateway_ip_addrs_step,
             'udp_src_port': generator_config.udp_src_port,
             'udp_dst_port': generator_config.udp_dst_port,
-            'vlan_tagging': self.vlan_tagging
+            'vlan_tagging': self.vlan_tagging,
+            'dst_mac': generator_config.mac_addrs_right
         }
 
         self.src_device = Device(**dict(src_config, **generator_config.interfaces[0]))

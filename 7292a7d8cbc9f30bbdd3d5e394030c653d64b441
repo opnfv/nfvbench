@@ -2,6 +2,23 @@
   "comments": [
     {
       "key": {
+        "uuid": "9a3d3df0_ca2d49aa",
+        "filename": "nfvbench/traffic_client.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 683,
+      "author": {
+        "id": 5807
+      },
+      "writtenOn": "2017-12-21T18:05:17Z",
+      "side": 1,
+      "message": "Should not need to start with \"WARNING\" as this header is added by the logger in LOG.warning. Example of output:\n2017-12-21 09:56:39,935 WARNING WARNING: TRex cannot generate enough packets to find out the accurate NDR value of the cloud. Make sure TRex is not running under software mode, and consider to give more cores for TRex.",
+      "revId": "7292a7d8cbc9f30bbdd3d5e394030c653d64b441",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9a3d3df0_2aa31550",
         "filename": "nfvbench/traffic_client.py",
         "patchSetId": 3

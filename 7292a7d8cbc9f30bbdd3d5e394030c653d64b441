@@ -2,6 +2,40 @@
   "comments": [
     {
       "key": {
+        "uuid": "9a3d3df0_d5a20afc",
+        "filename": "nfvbench/traffic_client.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 677,
+      "author": {
+        "id": 5807
+      },
+      "writtenOn": "2017-12-21T19:51:26Z",
+      "side": 1,
+      "message": "this middle being reported can also be wrong, should be the actual Tx rate.\n(beware of unidirectional case, this needs to be the actual Tx rate for the direction that carries traffic (not for reverse)",
+      "revId": "7292a7d8cbc9f30bbdd3d5e394030c653d64b441",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9a3d3df0_b56026d0",
+        "filename": "nfvbench/traffic_client.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 682,
+      "author": {
+        "id": 5807
+      },
+      "writtenOn": "2017-12-21T19:51:26Z",
+      "side": 1,
+      "message": "bc this is in a loop (for ndr/pdr), it is best to put a flag and check on the flag + warning right after the loop, that way you only display the warning once (instead of twice for ndr and pdr).",
+      "revId": "7292a7d8cbc9f30bbdd3d5e394030c653d64b441",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9a3d3df0_ca2d49aa",
         "filename": "nfvbench/traffic_client.py",
         "patchSetId": 3

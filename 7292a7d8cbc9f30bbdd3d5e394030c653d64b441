@@ -19,6 +19,23 @@
     },
     {
       "key": {
+        "uuid": "9a3d3df0_756a1eb4",
+        "filename": "nfvbench/traffic_client.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 690,
+      "author": {
+        "id": 5807
+      },
+      "writtenOn": "2017-12-21T19:37:26Z",
+      "side": 1,
+      "message": "here we need to set all 3 pointers to the actual TX rate",
+      "revId": "7292a7d8cbc9f30bbdd3d5e394030c653d64b441",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9a3d3df0_2aa31550",
         "filename": "nfvbench/traffic_client.py",
         "patchSetId": 3

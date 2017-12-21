@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9a3d3df0_2aa31550",
+        "filename": "nfvbench/traffic_client.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 744,
+      "author": {
+        "id": 5807
+      },
+      "writtenOn": "2017-12-21T16:45:10Z",
+      "side": 1,
+      "message": "this is causing a crash bc you\u0027re replacing a dict with an int\nsee get_traffic_config()\nThis is what s expected:\n        config[\u0027direction-total\u0027] \u003d dict(config[\u0027direction-forward\u0027])\n        config[\u0027direction-total\u0027].update({\n            \u0027rate_percent\u0027: load_total,\n            \u0027rate_pps\u0027: cast_integer(pps_total),\n            \u0027rate_bps\u0027: bps_total\n        })",
+      "revId": "7292a7d8cbc9f30bbdd3d5e394030c653d64b441",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": false
+    }
+  ]
+}

@@ -20,8 +20,9 @@ import math
 
 import bitmath
 import pytz
-from specs import ChainType
 from tabulate import tabulate
+
+from specs import ChainType
 
 
 class Formatter(object):

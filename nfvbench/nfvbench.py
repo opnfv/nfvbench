@@ -481,11 +481,11 @@ def main():
             # override default config options with start config at path parsed from CLI
             # check if it is an inline yaml/json config or a file name
             if os.path.isfile(opts.config):
-                LOG.info('Loading configuration file: ' + opts.config)
+                LOG.info('Loading configuration file: %s', opts.config)
                 config = config_load(opts.config, config, whitelist_keys)
                 config.name = os.path.basename(opts.config)
             else:
-                LOG.info('Loading configuration string: ' + opts.config)
+                LOG.info('Loading configuration string: %s', opts.config)
                 config = config_loads(opts.config, config, whitelist_keys)
 
         # traffic profile override options

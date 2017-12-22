@@ -75,6 +75,13 @@ def weighted_avg(weight, count):
         return sum([x[0] * x[1] for x in zip(weight, count)]) / sum(weight)
     return float('nan')
 
+def _get_bitmath_rate(rate_bps):
+    rate = rate_bps.replace('ps', '').strip()
+    bitmath_rate = bitmath.parse_string(rate)
+    if bitmath_rate.bits <= 0:
+        raise Exception('%s is out of valid range' % rate_bps)
+    return bitmath_rate
+
 def parse_rate_str(rate_str):
     if rate_str.endswith('pps'):
         rate_pps = rate_str[:-3]
@@ -103,6 +110,26 @@ def parse_rate_str(rate_str):
     else:
         raise Exception('Unknown rate string format %s' % rate_str)
 
+def get_load_from_rate(rate_str, avg_frame_size=64, line_rate='10Gbps'):
+    '''From any rate string (with unit) return the corresponding load (in % unit)
+
+    :param str rate_str: the rate to convert - must end with a unit (e.g. 1Mpps, 30%, 1Gbps)
+    :param int avg_frame_size: average frame size in bytes (needed only if pps is given)
+    :param str line_rate: line rate ending with bps unit (e.g. 1Mbps, 10Gbps) is the rate that
+                      corresponds to 100% rate
+    :return float: the corresponding rate in % of line rate
+    '''
+    rate_dict = parse_rate_str(rate_str)
+    if 'rate_percent' in rate_dict:
+        return float(rate_dict['rate_percent'])
+    lr_bps = _get_bitmath_rate(line_rate).bits
+    if 'rate_bps' in rate_dict:
+        bps = int(rate_dict['rate_bps'])
+    else:
+        # must be rate_pps
+        pps = rate_dict['rate_pps']
+        bps = pps_to_bps(pps, avg_frame_size)
+    return bps_to_load(bps, lr_bps)
 
 def divide_rate(rate, divisor):
     if 'rate_pps' in rate:
@@ -130,8 +157,9 @@ def to_rate_str(rate):
     elif 'rate_percent' in rate:
         load = rate['rate_percent']
         return '{}%'.format(load)
-    else:
-        assert False
+    assert False
+    # avert pylint warning
+    return None
 
 
 def nan_replace(d):

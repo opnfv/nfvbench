@@ -18,6 +18,8 @@ import logging
 import os
 import sys
 
+import pytest
+
 from attrdict import AttrDict
 from nfvbench.config import config_loads
 from nfvbench.credentials import Credentials
@@ -28,7 +30,6 @@ from nfvbench.network import Network
 from nfvbench.specs import ChainType
 from nfvbench.specs import Encaps
 import nfvbench.traffic_gen.traffic_utils as traffic_utils
-import pytest
 
 __location__ = os.path.realpath(os.path.join(os.getcwd(),
                                              os.path.dirname(__file__)))
@@ -267,183 +268,6 @@ def test_pvp_chain_run(pvp_chain):
 """
 
 # =========================================================================
-# PVVP Chain tests
-# =========================================================================
-
-"""
-@pytest.fixture
-def pvvp_chain(monkeypatch, openstack_vxlan_spec):
-    tor_vni1 = Interface('vni-4097', 'n9k', 50, 77)
-    vsw_vni1 = Interface('vxlan_tunnel0', 'vpp', 77, 48)
-    vsw_vif1 = Interface('VirtualEthernet0/0/2', 'vpp', 48, 77)
-    vsw_vif3 = Interface('VirtualEthernet0/0/0', 'vpp', 77, 47)
-    vsw_vif4 = Interface('VirtualEthernet0/0/1', 'vpp', 45, 77)
-    vsw_vif2 = Interface('VirtualEthernet0/0/3', 'vpp', 77, 44)
-    vsw_vni2 = Interface('vxlan_tunnel1', 'vpp', 43, 77)
-    tor_vni2 = Interface('vni-4098', 'n9k', 77, 40)
-
-    def mock_init(self, *args, **kwargs):
-        self.vni_ports = [4099, 4100]
-        self.v2vnet = V2VNetwork()
-        self.specs = openstack_vxlan_spec
-        self.clients = {
-            'vpp': AttrDict({
-                'get_v2v_network': lambda reverse=None: Network([vsw_vif3, vsw_vif4], reverse),
-                'set_interface_counters': lambda pvvp=None: None,
-                'set_v2v_counters': lambda: None,
-            })
-        }
-        self.worker = AttrDict({
-            'run': lambda: None,
-        })
-
-    def mock_empty(self, *args, **kwargs):
-        pass
-
-    def mock_get_network(self, traffic_port, vni_id, reverse=False):
-        if vni_id == 0:
-            return Network([tor_vni1, vsw_vni1, vsw_vif1], reverse)
-        else:
-            return Network([tor_vni2, vsw_vni2, vsw_vif2], reverse)
-
-    def mock_get_data(self):
-        return {}
-
-    monkeypatch.setattr(PVVPChain, '_get_network', mock_get_network)
-    monkeypatch.setattr(PVVPChain, '_get_data', mock_get_data)
-    monkeypatch.setattr(PVVPChain, '_setup', mock_empty)
-    monkeypatch.setattr(VxLANWorker, '_clear_interfaces', mock_empty)
-    monkeypatch.setattr(PVVPChain, '_generate_traffic', mock_empty)
-    monkeypatch.setattr(PVVPChain, '__init__', mock_init)
-
-    return PVVPChain(None, None, {'vm': None, 'vpp': None, 'tor': None, 'traffic': None}, None)
-
-
-def test_pvvp_chain_run(pvvp_chain):
-    result = pvvp_chain.run()
-
-    expected_result = {
-        'raw_data': {},
-        'stats': None,
-        'packet_analysis':
-            {'direction-forward': [
-                OrderedDict([
-                    ('interface', 'vni-4097'),
-                    ('device', 'n9k'),
-                    ('packet_count', 50)
-                ]),
-                OrderedDict([
-                    ('interface', 'vxlan_tunnel0'),
-                    ('device', 'vpp'),
-                    ('packet_count', 48),
-                    ('packet_drop_count', 2),
-                    ('packet_drop_percentage', 4.0)
-                ]),
-                OrderedDict([
-                    ('interface', 'VirtualEthernet0/0/2'),
-                    ('device', 'vpp'),
-                    ('packet_count', 48),
-                    ('packet_drop_count', 0),
-                    ('packet_drop_percentage', 0.0)
-                ]),
-                OrderedDict([
-                    ('interface', 'VirtualEthernet0/0/0'),
-                    ('device', 'vpp'),
-                    ('packet_count', 47),
-                    ('packet_drop_count', 1),
-                    ('packet_drop_percentage', 2.0)
-                ]),
-                OrderedDict([
-                    ('interface', 'VirtualEthernet0/0/1'),
-                    ('device', 'vpp'),
-                    ('packet_count', 45),
-                    ('packet_drop_count', 2),
-                    ('packet_drop_percentage', 4.0)
-                ]),
-                OrderedDict([
-                    ('interface', 'VirtualEthernet0/0/3'),
-                    ('device', 'vpp'),
-                    ('packet_count', 44),
-                    ('packet_drop_count', 1),
-                    ('packet_drop_percentage', 2.0)
-                ]),
-                OrderedDict([
-                    ('interface', 'vxlan_tunnel1'),
-                    ('device', 'vpp'),
-                    ('packet_count', 43),
-                    ('packet_drop_count', 1),
-                    ('packet_drop_percentage', 2.0)
-                ]),
-                OrderedDict([
-                    ('interface', 'vni-4098'),
-                    ('device', 'n9k'),
-                    ('packet_count', 40),
-                    ('packet_drop_count', 3),
-                    ('packet_drop_percentage', 6.0)
-                ])
-            ],
-            'direction-reverse': [
-                OrderedDict([
-                    ('interface', 'vni-4098'),
-                    ('device', 'n9k'),
-                    ('packet_count', 77)
-                ]),
-                OrderedDict([
-                    ('interface', 'vxlan_tunnel1'),
-                    ('device', 'vpp'),
-                    ('packet_count', 77),
-                    ('packet_drop_count', 0),
-                    ('packet_drop_percentage', 0.0)
-                ]),
-                OrderedDict([
-                    ('interface', 'VirtualEthernet0/0/3'),
-                    ('device', 'vpp'),
-                    ('packet_count', 77),
-                    ('packet_drop_count', 0),
-                    ('packet_drop_percentage', 0.0)
-                ]),
-                OrderedDict([
-                    ('interface', 'VirtualEthernet0/0/1'),
-                    ('device', 'vpp'),
-                    ('packet_count', 77),
-                    ('packet_drop_count', 0),
-                    ('packet_drop_percentage', 0.0)
-                ]),
-                OrderedDict([
-                    ('interface', 'VirtualEthernet0/0/0'),
-                    ('device', 'vpp'),
-                    ('packet_count', 77),
-                    ('packet_drop_count', 0),
-                    ('packet_drop_percentage', 0.0)
-                ]),
-                OrderedDict([
-                    ('interface', 'VirtualEthernet0/0/2'),
-                    ('device', 'vpp'),
-                    ('packet_count', 77),
-                    ('packet_drop_count', 0),
-                    ('packet_drop_percentage', 0.0)
-                ]),
-                OrderedDict([
-                    ('interface', 'vxlan_tunnel0'),
-                    ('device', 'vpp'),
-                    ('packet_count', 77),
-                    ('packet_drop_count', 0),
-                    ('packet_drop_percentage', 0.0)
-                ]),
-                OrderedDict([
-                    ('interface', 'vni-4097'),
-                    ('device', 'n9k'),
-                    ('packet_count', 77),
-                    ('packet_drop_count', 0),
-                    ('packet_drop_percentage', 0.0)
-                ])
-            ]}
-    }
-    assert result == expected_result
-"""
-
-
-# =========================================================================
 # Traffic client tests
 # =========================================================================
 
@@ -473,7 +297,7 @@ def test_parse_rate_str():
         except Exception:
             return True
         else:
-            assert False
+            return False
 
     assert should_raise_error('101')
     assert should_raise_error('201%')
@@ -500,6 +324,38 @@ def test_rate_conversion():
     assert traffic_utils.pps_to_bps(31.6066319896, 1518) == pytest.approx(388888)
     assert traffic_utils.pps_to_bps(3225895.85831, 340.3) == pytest.approx(9298322222)
 
+# pps at 10Gbps line rate for 64 byte frames
+LR_64B_PPS = 14880952
+LR_1518B_PPS = 812743
+
+def assert_equivalence(reference, value, allowance_pct=1):
+    '''Asserts if a value is equivalent to a reference value with given margin
+
+    :param float reference: reference value to compare to
+    :param float value: value to compare to reference
+    :param float allowance_pct: max allowed percentage of margin
+        0 : requires exact match
+        1 : must be equal within 1% of the reference value
+        ...
+        100: always true
+    '''
+    if reference == 0:
+        assert value == 0
+    else:
+        assert abs(value - reference) * 100 / reference <= allowance_pct
+
+def test_load_from_rate():
+    assert traffic_utils.get_load_from_rate('100%') == 100
+    assert_equivalence(100, traffic_utils.get_load_from_rate(str(LR_64B_PPS) + 'pps'))
+    assert_equivalence(50, traffic_utils.get_load_from_rate(str(LR_64B_PPS / 2) + 'pps'))
+    assert_equivalence(100, traffic_utils.get_load_from_rate('10Gbps'))
+    assert_equivalence(50, traffic_utils.get_load_from_rate('5000Mbps'))
+    assert_equivalence(1, traffic_utils.get_load_from_rate('100Mbps'))
+    assert_equivalence(100, traffic_utils.get_load_from_rate(str(LR_1518B_PPS) + 'pps',
+                                                             avg_frame_size=1518))
+    assert_equivalence(100, traffic_utils.get_load_from_rate(str(LR_1518B_PPS * 2) + 'pps',
+                                                             avg_frame_size=1518,
+                                                             line_rate='20Gbps'))
 
 """
 @pytest.fixture
@@ -513,112 +369,14 @@ def traffic_client(monkeypatch):
             'rates': [{'rate_percent': '10'}, {'rate_pps': '1'}]
         }
 
-        self.config = AttrDict({
-            'generator_config': {
-                'intf_speed': 10000000000
-            },
-            'ndr_run': True,
-            'pdr_run': True,
-            'single_run': False,
-            'attempts': 1,
-            'measurement': {
-                'NDR': 0.0,
-                'PDR': 0.1,
-                'load_epsilon': 0.1
-            }
-        })
-
-        self.runner = AttrDict({
-            'time_elapsed': lambda: 30,
-            'stop': lambda: None,
-            'client': AttrDict({'get_stats': lambda: None})
-        })
-
-        self.current_load = None
-        self.dummy_stats = {
-            50.0: 72.6433562831,
-            25.0: 45.6095059858,
-            12.5: 0.0,
-            18.75: 27.218642979,
-            15.625: 12.68585861,
-            14.0625: 2.47154392563,
-            13.28125: 0.000663797066801,
-            12.890625: 0.0,
-            13.0859375: 0.0,
-            13.18359375: 0.00359387347122,
-            13.671875: 0.307939922531,
-            13.4765625: 0.0207718516156,
-            13.57421875: 0.0661795060969
-        }
-
     def mock_modify_load(self, load):
         self.run_config['rates'][0] = {'rate_percent': str(load)}
         self.current_load = load
 
-    def mock_run_traffic(self):
-        yield {
-            'overall': {
-                'drop_rate_percent': self.dummy_stats[self.current_load],
-                'rx': {
-                    'total_pkts': 1,
-                    'avg_delay_usec': 0.0,
-                    'max_delay_usec': 0.0,
-                    'min_delay_usec': 0.0
-                }
-            }
-        }
-
     monkeypatch.setattr(TrafficClient, '__init__', mock_init)
     monkeypatch.setattr(TrafficClient, 'modify_load', mock_modify_load)
-    monkeypatch.setattr(TrafficClient, 'run_traffic', mock_run_traffic)
 
     return TrafficClient()
-
-
-def test_ndr_pdr_search(traffic_client):
-    expected_results = {
-        'pdr': {
-            'l2frame_size': '64',
-            'initial_rate_type': 'rate_percent',
-            'stats': {
-                'overall': {
-                    'drop_rate_percent': 0.0661795060969,
-                    'min_delay_usec': 0.0,
-                    'avg_delay_usec': 0.0,
-                    'max_delay_usec': 0.0
-                }
-            },
-            'load_percent_per_direction': 13.57421875,
-            'rate_percent': 13.57422547,
-            'rate_bps': 1357422547.0,
-            'rate_pps': 2019974.0282738095,
-            'duration_sec': 30
-        },
-        'ndr': {
-            'l2frame_size': '64',
-            'initial_rate_type': 'rate_percent',
-            'stats': {
-                'overall': {
-                    'drop_rate_percent': 0.0,
-                    'min_delay_usec': 0.0,
-                    'avg_delay_usec': 0.0,
-                    'max_delay_usec': 0.0
-                }
-            },
-            'load_percent_per_direction': 13.0859375,
-            'rate_percent': 13.08594422,
-            'rate_bps': 1308594422.0,
-            'rate_pps': 1947313.1279761905,
-            'duration_sec': 30
-        }
-    }
-
-    results = traffic_client.get_ndr_and_pdr()
-    assert len(results) == 2
-    for result in results.values():
-        result.pop('timestamp_sec')
-        result.pop('time_taken_sec')
-    assert results == expected_results
 """
 
 
@@ -630,7 +388,6 @@ def test_ndr_pdr_search(traffic_client):
 
 def setup_module(module):
     nfvbench.log.setup(mute_stdout=True)
-
 
 def test_no_credentials():
     cred = Credentials('/completely/wrong/path/openrc', None, False)
@@ -667,7 +424,8 @@ except ImportError:
 # pylint: disable=wrong-import-position,ungrouped-imports
 from nfvbench.traffic_client import Device
 from nfvbench.traffic_client import IpBlock
-
+from nfvbench.traffic_client import TrafficClient
+from nfvbench.traffic_client import TrafficGeneratorFactory
 
 # pylint: enable=wrong-import-position,ungrouped-imports
 
@@ -828,3 +586,95 @@ def test_fluentd():
         raise Exception("test")
     except Exception:
         logger.exception("got exception")
+
+def assert_ndr_pdr(stats, ndr, ndr_dr, pdr, pdr_dr):
+    assert stats['ndr']['rate_percent'] == ndr
+    assert stats['ndr']['stats']['overall']['drop_percentage'] == ndr_dr
+    assert_equivalence(pdr, stats['pdr']['rate_percent'])
+    assert_equivalence(pdr_dr, stats['pdr']['stats']['overall']['drop_percentage'])
+
+def get_traffic_client():
+    config = AttrDict({
+        'traffic_generator': {'host_name': 'nfvbench_tg',
+                              'default_profile': 'dummy',
+                              'generator_profile': [{'name': 'dummy',
+                                                     'tool': 'dummy',
+                                                     'ip': '127.0.0.1',
+                                                     'intf_speed': '10Gbps',
+                                                     'interfaces': [{'port': 0, 'pci': 0},
+                                                                    {'port': 1, 'pci': 0}]}],
+                              'ip_addrs_step': '0.0.0.1',
+                              'ip_addrs': ['10.0.0.0/8', '20.0.0.0/8'],
+                              'tg_gateway_ip_addrs': ['1.1.0.100', '2.2.0.100'],
+                              'tg_gateway_ip_addrs_step': '0.0.0.1',
+                              'gateway_ip_addrs': ['1.1.0.2', '2.2.0.2'],
+                              'gateway_ip_addrs_step': '0.0.0.1',
+                              'udp_src_port': None,
+                              'udp_dst_port': None},
+        'generator_profile': 'dummy',
+        'service_chain': 'PVP',
+        'service_chain_count': 1,
+        'flow_count': 10,
+        'vlan_tagging': True,
+        'no_arp': False,
+        'duration_sec': 1,
+        'interval_sec': 1,
+        'single_run': False,
+        'ndr_run': True,
+        'pdr_run': True,
+        'rate': 'ndr_pdr',
+        'check_traffic_time_sec': 200,
+        'generic_poll_sec': 2,
+        'measurement': {'NDR': 0.001, 'PDR': 0.1, 'load_epsilon': 0.1},
+    })
+    generator_factory = TrafficGeneratorFactory(config)
+    config.generator_config = generator_factory.get_generator_config(config.generator_profile)
+    traffic_client = TrafficClient(config, skip_sleep=True)
+    traffic_client.start_traffic_generator()
+    traffic_client.set_traffic('64', True)
+    return traffic_client
+
+def test_ndr_at_lr():
+    traffic_client = get_traffic_client()
+    tg = traffic_client.gen
+
+    # this is a perfect sut with no loss at LR
+    tg.set_response_curve(lr_dr=0, ndr=100, max_actual_tx=100, max_11_tx=100)
+    # tx packets should be line rate for 64B and no drops...
+    assert tg.get_tx_pps_dropped_pps(100) == (LR_64B_PPS, 0)
+    # NDR and PDR should be at 100%
+    traffic_client.ensure_end_to_end()
+    results = traffic_client.get_ndr_and_pdr()
+
+    assert_ndr_pdr(results, 200.0, 0.0, 200.0, 0.0)
+
+def test_ndr_at_50():
+    traffic_client = get_traffic_client()
+    tg = traffic_client.gen
+    # this is a sut with an NDR of 50% and linear drop rate after NDR up to 20% drops at LR
+    # (meaning that if you send 100% TX, you will only receive 80% RX)
+    # the tg requested TX/actual TX ratio is 1up to 50%, after 50%
+    # is linear up 80% actuak TX when requesting 100%
+    tg.set_response_curve(lr_dr=20, ndr=50, max_actual_tx=80, max_11_tx=50)
+    # tx packets should be half line rate for 64B and no drops...
+    assert tg.get_tx_pps_dropped_pps(50) == (LR_64B_PPS / 2, 0)
+    # at 100% TX requested, actual TX is 80% where the drop rate is 3/5 of 20% of the actual TX
+    assert tg.get_tx_pps_dropped_pps(100) == (int(LR_64B_PPS * 0.8),
+                                              int(LR_64B_PPS * 0.8 * 0.6 * 0.2))
+    results = traffic_client.get_ndr_and_pdr()
+    assert_ndr_pdr(results, 100.0, 0.0, 100.781, 0.09374)
+
+def test_ndr_pdr_low_cpu():
+    traffic_client = get_traffic_client()
+    tg = traffic_client.gen
+    # This test is for the case where the TG is underpowered and cannot send fast enough for the NDR
+    # true NDR=40%, actual TX at 50% = 30%, actual measured DR is 0%
+    # The ndr/pdr should bail out with a warning and a best effort measured NDR of 30%
+    tg.set_response_curve(lr_dr=50, ndr=40, max_actual_tx=60, max_11_tx=0)
+    # tx packets should be 30% at requested half line rate for 64B and no drops...
+    assert tg.get_tx_pps_dropped_pps(50) == (int(LR_64B_PPS * 0.3), 0)
+    results = traffic_client.get_ndr_and_pdr()
+    assert results
+    # import pprint
+    # pp = pprint.PrettyPrinter(indent=4)
+    # pp.pprint(results)

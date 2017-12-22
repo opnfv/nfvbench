@@ -18,13 +18,12 @@ import os
 import re
 import time
 
-import compute
-from log import LOG
-
 from glanceclient.v2 import client as glanceclient
 from neutronclient.neutron import client as neutronclient
 from novaclient.client import Client
 
+import compute
+from log import LOG
 
 class StageClientException(Exception):
     pass
@@ -109,7 +108,7 @@ class BasicStageClient(object):
                                                        phys1=network['provider:physical_network'],
                                                        phys2=physical_network))
 
-            LOG.info('Reusing existing network: ' + name)
+            LOG.info('Reusing existing network: %s', name)
             network['is_reuse'] = True
             return network
 

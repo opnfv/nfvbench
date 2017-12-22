@@ -67,6 +67,9 @@ class TrafficRunner(object):
     def poll_stats(self):
         if not self.is_running():
             return None
+        if self.client.skip_sleep:
+            self.stop()
+            return self.client.get_stats()
         time_elapsed = self.time_elapsed()
         if time_elapsed > self.duration_sec:
             self.stop()
@@ -102,10 +105,10 @@ class IpBlock(object):
         '''Reserve a range of count consecutive IP addresses spaced by step
         '''
         if self.next_free + count > self.max_available:
-            raise IndexError('No more IP addresses next free=%d max_available=%d requested=%d',
-                             self.next_free,
-                             self.max_available,
-                             count)
+            raise IndexError('No more IP addresses next free=%d max_available=%d requested=%d' %
+                             (self.next_free,
+                              self.max_available,
+                              count))
         first_ip = self.get_ip(self.next_free)
         last_ip = self.get_ip(self.next_free + count - 1)
         self.next_free += count
@@ -393,7 +396,7 @@ class TrafficGeneratorFactory(object):
 class TrafficClient(object):
     PORTS = [0, 1]
 
-    def __init__(self, config, notifier=None):
+    def __init__(self, config, notifier=None, skip_sleep=False):
         generator_factory = TrafficGeneratorFactory(config)
         self.gen = generator_factory.get_generator_client()
         self.tool = generator_factory.get_tool()
@@ -414,6 +417,8 @@ class TrafficClient(object):
         self.current_total_rate = {'rate_percent': '10'}
         if self.config.single_run:
             self.current_total_rate = utils.parse_rate_str(self.config.rate)
+        # UT with dummy TG can bypass all sleeps
+        self.skip_sleep = skip_sleep
 
     def set_macs(self):
         for mac, device in zip(self.gen.get_macs(), self.config.generator_config.devices):
@@ -461,7 +466,8 @@ class TrafficClient(object):
             self.gen.clear_stats()
             self.gen.start_traffic()
             LOG.info('Waiting for packets to be received back... (%d / %d)', it + 1, retry_count)
-            time.sleep(self.config.generic_poll_sec)
+            if not self.skip_sleep:
+                time.sleep(self.config.generic_poll_sec)
             self.gen.stop_traffic()
             stats = self.gen.get_stats()
 
@@ -481,7 +487,8 @@ class TrafficClient(object):
                 LOG.info('End-to-end connectivity ensured')
                 return
 
-            time.sleep(self.config.generic_poll_sec)
+            if not self.skip_sleep:
+                time.sleep(self.config.generic_poll_sec)
 
         raise TrafficClientException('End-to-end connectivity cannot be ensured')
 

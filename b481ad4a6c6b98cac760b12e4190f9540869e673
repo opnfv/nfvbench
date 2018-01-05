@@ -1,0 +1,7 @@
+Verified+1: jenkins-ci <jenkins-opnfv-ci@opnfv.org>
+Code-Review+2: Yichen Wang <yicwang@cisco.com>
+Submitted-by: Yichen Wang <yicwang@cisco.com>
+Submitted-at: Fri, 05 Jan 2018 00:07:43 +0000
+Reviewed-on: https://gerrit.opnfv.org/gerrit/49039
+Project: nfvbench
+Branch: refs/heads/master

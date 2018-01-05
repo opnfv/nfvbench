@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9a3d3df0_f18d94d4",
+        "filename": "nfvbench/cfg.default.yaml",
+        "patchSetId": 4
+      },
+      "lineNbr": 153,
+      "author": {
+        "id": 5807
+      },
+      "writtenOn": "2018-01-05T03:23:50Z",
+      "side": 1,
+      "message": "pls provide in the comment an example of settings and format with e.g. 1 chain will it be a list of 1 MAC?\n# mac_addrs_left: [ \u002700:11:22:33:44:55\u0027 ]\n# mac_addrs_right: [ \u002700:11:22:33:44:66\u0027 ]\nthe comment should also mention when these 2 fields are relevant (EXT CHAIN no arp) and how many entries are required. \"stream\" is not the best term as it may correspond to a flow, better to say that we need 1 entry per chain in each list.\nThe index in each list must correspond to the chain index (so that MACs are paired correctly).\nThese should correspond to actual MAC of the EXT chain MMs (or to be more precise to the MAC of each end of chain on the left and right network since a chain could have more than 1 VM)\nIf EXT CHAIN and no ARP and the lists are both empty, then the far end MAC of the Trex traffic gen will be used by default.",
+      "revId": "98a5416ac15565fd455cfb5797f760ceef36cea7",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9a3d3df0_91b40883",
+        "filename": "nfvbench/traffic_client.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 191,
+      "author": {
+        "id": 5807
+      },
+      "writtenOn": "2018-01-05T03:23:50Z",
+      "side": 1,
+      "message": "Could you add at least the count for the list and the chain count in the exception message.\nPerhaps it would be best to check this at the beginning (nfvbench.py right after parsing fo config)?\nWe also need to make sure that either both lists are empty or both have exactly chain count items - so this looks better done in nfvbench,py.\nAlso would be great to check the syntax for the MAC addresses.",
+      "revId": "98a5416ac15565fd455cfb5797f760ceef36cea7",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": false
+    }
+  ]
+}

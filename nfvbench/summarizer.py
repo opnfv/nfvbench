@@ -221,18 +221,24 @@ class NFVBenchSummarizer(Summarizer):
             self.__record_init()
         self.__summarize()
 
+    def __get_openstack_spec(self, property):
+        try:
+            return self.result['openstack_spec'][property]
+        except KeyError:
+            return ''
+
     def __summarize(self):
         self._put()
         self._put('========== NFVBench Summary ==========')
         self._put('Date:', self.result['date'])
         self._put('NFVBench version', self.result['nfvbench_version'])
         self._put('Openstack Neutron:', {
-            'vSwitch': self.result['openstack_spec']['vswitch'],
-            'Encapsulation': self.result['openstack_spec']['encaps']
+            'vSwitch': self.__get_openstack_spec('vswitch'),
+            'Encapsulation': self.__get_openstack_spec('encaps')
         })
         self.__record_header_put('version', self.result['nfvbench_version'])
-        self.__record_header_put('vSwitch', self.result['openstack_spec']['vswitch'])
-        self.__record_header_put('Encapsulation', self.result['openstack_spec']['encaps'])
+        self.__record_header_put('vSwitch', self.__get_openstack_spec('vswitch'))
+        self.__record_header_put('Encapsulation', self.__get_openstack_spec('encaps'))
         self._put('Benchmarks:')
         with self._create_block():
             self._put('Networks:')

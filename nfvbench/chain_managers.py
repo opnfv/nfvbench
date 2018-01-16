@@ -96,11 +96,12 @@ class StatsManager(object):
             raise exc
 
     def _get_data(self):
-        return self.worker.get_data()
+        return self.worker.get_data() if self.worker else {}
 
     def _get_network(self, traffic_port, index=None, reverse=False):
         interfaces = [self.clients['traffic'].get_interface(traffic_port)]
-        interfaces.extend(self.worker.get_network_interfaces(index))
+        if self.worker:
+            interfaces.extend(self.worker.get_network_interfaces(index))
         return Network(interfaces, reverse)
 
     def _config_interfaces(self):
@@ -127,13 +128,14 @@ class StatsManager(object):
         return self.interval_collector.get() if self.interval_collector else []
 
     def get_version(self):
-        return self.worker.get_version()
+        return self.worker.get_version() if self.worker else {}
 
     def run(self):
         """
         Run analysis in both direction and return the analysis
         """
-        self.worker.run()
+        if self.worker:
+            self.worker.run()
 
         stats = self._generate_traffic()
         result = {
@@ -157,7 +159,7 @@ class StatsManager(object):
         return result
 
     def get_compute_nodes_bios(self):
-        return self.worker.get_compute_nodes_bios()
+        return self.worker.get_compute_nodes_bios() if self.worker else {}
 
     @staticmethod
     def get_analysis(nets):
@@ -176,7 +178,8 @@ class StatsManager(object):
         return packet_analyzer.get_analysis()
 
     def close(self):
-        self.worker.close()
+        if self.worker:
+            self.worker.close()
 
 
 class PVPStatsManager(StatsManager):
@@ -229,10 +232,13 @@ class EXTStatsManager(StatsManager):
         StatsManager.__init__(self, config, clients, specs, factory, vlans, notifier)
 
     def _setup(self):
-        WORKER_CLASS = self.factory.get_chain_worker(self.specs.openstack.encaps,
-                                                     self.config.service_chain)
-        self.worker = WORKER_CLASS(self.config, self.clients, self.specs)
-        self.worker.set_vlans(self.vlans)
+        if self.specs.openstack:
+            WORKER_CLASS = self.factory.get_chain_worker(self.specs.openstack.encaps,
+                                                         self.config.service_chain)
+            self.worker = WORKER_CLASS(self.config, self.clients, self.specs)
+            self.worker.set_vlans(self.vlans)
 
-        if not self.config.no_int_config:
-            self._config_interfaces()
+            if not self.config.no_int_config:
+                self._config_interfaces()
+        else:
+            self.worker = None

@@ -416,7 +416,8 @@ class BasicStageClient(object):
         Creates two networks and spawn a VM which act as a loop VM connected
         with the two networks.
         """
-        self._setup_openstack_clients()
+        if self.cred:
+            self._setup_openstack_clients()
 
     def dispose(self, only_vm=False):
         """
@@ -448,12 +449,15 @@ class EXTStageClient(BasicStageClient):
         super(EXTStageClient, self).setup()
 
         # Lookup two existing networks
-        for net_name in [self.config.external_networks.left, self.config.external_networks.right]:
-            net = self._lookup_network(net_name)
-            if net:
-                self.nets.append(net)
-            else:
-                raise StageClientException('Existing network {} cannot be found.'.format(net_name))
+        if self.cred:
+            for net_name in [self.config.external_networks.left,
+                             self.config.external_networks.right]:
+                net = self._lookup_network(net_name)
+                if net:
+                    self.nets.append(net)
+                else:
+                    raise StageClientException('Existing network {} cannot be found.'.
+                                               format(net_name))
 
 
 class PVPStageClient(BasicStageClient):

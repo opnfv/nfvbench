@@ -13,7 +13,7 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 #
-
+import json
 import logging
 import os
 import sys
@@ -429,8 +429,6 @@ from nfvbench.traffic_client import IpBlock
 from nfvbench.traffic_client import TrafficClient
 from nfvbench.traffic_client import TrafficGeneratorFactory
 
-# pylint: enable=wrong-import-position,ungrouped-imports
-
 def test_ip_block():
     ipb = IpBlock('10.0.0.0', '0.0.0.1', 256)
     assert ipb.get_ip() == '10.0.0.0'
@@ -595,16 +593,16 @@ def assert_ndr_pdr(stats, ndr, ndr_dr, pdr, pdr_dr):
     assert_equivalence(pdr, stats['pdr']['rate_percent'])
     assert_equivalence(pdr_dr, stats['pdr']['stats']['overall']['drop_percentage'])
 
-def get_traffic_client():
-    config = AttrDict({
+def get_dummy_tg_config(chain_type, rate):
+    return AttrDict({
         'traffic_generator': {'host_name': 'nfvbench_tg',
                               'default_profile': 'dummy',
                               'generator_profile': [{'name': 'dummy',
                                                      'tool': 'dummy',
                                                      'ip': '127.0.0.1',
                                                      'intf_speed': '10Gbps',
-                                                     'interfaces': [{'port': 0, 'pci': 0},
-                                                                    {'port': 1, 'pci': 0}]}],
+                                                     'interfaces': [{'port': 0, 'pci': '0.0'},
+                                                                    {'port': 1, 'pci': '0.0'}]}],
                               'ip_addrs_step': '0.0.0.1',
                               'ip_addrs': ['10.0.0.0/8', '20.0.0.0/8'],
                               'tg_gateway_ip_addrs': ['1.1.0.100', '2.2.0.100'],
@@ -613,22 +611,25 @@ def get_traffic_client():
                               'gateway_ip_addrs_step': '0.0.0.1',
                               'udp_src_port': None,
                               'udp_dst_port': None},
-        'generator_profile': 'dummy',
-        'service_chain': 'PVP',
+        'service_chain': chain_type,
         'service_chain_count': 1,
         'flow_count': 10,
         'vlan_tagging': True,
         'no_arp': False,
         'duration_sec': 1,
         'interval_sec': 1,
-        'single_run': False,
-        'ndr_run': True,
-        'pdr_run': True,
-        'rate': 'ndr_pdr',
+        'rate': rate,
         'check_traffic_time_sec': 200,
         'generic_poll_sec': 2,
         'measurement': {'NDR': 0.001, 'PDR': 0.1, 'load_epsilon': 0.1},
     })
+
+def get_traffic_client():
+    config = get_dummy_tg_config('PVP', 'ndr_pdr')
+    config['ndr_run'] = True
+    config['pdr_run'] = True
+    config['generator_profile'] = 'dummy'
+    config['single_run'] = False
     generator_factory = TrafficGeneratorFactory(config)
     config.generator_config = generator_factory.get_generator_config(config.generator_profile)
     traffic_client = TrafficClient(config, skip_sleep=True)
@@ -680,3 +681,13 @@ def test_ndr_pdr_low_cpu():
     # import pprint
     # pp = pprint.PrettyPrinter(indent=4)
     # pp.pprint(results)
+
+import nfvbench.nfvbench
+
+def test_no_openstack():
+    config = get_dummy_tg_config('EXT', '1000pps')
+    config.openrc_file = None
+    old_argv = sys.argv
+    sys.argv = [old_argv[0], '-c', json.dumps(config)]
+    nfvbench.nfvbench.main()
+    sys.argv = old_argv

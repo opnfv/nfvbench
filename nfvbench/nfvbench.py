@@ -58,7 +58,8 @@ class NFVBench(object):
         self.config_plugin = config_plugin
         self.factory = factory
         self.notifier = notifier
-        self.cred = credentials.Credentials(config.openrc_file, None, False)
+        self.cred = credentials.Credentials(config.openrc_file, None, False) \
+            if config.openrc_file else None
         self.chain_runner = None
         self.specs = Specs()
         self.specs.set_openstack_spec(openstack_spec)
@@ -94,10 +95,6 @@ class NFVBench(object):
             result = {
                 "date": datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
                 "nfvbench_version": __version__,
-                "openstack_spec": {
-                    "vswitch": self.specs.openstack.vswitch,
-                    "encaps": self.specs.openstack.encaps
-                },
                 "config": self.config_plugin.prepare_results_config(copy.deepcopy(self.config)),
                 "benchmarks": {
                     "network": {
@@ -106,6 +103,9 @@ class NFVBench(object):
                     }
                 }
             }
+            if self.specs.openstack:
+                result['openstack_spec'] = {"vswitch": self.specs.openstack.vswitch,
+                                            "encaps": self.specs.openstack.encaps}
             result['benchmarks']['network']['versions'].update(self.config_plugin.get_version())
         except Exception:
             status = NFVBench.STATUS_ERROR
@@ -444,7 +444,6 @@ def main():
         # create config plugin for this platform
         config_plugin = factory.get_config_plugin_class()(config)
         config = config_plugin.get_config()
-        openstack_spec = config_plugin.get_openstack_spec()
 
         opts, unknown_opts = parse_opts_from_cli()
         log.set_level(debug=opts.debug)
@@ -520,6 +519,14 @@ def main():
             print json.dumps(config, sort_keys=True, indent=4)
             sys.exit(0)
 
+        # check that an empty openrc file (no OpenStack) is only allowed
+        # with EXT chain
+        if not config.openrc_file:
+            if config.service_chain == ChainType.EXT:
+                LOG.info('EXT chain with OpenStack mode disabled')
+            else:
+                raise Exception("openrc_file is empty in the configuration and is required")
+
         # update the config in the config plugin as it might have changed
         # in a copy of the dict (config plugin still holds the original dict)
         config_plugin.set_config(config)
@@ -527,6 +534,9 @@ def main():
         # add file log if requested
         if config.log_file:
             log.add_file_logger(config.log_file)
+
+        openstack_spec = config_plugin.get_openstack_spec() if config.openrc_file \
+            else None
 
         nfvbench_instance = NFVBench(config, openstack_spec, config_plugin, factory)
 

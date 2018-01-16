@@ -75,7 +75,8 @@ class OpenStackSpec(object):
 
 class RunSpec(object):
     def __init__(self, no_vswitch_access, openstack_spec):
-        self.use_vswitch = (not no_vswitch_access) and openstack_spec.vswitch != "BASIC"
+        self.use_vswitch = (not no_vswitch_access) and openstack_spec \
+            and openstack_spec.vswitch != "BASIC"
 
 
 class Specs(object):

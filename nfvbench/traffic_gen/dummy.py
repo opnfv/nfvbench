@@ -30,6 +30,7 @@ class DummyTG(AbstractTrafficGenerator):
         self.l2_frame_size = 0
         self.duration_sec = self.config.duration_sec
         self.intf_speed = config.generator_config.intf_speed
+        self.set_response_curve()
 
     def get_version(self):
         return "0.1"
@@ -154,6 +155,9 @@ class DummyTG(AbstractTrafficGenerator):
         result['total_tx_rate'] = total_tx_pps
         return result
 
+    def get_macs(self):
+        return ['00.00.00.00.00.01', '00.00.00.00.00.02']
+
     def clear_stats(self):
         pass
 
@@ -165,3 +169,9 @@ class DummyTG(AbstractTrafficGenerator):
 
     def cleanup(self):
         pass
+
+    def set_mode(self):
+        pass
+
+    def resolve_arp(self):
+        return True

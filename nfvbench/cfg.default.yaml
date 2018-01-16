@@ -18,6 +18,13 @@
 # Fields that can be over-ridden at the command line are marked with the corresponding
 # option, e.g. "--interval"
 
+# The OpenStack openrc file to use (must be a valid full pathname). If running
+# in a container, this path must be valid in the container.
+#
+# The only case where this field can be empty is when measuring a system that does not run
+# OpenStack or when OpenStack APIs are not accessible or OpenStack APis use is not
+# desirable. In that case the EXT service chain must be used.
+openrc_file:
 
 # Forwarder to use in nfvbenchvm image. Available options: ['vpp', 'testpmd']
 vm_forwarder: testpmd
@@ -194,9 +201,6 @@ traffic_generator:
 
 # -----------------------------------------------------------------------------
 # These variables are not likely to be changed
-
-# The openrc file
-openrc_file:
 
 # Number of seconds to wait for VMs to pass traffic in both directions
 check_traffic_time_sec: 200

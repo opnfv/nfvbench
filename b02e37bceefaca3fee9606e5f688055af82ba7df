@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9a3d3df0_d57ae122",
+        "filename": "nfvbench/nfvbench.py",
+        "patchSetId": 11
+      },
+      "lineNbr": 176,
+      "author": {
+        "id": 5807
+      },
+      "writtenOn": "2018-01-17T23:03:34Z",
+      "side": 1,
+      "message": "suggest using \u003d\u003d instead of is to compare integer values",
+      "revId": "b02e37bceefaca3fee9606e5f688055af82ba7df",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": false
+    }
+  ]
+}

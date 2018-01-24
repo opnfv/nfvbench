@@ -519,6 +519,10 @@ def main():
             config.service_chain = opts.service_chain
         if opts.service_chain_count:
             config.service_chain_count = opts.service_chain_count
+        if opts.no_vswitch_access:
+            config.no_vswitch_access = opts.no_vswitch_access
+        if opts.no_int_config:
+            config.no_int_config = opts.no_int_config
 
         if opts.use_sriov_middle_net:
             if (not config.sriov) or (not config.service_chain == ChainType.PVVP):

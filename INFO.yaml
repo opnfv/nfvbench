@@ -1,0 +1,48 @@
+---
+project: 'L2/L3 forwarding performance toolkit for NFVi (NFVbench)'
+project_creation_date: 'May 2nd 2017'
+project_category: ''
+lifecycle_state: ''
+project_lead: &opnfv_nfvbench_ptl
+    name: 'Alec Hothan'
+    email: 'ahothan@cisco.com'
+    id: 'ahothan'
+    company: 'cisco.com'
+    timezone: 'Unknown'
+primary_contact: *opnfv_nfvbench_ptl
+issue_tracking:
+    type: 'jira'
+    url: 'https://jira.opnfv.org/projects/NFVBENCH'
+    key: 'NFVBENCH'
+mailing_list:
+    type: 'mailman2'
+    url: 'opnfv-tech-discuss@lists.opnfv.org'
+    tag: '[nfvbench]'
+realtime_discussion:
+    type: irc
+    server: 'freenode.net'
+    channel: '#opnfv-nfvbench'
+meetings:
+    - type: 'gotomeeting+irc'
+      agenda:  # eg: 'https://wiki.opnfv.org/display/'
+      url:  # eg: 'https://global.gotomeeting.com/join/819733085'
+      server: 'freenode.net'
+      channel: '#opnfv-meeting'
+      repeats: 'weekly'
+      time:  # eg: '16:00 UTC'
+repositories:
+    - 'nfvbench'
+committers:
+    - <<: *opnfv_nfvbench_ptl
+    - name: 'Yichen Wang'
+      email: 'yicwang@cisco.com'
+      company: 'cisco.com'
+      id: 'yicwang'
+    - name: 'Al Morton'
+      email: 'acmorton@att.com'
+      company: 'att.com'
+      id: 'acm'
+tsc:
+    # yamllint disable rule:line-length
+    approval: ''
+    # yamllint enable rule:line-length

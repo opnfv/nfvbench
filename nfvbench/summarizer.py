@@ -312,7 +312,7 @@ class NFVBenchSummarizer(Summarizer):
                 if 'warning' in entry:
                     continue
                 self.__chain_analysis_summarize(*entry)
-                self.__record_send()
+            self.__record_send()
 
     def __chain_analysis_summarize(self, frame_size, analysis):
         self._put()

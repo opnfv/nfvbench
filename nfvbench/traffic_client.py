@@ -518,6 +518,10 @@ class TrafficClient(object):
             unidir_reverse_pps = int(self.config.unidir_reverse_traffic_pps)
             if unidir_reverse_pps > 0:
                 self.run_config['rates'].append({'rate_pps': str(unidir_reverse_pps)})
+        # Fix for [NFVBENCH-67], convert the rate string to PPS
+        for idx, rate in enumerate(self.run_config['rates']):
+            if 'rate_pps' not in rate:
+                self.run_config['rates'][idx] = {'rate_pps': self.__convert_rates(rate)['rate_pps']}
 
         self.gen.clear_streamblock()
         self.gen.create_traffic(frame_size, self.run_config['rates'], bidirectional, latency=True)

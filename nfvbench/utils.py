@@ -12,6 +12,7 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+import glob
 from math import isnan
 import os
 import re
@@ -94,7 +95,8 @@ def dict_to_json_dict(record):
 def get_intel_pci(nic_ports):
     """Returns the first two PCI addresses of sorted PCI list for Intel NIC (i40e, ixgbe)"""
     hx = r'[0-9a-fA-F]'
-    regex = r'{hx}{{4}}:({hx}{{2}}:{hx}{{2}}\.{hx}{{1}}).*(drv={driver}|.*unused=.*{driver})'
+    regex = r'({hx}{{4}}:({hx}{{2}}:{hx}{{2}}\.{hx}{{1}})).*(drv={driver}|.*unused=.*{driver})'
+    pcis = []
 
     try:
         trex_base_dir = '/opt/trex'
@@ -111,13 +113,35 @@ def get_intel_pci(nic_ports):
     for driver in ['i40e', 'ixgbe']:
         matches = re.findall(regex.format(hx=hx, driver=driver), devices)
         if matches:
-            pcis = [x[0] for x in matches]
-            if len(pcis) < 2:
-                continue
-            pcis.sort()
-            return [pcis[port_index] for port_index in nic_ports]
+            matches.sort()
+            if nic_ports:
+                if max(nic_ports) > len(matches) - 1:
+                    # If this is hard requirements (i.e. ports are defined
+                    # explictly), but there are not enough ports for the
+                    # current NIC, just skip the current NIC and looking for
+                    # next available one.
+                    continue
+                else:
+                    return [matches[idx][1] for idx in nic_ports]
+            else:
+                for port in matches:
+                    intf_name = glob.glob("/sys/bus/pci/devices/%s/net/*" % port[0])
+                    if not intf_name:
+                        # Interface is not bind to kernel driver, so take it
+                        pcis.append(port[1])
+                    else:
+                        intf_name = intf_name[0][intf_name[0].rfind('/') + 1:]
+                        process = subprocess.Popen(['ip', '-o', '-d', 'link', 'show', intf_name],
+                                                   stdout=subprocess.PIPE,
+                                                   stderr=subprocess.PIPE)
+                        intf_info, _ = process.communicate()
+                        if not re.search('team_slave|bond_slave', intf_info):
+                            pcis.append(port[1])
 
-    return []
+                    if len(pcis) == 2:
+                        break
+
+    return pcis
 
 
 multiplier_map = {

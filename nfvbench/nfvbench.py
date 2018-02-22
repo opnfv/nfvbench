@@ -164,6 +164,14 @@ class NFVBench(object):
         self.config.duration_sec = float(self.config.duration_sec)
         self.config.interval_sec = float(self.config.interval_sec)
 
+        # Get traffic generator profile config
+        if not self.config.generator_profile:
+            self.config.generator_profile = self.config.traffic_generator.default_profile
+
+        generator_factory = TrafficGeneratorFactory(self.config)
+        self.config.generator_config = \
+            generator_factory.get_generator_config(self.config.generator_profile)
+
         # Check length of mac_addrs_left/right for serivce_chain EXT with no_arp
         if self.config.service_chain == ChainType.EXT and self.config.no_arp:
             if not (self.config.generator_config.mac_addrs_left is None and
@@ -182,14 +190,6 @@ class NFVBench(object):
                                     .format(a=len(self.config.generator_config.mac_addrs_left),
                                             b=len(self.config.generator_config.mac_addrs_right),
                                             c=self.config.service_chain_count))
-
-        # Get traffic generator profile config
-        if not self.config.generator_profile:
-            self.config.generator_profile = self.config.traffic_generator.default_profile
-
-        generator_factory = TrafficGeneratorFactory(self.config)
-        self.config.generator_config = \
-            generator_factory.get_generator_config(self.config.generator_profile)
 
         if not any(self.config.generator_config.pcis):
             raise Exception("PCI addresses configuration for selected traffic generator profile "

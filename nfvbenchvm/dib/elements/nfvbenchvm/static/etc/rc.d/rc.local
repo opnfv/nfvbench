@@ -71,10 +71,8 @@ if [ "$FORWARDER" == "testpmd" ]; then
                          -n 4 \
                          -- \
                              --burst=32 \
-                             --txd=2048 \
-                             --rxd=2048 \
-                             --txqflags=0xf00 \
-                             --disable-hw-vlan \
+                             --txd=256 \
+                             --rxd=1024 \
                              --eth-peer=0,$TG_MAC1 \
                              --eth-peer=1,$TG_MAC2 \
                              --forward-mode=mac \

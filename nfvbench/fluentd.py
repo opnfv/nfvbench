@@ -35,7 +35,7 @@ class FluentLogHandler(logging.Handler):
         logging.Handler.__init__(self)
         self.log_senders = []
         self.result_senders = []
-        self.runlogdate = 0
+        self.runlogdate = "1970-01-01T00:00:00.000000+0000"
         self.formatter = logging.Formatter('%(message)s')
         for fluentd_config in fluentd_configs:
             if fluentd_config.logging_tag:
@@ -65,8 +65,9 @@ class FluentLogHandler(logging.Handler):
             "message": self.formatter.format(record),
             "@timestamp": self.__get_timestamp()
         }
-        # if runlogdate is 0, it's a log from server (not an nfvbench run) so do not send runlogdate
-        if self.runlogdate != 0:
+        # if runlogdate is Jan 1st 1970, it's a log from server (not an nfvbench run)
+        # so do not update runlogdate
+        if self.runlogdate != "1970-01-01T00:00:00.000000+0000":
             data["runlogdate"] = self.runlogdate
 
         self.__update_stats(record.levelno)
@@ -103,9 +104,9 @@ class FluentLogHandler(logging.Handler):
                 "numwarnings": self.__warning_counter,
                 "@timestamp": self.__get_timestamp()
             }
-            # if runlogdate is 0, it's a log from server (not an nfvbench run)
-            # so don't send runlogdate
-            if self.runlogdate != 0:
+            # if runlogdate is Jan 1st 1970, it's a log from server (not an nfvbench run)
+            # so don't update runlogdate
+            if self.runlogdate != "1970-01-01T00:00:00.000000+0000":
                 data["runlogdate"] = self.runlogdate
             for log_sender in self.log_senders:
                 log_sender.emit(None, data)

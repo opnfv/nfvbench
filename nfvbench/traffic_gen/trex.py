@@ -354,7 +354,7 @@ class TRex(AbstractTrafficGenerator):
                 else:
                     failed = [arp.get_record().dst_ip for arp in arps
                               if arp.get_record().dst_mac is None]
-                    LOG.info('Retrying ARP for: %d (%d / %d)',
+                    LOG.info('Retrying ARP for: %s (%d / %d)',
                              failed, attempt, self.config.generic_retry_count)
                     time.sleep(self.config.generic_poll_sec)
 

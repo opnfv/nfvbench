@@ -136,13 +136,16 @@ class TRex(AbstractTrafficGenerator):
         return result
 
     def create_pkt(self, stream_cfg, l2frame_size):
-        # 46 = 14 (Ethernet II) + 4 (CRC Checksum) + 20 (IPv4) + 8 (UDP)
-        payload = 'x' * (max(64, int(l2frame_size)) - 46)
 
         pkt_base = Ether(src=stream_cfg['mac_src'], dst=stream_cfg['mac_dst'])
 
         if stream_cfg['vlan_tag'] is not None:
+            # 50 = 14 (Ethernet II) + 4 (Vlan tag) + 4 (CRC Checksum) + 20 (IPv4) + 8 (UDP)
             pkt_base /= Dot1Q(vlan=stream_cfg['vlan_tag'])
+            payload = 'x' * (max(64, int(l2frame_size)) - 50)
+        else:
+            # 46 = 14 (Ethernet II) + 4 (CRC Checksum) + 20 (IPv4) + 8 (UDP)
+            payload = 'x' * (max(64, int(l2frame_size)) - 46)
 
         udp_args = {}
         if stream_cfg['udp_src_port']:

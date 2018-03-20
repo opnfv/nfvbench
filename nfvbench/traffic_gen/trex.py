@@ -321,7 +321,7 @@ class TRex(AbstractTrafficGenerator):
 
     def __start_server(self):
         server = TRexTrafficServer()
-        server.run_server(self.config.generator_config)
+        server.run_server(self.config.generator_config, self.config.vlan_tagging)
 
     def resolve_arp(self):
         self.client.set_service_mode(ports=self.port_handle)

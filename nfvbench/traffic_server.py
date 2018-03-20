@@ -34,7 +34,7 @@ class TRexTrafficServer(TrafficServer):
         assert len(contents) == 1
         self.trex_dir = os.path.join(trex_base_dir, contents[0])
 
-    def run_server(self, traffic_profile, filename='/etc/trex_cfg.yaml'):
+    def run_server(self, traffic_profile, vlan_tagging, filename='/etc/trex_cfg.yaml'):
         """
         Runs TRex server for specified traffic profile.
 
@@ -44,9 +44,11 @@ class TRexTrafficServer(TrafficServer):
         cfg = self.__save_config(traffic_profile, filename)
         cores = traffic_profile.cores
         sw_mode = "--software" if traffic_profile.generator_config.software_mode else ""
+        vlan_opt = "--vlan" if vlan_tagging else ""
         subprocess.Popen(['nohup', '/bin/bash', '-c',
                           './t-rex-64 -i -c {} --iom 0 --no-scapy-server --close-at-end {} '
-                          '--vlan --cfg {} &> /tmp/trex.log & disown'.format(cores, sw_mode, cfg)],
+                          '{} --cfg {} &> /tmp/trex.log & disown'.format(cores, sw_mode,
+                                                                         vlan_opt, cfg)],
                          cwd=self.trex_dir)
         LOG.info('TRex server is running...')
 

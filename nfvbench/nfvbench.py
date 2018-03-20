@@ -467,14 +467,6 @@ def main():
         opts, unknown_opts = parse_opts_from_cli()
         log.set_level(debug=opts.debug)
 
-        # setup the fluent logger as soon as possible right after the config plugin is called,
-        # if there is any logging or result tag is set then initialize the fluent logger
-        for fluentd in config.fluentd:
-            if fluentd.logging_tag or fluentd.result_tag:
-                fluent_logger = FluentLogHandler(config.fluentd)
-                LOG.addHandler(fluent_logger)
-                break
-
         if opts.version:
             print pbr.version.VersionInfo('nfvbench').version_string_with_vcs()
             sys.exit(0)
@@ -505,6 +497,14 @@ def main():
             else:
                 LOG.info('Loading configuration string: %s', opts.config)
                 config = config_loads(opts.config, config, whitelist_keys)
+
+        # setup the fluent logger as soon as possible right after the config plugin is called,
+        # if there is any logging or result tag is set then initialize the fluent logger
+        for fluentd in config.fluentd:
+            if fluentd.logging_tag or fluentd.result_tag:
+                fluent_logger = FluentLogHandler(config.fluentd)
+                LOG.addHandler(fluent_logger)
+                break
 
         # traffic profile override options
         override_custom_traffic(config, opts.frame_sizes, opts.unidir)

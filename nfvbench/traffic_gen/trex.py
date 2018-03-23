@@ -48,6 +48,8 @@ from trex_stl_lib.api import STLVmFlowVarRepetableRandom
 from trex_stl_lib.api import STLVmWrFlowVar
 from trex_stl_lib.api import UDP
 from trex_stl_lib.services.trex_stl_service_arp import STLServiceARP
+
+
 # pylint: enable=import-error
 
 
@@ -64,6 +66,7 @@ class TRex(AbstractTrafficGenerator):
         self.streamblock = defaultdict(list)
         self.rates = []
         self.arps = {}
+        self.capture_id = None
 
     def get_version(self):
         return self.client.get_server_version()
@@ -452,6 +455,17 @@ class TRex(AbstractTrafficGenerator):
 
     def stop_traffic(self):
         self.client.stop(ports=self.port_handle)
+
+    def start_capture(self):
+        self.client.set_service_mode(ports=self.port_handle)
+        self.capture_id = self.client.start_capture(rx_ports=self.port_handle)
+
+    def stop_capture(self):
+        self.packet_list = []
+        self.client.fetch_capture_packets(capture_id=self.capture_id['id'], output=self.packet_list)
+        if self.capture_id:
+            self.client.stop_capture(capture_id=self.capture_id['id'])
+            self.capture_id = None
 
     def cleanup(self):
         if self.client:

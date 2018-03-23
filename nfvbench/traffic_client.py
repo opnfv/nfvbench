@@ -467,38 +467,27 @@ class TrafficClient(object):
             all 10 VMs are in operational state.
         """
         LOG.info('Starting traffic generator to ensure end-to-end connectivity')
-        rate_pps = {'rate_pps': str(self.config.service_chain_count * 100)}
+        rate_pps = {'rate_pps': str(self.config.service_chain_count * 1)}
         self.gen.create_traffic('64', [rate_pps, rate_pps], bidirectional=True, latency=False)
 
         # ensures enough traffic is coming back
-        threshold = (self.config.service_chain_count - 1) / float(self.config.service_chain_count)
         retry_count = (self.config.check_traffic_time_sec +
                        self.config.generic_poll_sec - 1) / self.config.generic_poll_sec
+        mac_addresses = set()
         for it in xrange(retry_count):
             self.gen.clear_stats()
             self.gen.start_traffic()
+            self.gen.start_capture()
             LOG.info('Waiting for packets to be received back... (%d / %d)', it + 1, retry_count)
             if not self.skip_sleep:
                 time.sleep(self.config.generic_poll_sec)
             self.gen.stop_traffic()
-            stats = self.gen.get_stats()
-
-            # compute total sent and received traffic on both ports
-            total_rx = 0
-            total_tx = 0
-            for port in self.PORTS:
-                total_rx += float(stats[port]['rx'].get('total_pkts', 0))
-                total_tx += float(stats[port]['tx'].get('total_pkts', 0))
-
-            # how much of traffic came back
-            ratio = total_rx / total_tx if total_tx else 0
-
-            if ratio > threshold:
-                self.gen.clear_stats()
-                self.gen.clear_streamblock()
-                LOG.info('End-to-end connectivity ensured')
-                return
-
+            self.gen.stop_capture()
+            for packet in self.gen.packet_list:
+                mac_addresses.add(packet['binary'][6:12])
+                if len(mac_addresses) == self.config.service_chain_count:
+                    LOG.info('End-to-end connectivity ensured')
+                    return
             if not self.skip_sleep:
                 time.sleep(self.config.generic_poll_sec)
 
@@ -839,7 +828,6 @@ class TrafficClient(object):
         for direction in ['orig', 'tx', 'rx']:
             total[direction] = {}
             for unit in ['rate_percent', 'rate_bps', 'rate_pps']:
-
                 total[direction][unit] = sum([float(x[direction][unit]) for x in r.values()])
 
         r['direction-total'] = total

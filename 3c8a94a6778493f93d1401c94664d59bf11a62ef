@@ -1,0 +1,72 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5a3f45e8_d196d993",
+        "filename": "nfvbench/traffic_client.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 460,
+      "author": {
+        "id": 5807
+      },
+      "writtenOn": "2018-03-23T15:02:43Z",
+      "side": 1,
+      "message": "suggest rephrasing as follows:\nVMs that are started and in active state may not pass traffic yet. It is imperative to make sure that all VMs are passing traffic in both directions before starting any benchmarking. To verify this, we need to send at a low frequency bi-directional packets and make sure that we receive all packets back from all VMs. The number of flows is equal to 2 times the number of chains (1 per direction) and we need to make sure we receive packets coming from exactly 2 x chain count different source MAC addresses.",
+      "revId": "3c8a94a6778493f93d1401c94664d59bf11a62ef",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5a3f45e8_b1918d9c",
+        "filename": "nfvbench/traffic_client.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 466,
+      "author": {
+        "id": 5807
+      },
+      "writtenOn": "2018-03-23T15:02:43Z",
+      "side": 1,
+      "message": "If the number of unique source MAC addresses from received packets is 20 then all 10 VMs ...",
+      "revId": "3c8a94a6778493f93d1401c94664d59bf11a62ef",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5a3f45e8_11916199",
+        "filename": "nfvbench/traffic_client.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 476,
+      "author": {
+        "id": 5807
+      },
+      "writtenOn": "2018-03-23T15:02:43Z",
+      "side": 1,
+      "message": "ln \u003d 0",
+      "revId": "3c8a94a6778493f93d1401c94664d59bf11a62ef",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5a3f45e8_b1d86d80",
+        "filename": "nfvbench/traffic_client.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 493,
+      "author": {
+        "id": 5807
+      },
+      "writtenOn": "2018-03-23T15:02:43Z",
+      "side": 1,
+      "message": "delete print statement",
+      "revId": "3c8a94a6778493f93d1401c94664d59bf11a62ef",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": false
+    }
+  ]
+}

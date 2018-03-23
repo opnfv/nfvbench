@@ -48,6 +48,8 @@ from trex_stl_lib.api import STLVmFlowVarRepetableRandom
 from trex_stl_lib.api import STLVmWrFlowVar
 from trex_stl_lib.api import UDP
 from trex_stl_lib.services.trex_stl_service_arp import STLServiceARP
+
+
 # pylint: enable=import-error
 
 
@@ -146,7 +148,9 @@ class TRex(AbstractTrafficGenerator):
         else:
             # 46 = 14 (Ethernet II) + 4 (CRC Checksum) + 20 (IPv4) + 8 (UDP)
             payload = 'x' * (max(64, int(l2frame_size)) - 46)
-
+        # TRex requires minimum payload size 16B
+        if len(payload) < 16:
+            payload += 'x' * (16 - len(payload))
         udp_args = {}
         if stream_cfg['udp_src_port']:
             udp_args['sport'] = int(stream_cfg['udp_src_port'])

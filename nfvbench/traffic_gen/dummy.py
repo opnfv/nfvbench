@@ -31,6 +31,11 @@ class DummyTG(AbstractTrafficGenerator):
         self.duration_sec = self.config.duration_sec
         self.intf_speed = config.generator_config.intf_speed
         self.set_response_curve()
+        self.packet_list = [{
+            "binary": "01234567890123456789"
+        }, {
+            "binary": "98765432109876543210"
+        }]
 
     def get_version(self):
         return "0.1"
@@ -164,7 +169,16 @@ class DummyTG(AbstractTrafficGenerator):
     def start_traffic(self):
         pass
 
+    def fetch_capture_packets(self):
+        pass
+
     def stop_traffic(self):
+        pass
+
+    def start_capture(self):
+        pass
+
+    def stop_capture(self):
         pass
 
     def cleanup(self):

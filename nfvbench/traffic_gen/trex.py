@@ -66,6 +66,8 @@ class TRex(AbstractTrafficGenerator):
         self.streamblock = defaultdict(list)
         self.rates = []
         self.arps = {}
+        self.capture_id = None
+        self.packet_list = []
 
     def get_version(self):
         return self.client.get_server_version()
@@ -454,6 +456,24 @@ class TRex(AbstractTrafficGenerator):
 
     def stop_traffic(self):
         self.client.stop(ports=self.port_handle)
+
+    def start_capture(self):
+        if self.capture_id:
+            self.stop_capture()
+        self.client.set_service_mode(ports=self.port_handle)
+        self.capture_id = self.client.start_capture(rx_ports=self.port_handle)
+
+    def fetch_capture_packets(self):
+        if self.capture_id:
+            self.packet_list = []
+            self.client.fetch_capture_packets(capture_id=self.capture_id['id'],
+                                              output=self.packet_list)
+
+    def stop_capture(self):
+        if self.capture_id:
+            self.client.stop_capture(capture_id=self.capture_id['id'])
+            self.capture_id = None
+            self.client.set_service_mode(ports=self.port_handle, enabled=False)
 
     def cleanup(self):
         if self.client:

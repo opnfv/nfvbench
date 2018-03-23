@@ -33,6 +33,24 @@
       "revId": "71bbaf3d2f2f43619cd2e1dfa7df559f8f3ac239",
       "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5a3f45e8_bb596c5d",
+        "filename": "nfvbench/traffic_gen/trex.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 461,
+      "author": {
+        "id": 6949
+      },
+      "writtenOn": "2018-03-23T01:18:28Z",
+      "side": 1,
+      "message": "this function is called only in the loop for traffic ensurance in traffic_client.py, and it is always followed by stop_capture function. (lines 480, 485)",
+      "parentUuid": "5a3f45e8_9bb75086",
+      "revId": "71bbaf3d2f2f43619cd2e1dfa7df559f8f3ac239",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": false
     }
   ]
 }

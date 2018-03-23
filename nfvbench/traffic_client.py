@@ -454,50 +454,46 @@ class TrafficClient(object):
         This ensures end to end connectivity and also waits until VMs are ready to forward packets.
 
         At this point all VMs are in active state, but forwarding does not have to work.
-        Small amount of traffic is sent to every chain. Then total of sent and received packets
-        is compared. If ratio between received and transmitted packets is higher than (N-1)/N,
-        N being number of chains, traffic flows through every chain and real measurements can be
+        Small amount of traffic is sent to every chain. Then the source MAC addresses are
+        collected. If the number of unique MAC addresses are twice of chain count (as there is 2
+        flows per chain), traffic flows through every chain and real measurements can be
         performed.
 
         Example:
             PVP chain (1 VM per chain)
             N = 10 (number of chains)
-            threshold = (N-1)/N = 9/10 = 0.9 (acceptable ratio ensuring working conditions)
-            if total_received/total_sent > 0.9, traffic is flowing to more than 9 VMs meaning
-            all 10 VMs are in operational state.
+            Flow count = 20 (number of flows)
+            if number of unique MAC addresses are 20, all 10 VMs are in operational state.
         """
         LOG.info('Starting traffic generator to ensure end-to-end connectivity')
-        rate_pps = {'rate_pps': str(self.config.service_chain_count * 100)}
+        rate_pps = {'rate_pps': str(self.config.service_chain_count * 1)}
         self.gen.create_traffic('64', [rate_pps, rate_pps], bidirectional=True, latency=False)
 
         # ensures enough traffic is coming back
-        threshold = (self.config.service_chain_count - 1) / float(self.config.service_chain_count)
         retry_count = (self.config.check_traffic_time_sec +
                        self.config.generic_poll_sec - 1) / self.config.generic_poll_sec
+        mac_addresses = set()
+        ln = len(mac_addresses)
         for it in xrange(retry_count):
             self.gen.clear_stats()
             self.gen.start_traffic()
+            self.gen.start_capture()
             LOG.info('Waiting for packets to be received back... (%d / %d)', it + 1, retry_count)
             if not self.skip_sleep:
                 time.sleep(self.config.generic_poll_sec)
             self.gen.stop_traffic()
-            stats = self.gen.get_stats()
+            self.gen.stop_capture()
 
-            # compute total sent and received traffic on both ports
-            total_rx = 0
-            total_tx = 0
-            for port in self.PORTS:
-                total_rx += float(stats[port]['rx'].get('total_pkts', 0))
-                total_tx += float(stats[port]['tx'].get('total_pkts', 0))
-
-            # how much of traffic came back
-            ratio = total_rx / total_tx if total_tx else 0
-
-            if ratio > threshold:
-                self.gen.clear_stats()
-                self.gen.clear_streamblock()
-                LOG.info('End-to-end connectivity ensured')
-                return
+            for packet in self.gen.packet_list:
+                mac_addresses.add(packet['binary'][6:12])
+                if ln != len(mac_addresses):
+                    ln = len(mac_addresses)
+                    LOG.info('Flows passing traffic %d / %d', ln,
+                             self.config.service_chain_count * 2)
+                print self.config.service_chain_count
+                if len(mac_addresses) == self.config.service_chain_count * 2:
+                    LOG.info('End-to-end connectivity ensured')
+                    return
 
             if not self.skip_sleep:
                 time.sleep(self.config.generic_poll_sec)
@@ -839,7 +835,6 @@ class TrafficClient(object):
         for direction in ['orig', 'tx', 'rx']:
             total[direction] = {}
             for unit in ['rate_percent', 'rate_bps', 'rate_pps']:
-
                 total[direction][unit] = sum([float(x[direction][unit]) for x in r.values()])
 
         r['direction-total'] = total

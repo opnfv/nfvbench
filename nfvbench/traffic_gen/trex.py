@@ -48,6 +48,8 @@ from trex_stl_lib.api import STLVmFlowVarRepetableRandom
 from trex_stl_lib.api import STLVmWrFlowVar
 from trex_stl_lib.api import UDP
 from trex_stl_lib.services.trex_stl_service_arp import STLServiceARP
+
+
 # pylint: enable=import-error
 
 
@@ -138,15 +140,15 @@ class TRex(AbstractTrafficGenerator):
     def create_pkt(self, stream_cfg, l2frame_size):
 
         pkt_base = Ether(src=stream_cfg['mac_src'], dst=stream_cfg['mac_dst'])
-
+        # TRex requires minimum payload size 16B
         if stream_cfg['vlan_tag'] is not None:
             # 50 = 14 (Ethernet II) + 4 (Vlan tag) + 4 (CRC Checksum) + 20 (IPv4) + 8 (UDP)
             pkt_base /= Dot1Q(vlan=stream_cfg['vlan_tag'])
-            payload = 'x' * (max(64, int(l2frame_size)) - 50)
+            l2package_size = max(max(64, int(l2frame_size)) - 50, 16)
         else:
             # 46 = 14 (Ethernet II) + 4 (CRC Checksum) + 20 (IPv4) + 8 (UDP)
-            payload = 'x' * (max(64, int(l2frame_size)) - 46)
-
+            l2package_size = max(max(64, int(l2frame_size)) - 46, 16)
+        payload = 'x' * l2package_size
         udp_args = {}
         if stream_cfg['udp_src_port']:
             udp_args['sport'] = int(stream_cfg['udp_src_port'])

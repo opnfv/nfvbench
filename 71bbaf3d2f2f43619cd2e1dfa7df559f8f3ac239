@@ -69,6 +69,58 @@
       "revId": "71bbaf3d2f2f43619cd2e1dfa7df559f8f3ac239",
       "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5a3f45e8_d6724f7b",
+        "filename": "nfvbench/traffic_gen/trex.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 461,
+      "author": {
+        "id": 6909
+      },
+      "writtenOn": "2018-03-23T07:02:13Z",
+      "side": 1,
+      "message": "I can tell the logic from the code. I am just suggesting to handle that case to have more robust code. This is normally a better practice for coding.\n\nSince you know you will only have one capture, so you can just stop the previous one, and start the new one and returned.",
+      "parentUuid": "5a3f45e8_bb596c5d",
+      "revId": "71bbaf3d2f2f43619cd2e1dfa7df559f8f3ac239",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5a3f45e8_166dd798",
+        "filename": "nfvbench/traffic_gen/trex.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 463,
+      "author": {
+        "id": 6909
+      },
+      "writtenOn": "2018-03-23T07:02:13Z",
+      "side": 1,
+      "message": "Do we have to quit the service mode when capturing is stopped?",
+      "revId": "71bbaf3d2f2f43619cd2e1dfa7df559f8f3ac239",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5a3f45e8_f6678bb5",
+        "filename": "nfvbench/traffic_gen/trex.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 465,
+      "author": {
+        "id": 6909
+      },
+      "writtenOn": "2018-03-23T07:02:13Z",
+      "side": 1,
+      "message": "I would want to have an additional API of \"fetch_capture_packets\" instead of putting them together in stop_capture().",
+      "revId": "71bbaf3d2f2f43619cd2e1dfa7df559f8f3ac239",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": false
     }
   ]
 }

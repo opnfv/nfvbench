@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5a3f45e8_590b0f25",
+        "filename": "nfvbench/traffic_client.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 485,
+      "author": {
+        "id": 5807
+      },
+      "writtenOn": "2018-03-23T22:25:44Z",
+      "side": 1,
+      "message": "we need to be careful this parameter is always \u003e rate pps per chain\nwhich is \u003e 1\nthe default is 2 second but if someone sets it 1 sec we might have trouble capturing all frames... \nBecause this is a very specific polling I suggest we do not use config poll value and always use a fixed size like 2 second poll (use a local constant for that).\nthat way it will never be messed up by user config.\nWe need to adjust also the code above (retry count)\nWe just keep using the check_traffic_time_sec option from config.",
+      "revId": "ad043dbc66865d79d78e5d0954c4b2eea32edecd",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": false
+    }
+  ]
+}

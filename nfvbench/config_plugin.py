@@ -49,7 +49,7 @@ class ConfigPluginBase(object):
         """Returns OpenStack specs for host."""
 
     @abc.abstractmethod
-    def get_run_spec(self, openstack_spec):
+    def get_run_spec(self, config, openstack_spec):
         """Returns RunSpec for given platform."""
 
     @abc.abstractmethod
@@ -81,9 +81,9 @@ class ConfigPlugin(ConfigPluginBase):
         """Returns OpenStack specs for host."""
         return specs.OpenStackSpec()
 
-    def get_run_spec(self, openstack_spec):
+    def get_run_spec(self, config, openstack_spec):
         """Returns RunSpec for given platform."""
-        return specs.RunSpec(self.config.no_vswitch_access, openstack_spec)
+        return specs.RunSpec(config.no_vswitch_access, openstack_spec)
 
     def validate_config(self, config, openstack_spec):
         pass

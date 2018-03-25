@@ -68,7 +68,7 @@ class NFVBench(object):
         sys.stdout.flush()
 
     def setup(self):
-        self.specs.set_run_spec(self.config_plugin.get_run_spec(self.specs.openstack))
+        self.specs.set_run_spec(self.config_plugin.get_run_spec(self.config, self.specs.openstack))
         self.chain_runner = ChainRunner(self.config,
                                         self.clients,
                                         self.cred,

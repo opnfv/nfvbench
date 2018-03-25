@@ -226,7 +226,7 @@ class WebSocketIoServer(object):
             # print 'main thread waiting for requests...'
             config = Ctx.dequeue()
             # print 'main thread processing request...'
-            print config
+            # print config
             try:
                 # remove unfilled values as we do not want them to override default values with None
                 config = {k: v for k, v in config.items() if v is not None}
@@ -243,8 +243,15 @@ class WebSocketIoServer(object):
             else:
                 # this might overwrite a previously unfetched result
                 Ctx.set_result(results)
-            summary = NFVBenchSummarizer(results['result'], self.fluent_logger)
-            LOG.info(str(summary))
+            try:
+                summary = NFVBenchSummarizer(results['result'], self.fluent_logger)
+                LOG.info(str(summary))
+            except KeyError:
+                # in case of error, 'result' might be missing
+                if 'error_message' in results:
+                    LOG.error(results['error_message'])
+                else:
+                    LOG.error('REST request completed without results or error message')
             Ctx.release()
             if self.fluent_logger:
                 self.fluent_logger.send_run_summary(True)

@@ -2,6 +2,30 @@
 .. http://creativecommons.org/licenses/by/4.0
 .. (c) Cisco Systems, Inc
 
+RELEASE NOTES
++++++++++++++
+
+OPNFV Fraser Release
+====================
+
+Over 30 Jira tickets have been addressed in this release (Jira NFVBENCH-55 to NFVBENCH-78)
+
+The Fraser release adds the following new features:
+
+- support for benchmarking non-OpenStack environments (with external setup and no OpenStack openrc file)
+- PVVP packet path with SRIOV at the edge and vswitch between VMs
+- support logging events and results through fluentd
+
+Enhancements and main bug fixes:
+
+- end to end connectivity for larger chain count is now much more accurate for large chain count - avoiding excessive drops
+- use newer version of TRex (2.32)
+- use newer version of testpmd DPDK
+- NDR/PDR uses actual TX rate to calculate drops - resulting in more accurate results
+- add pylint to unit testing
+- add self sufficient and standalone unit testing (without actual testbed)
+
+
 OPNFV Euphrates Release
 =======================
 

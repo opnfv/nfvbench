@@ -26,7 +26,7 @@ class AbstractTrafficGenerator(object):
     # src_mac (6) + dst_mac (6) + mac_type (2) + frame_check (4) = 18
     l2_header_size = 18
 
-    imix_l2_sizes = [64, 594, 1518]
+    imix_l2_sizes = [66, 594, 1518]
     imix_l3_sizes = [size - l2_header_size for size in imix_l2_sizes]
     imix_ratios = [7, 4, 1]
     imix_avg_l2_size = sum(

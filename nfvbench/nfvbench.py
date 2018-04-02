@@ -204,6 +204,18 @@ class NFVBench(object):
             self.config.traffic = self.config.traffic[0]
 
         self.config.frame_sizes = generator_factory.get_frame_sizes(self.config.traffic.profile)
+        #
+        new_frame_sizes = []
+        min_packet_size = "68" if self.config.vlan_tagging else "64"
+        for frame_size in self.config.frame_sizes:
+            try:
+                if int(frame_size) < int(min_packet_size):
+                    new_frame_sizes.append(min_packet_size)
+                else:
+                    new_frame_sizes.append(frame_size)
+            except ValueError:
+                new_frame_sizes.append(frame_size)
+        self.config.frame_sizes = tuple(new_frame_sizes)
 
         self.config.ipv6_mode = False
         self.config.no_dhcp = True

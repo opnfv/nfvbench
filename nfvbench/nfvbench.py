@@ -91,7 +91,19 @@ class NFVBench(object):
         try:
             self.update_config(opts)
             self.setup()
-
+            new_frame_sizes = []
+            min_packet_size = "68" if self.config.vlan_tagging else "64"
+            for frame_size in self.config.frame_sizes:
+                try:
+                    if int(frame_size) < int(min_packet_size):
+                        new_frame_sizes.append(min_packet_size)
+                        LOG.info("Adjusting frame size %s Bytes to minimum size %s Bytes due to "
+                                 + "traffic generator restriction", frame_size, min_packet_size)
+                    else:
+                        new_frame_sizes.append(frame_size)
+                except ValueError:
+                    new_frame_sizes.append(frame_size)
+            self.config.frame_sizes = tuple(new_frame_sizes)
             result = {
                 "date": datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
                 "nfvbench_version": __version__,

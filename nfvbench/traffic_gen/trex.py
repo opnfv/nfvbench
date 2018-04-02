@@ -142,14 +142,13 @@ class TRex(AbstractTrafficGenerator):
     def create_pkt(self, stream_cfg, l2frame_size):
 
         pkt_base = Ether(src=stream_cfg['mac_src'], dst=stream_cfg['mac_dst'])
-        # TRex requires minimum payload size 16B
         if stream_cfg['vlan_tag'] is not None:
             # 50 = 14 (Ethernet II) + 4 (Vlan tag) + 4 (CRC Checksum) + 20 (IPv4) + 8 (UDP)
             pkt_base /= Dot1Q(vlan=stream_cfg['vlan_tag'])
-            l2payload_size = max(max(64, int(l2frame_size)) - 50, 16)
+            l2payload_size = int(l2frame_size) - 50
         else:
             # 46 = 14 (Ethernet II) + 4 (CRC Checksum) + 20 (IPv4) + 8 (UDP)
-            l2payload_size = max(max(64, int(l2frame_size)) - 46, 16)
+            l2payload_size = int(l2frame_size) - 46
         payload = 'x' * l2payload_size
         udp_args = {}
         if stream_cfg['udp_src_port']:
@@ -205,6 +204,8 @@ class TRex(AbstractTrafficGenerator):
         idx_lat = None
         streams = []
         if l2frame == 'IMIX':
+            min_size = 64 if stream_cfg['vlan_tag'] is None else 68
+            self.adjust_imix_min_size(min_size)
             for t, (ratio, l2_frame_size) in enumerate(zip(self.imix_ratios, self.imix_l2_sizes)):
                 pkt = self.create_pkt(stream_cfg, l2_frame_size)
                 streams.append(STLStream(packet=pkt,

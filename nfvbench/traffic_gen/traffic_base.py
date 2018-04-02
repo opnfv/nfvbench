@@ -23,11 +23,7 @@ class TrafficGeneratorException(Exception):
 
 
 class AbstractTrafficGenerator(object):
-    # src_mac (6) + dst_mac (6) + mac_type (2) + frame_check (4) = 18
-    l2_header_size = 18
-
     imix_l2_sizes = [64, 594, 1518]
-    imix_l3_sizes = [size - l2_header_size for size in imix_l2_sizes]
     imix_ratios = [7, 4, 1]
     imix_avg_l2_size = sum(
         [1.0 * imix[0] * imix[1] for imix in zip(imix_l2_sizes, imix_ratios)]) / sum(imix_ratios)
@@ -96,3 +92,8 @@ class AbstractTrafficGenerator(object):
     def cleanup(self):
         # Must be implemented by sub classes
         return None
+
+    def calculate_imix_average(self):
+        self.imix_avg_l2_size = sum(
+            [1.0 * imix[0] * imix[1] for imix in zip(self.imix_l2_sizes, self.imix_ratios)]) / sum(
+                self.imix_ratios)

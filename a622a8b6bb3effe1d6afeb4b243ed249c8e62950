@@ -1,0 +1,55 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5a3f45e8_78cfdc7f",
+        "filename": "nfvbench/nfvbench.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 101,
+      "author": {
+        "id": 5807
+      },
+      "writtenOn": "2018-04-03T01:09:27Z",
+      "side": 1,
+      "message": "this msg is wrong in the case no vlan tag (min is 64 not 68)\nadjust msg to\n\"Adjusting frame size %d to minimum size %d due to traffic generator restriction\"",
+      "revId": "a622a8b6bb3effe1d6afeb4b243ed249c8e62950",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5a3f45e8_58e30005",
+        "filename": "nfvbench/nfvbench.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 104,
+      "author": {
+        "id": 5807
+      },
+      "writtenOn": "2018-04-03T01:09:27Z",
+      "side": 1,
+      "message": "add a comment to say this is for IMIX",
+      "revId": "a622a8b6bb3effe1d6afeb4b243ed249c8e62950",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5a3f45e8_58cae06e",
+        "filename": "nfvbench/traffic_gen/trex.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 212,
+      "author": {
+        "id": 5807
+      },
+      "writtenOn": "2018-04-03T01:09:27Z",
+      "side": 1,
+      "message": "this works for traffic gen but the IMIX avg size calculation is wrong:\n\ncheck AbstractTrafficGen:\n    imix_avg_l2_size \u003d sum(\n        [1.0 * imix[0] * imix[1] for imix in zip(imix_l2_sizes, imix_ratios)]) / sum(imix_ratios)",
+      "revId": "a622a8b6bb3effe1d6afeb4b243ed249c8e62950",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": false
+    }
+  ]
+}

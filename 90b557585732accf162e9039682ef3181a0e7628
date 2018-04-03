@@ -1,0 +1,106 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5a3f45e8_7826bccf",
+        "filename": "nfvbench/traffic_gen/traffic_base.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 27,
+      "author": {
+        "id": 5807
+      },
+      "writtenOn": "2018-04-03T06:48:28Z",
+      "side": 1,
+      "message": "make above 2 instance variables (move in constructor)",
+      "revId": "90b557585732accf162e9039682ef3181a0e7628",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5a3f45e8_18405855",
+        "filename": "nfvbench/traffic_gen/traffic_base.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 5807
+      },
+      "writtenOn": "2018-04-03T06:48:28Z",
+      "side": 1,
+      "message": "remove",
+      "revId": "90b557585732accf162e9039682ef3181a0e7628",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5a3f45e8_3846f47c",
+        "filename": "nfvbench/traffic_gen/traffic_base.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 31,
+      "author": {
+        "id": 5807
+      },
+      "writtenOn": "2018-04-03T06:48:28Z",
+      "side": 1,
+      "message": "this must be moved into adjust_imix_min_size()",
+      "revId": "90b557585732accf162e9039682ef3181a0e7628",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5a3f45e8_582140b3",
+        "filename": "nfvbench/traffic_gen/traffic_base.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 99,
+      "author": {
+        "id": 5807
+      },
+      "writtenOn": "2018-04-03T06:48:28Z",
+      "side": 1,
+      "message": "remove",
+      "revId": "90b557585732accf162e9039682ef3181a0e7628",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5a3f45e8_383d54df",
+        "filename": "nfvbench/traffic_gen/traffic_base.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 100,
+      "author": {
+        "id": 5807
+      },
+      "writtenOn": "2018-04-03T06:48:28Z",
+      "side": 1,
+      "message": "def adjust_imix_min_size(min_size):\n     # assume the min size is always the first entry\n     self.imix_l2_sizes[0] \u003d min_size\n     self.imix_avg_l2_size \u003d sum(...)\n     traffic_utils.imix_avg_l2_size \u003d self.imix_avg_l2_size",
+      "revId": "90b557585732accf162e9039682ef3181a0e7628",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5a3f45e8_d83550f8",
+        "filename": "nfvbench/traffic_gen/trex.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 213,
+      "author": {
+        "id": 5807
+      },
+      "writtenOn": "2018-04-03T06:48:28Z",
+      "side": 1,
+      "message": "probably simpler to have a method that does all the above (L208 to L213)\n\nmin_size \u003d 64 if stream_cfg[\u0027vlan_tag\u0027] is None else 68\nself.adjust_imix_min_size(min_size)",
+      "revId": "90b557585732accf162e9039682ef3181a0e7628",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": false
+    }
+  ]
+}

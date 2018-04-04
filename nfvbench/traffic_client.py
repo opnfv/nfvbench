@@ -787,13 +787,11 @@ class TrafficClient(object):
     def cancel_traffic(self):
         self.runner.stop()
 
-    def get_interface(self, port_index):
+    def get_interface(self, port_index, stats):
         port = self.gen.port_handle[port_index]
         tx, rx = 0, 0
-        if not self.config.no_traffic:
-            stats = self.get_stats()
-            if port in stats:
-                tx, rx = int(stats[port]['tx']['total_pkts']), int(stats[port]['rx']['total_pkts'])
+        if stats and port in stats:
+            tx, rx = int(stats[port]['tx']['total_pkts']), int(stats[port]['rx']['total_pkts'])
         return Interface('traffic-generator', self.tool.lower(), tx, rx)
 
     def get_traffic_config(self):

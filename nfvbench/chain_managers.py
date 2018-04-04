@@ -98,8 +98,8 @@ class StatsManager(object):
     def _get_data(self):
         return self.worker.get_data() if self.worker else {}
 
-    def _get_network(self, traffic_port, index=None, reverse=False):
-        interfaces = [self.clients['traffic'].get_interface(traffic_port)]
+    def _get_network(self, traffic_port, index, stats, reverse=False):
+        interfaces = [self.clients['traffic'].get_interface(traffic_port, stats)]
         if self.worker:
             interfaces.extend(self.worker.get_network_interfaces(index))
         return Network(interfaces, reverse)
@@ -144,16 +144,21 @@ class StatsManager(object):
             'stats': stats
         }
 
+        # fetch latest stats from traffic gen
+        if self.config.no_traffic:
+            stats = None
+        else:
+            stats = self.clients['traffic'].get_stats()
         LOG.info('Requesting packet analysis on the forward direction...')
         result['packet_analysis']['direction-forward'] = \
-            self.get_analysis([self._get_network(0, 0),
-                               self._get_network(0, 1, reverse=True)])
+            self.get_analysis([self._get_network(0, 0, stats),
+                               self._get_network(0, 1, stats, reverse=True)])
         LOG.info('Packet analysis on the forward direction completed')
 
         LOG.info('Requesting packet analysis on the reverse direction...')
         result['packet_analysis']['direction-reverse'] = \
-            self.get_analysis([self._get_network(1, 1),
-                               self._get_network(1, 0, reverse=True)])
+            self.get_analysis([self._get_network(1, 1, stats),
+                               self._get_network(1, 0, stats, reverse=True)])
 
         LOG.info('Packet analysis on the reverse direction completed')
         return result
@@ -205,16 +210,20 @@ class PVVPStatsManager(StatsManager):
             'packet_analysis': {},
             'stats': stats
         }
-
-        fwd_nets = [self._get_network(0, 0)]
+        # fetch latest stats from traffic gen
+        if self.config.no_traffic:
+            stats = None
+        else:
+            stats = self.clients['traffic'].get_stats()
+        fwd_nets = [self._get_network(0, 0, stats)]
         if fwd_v2v_net:
             fwd_nets.append(fwd_v2v_net)
-        fwd_nets.append(self._get_network(0, 1, reverse=True))
+        fwd_nets.append(self._get_network(0, 1, stats, reverse=True))
 
-        rev_nets = [self._get_network(1, 1)]
+        rev_nets = [self._get_network(1, 1, stats)]
         if rev_v2v_net:
             rev_nets.append(rev_v2v_net)
-        rev_nets.append(self._get_network(1, 0, reverse=True))
+        rev_nets.append(self._get_network(1, 0, stats, reverse=True))
 
         LOG.info('Requesting packet analysis on the forward direction...')
         result['packet_analysis']['direction-forward'] = self.get_analysis(fwd_nets)

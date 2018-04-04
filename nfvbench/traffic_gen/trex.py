@@ -78,21 +78,21 @@ class TRex(AbstractTrafficGenerator):
 
         result = {}
         for ph in self.port_handle:
-            stats = self.__combine_stats(in_stats, ph)
+            stats = in_stats[ph]
             result[ph] = {
                 'tx': {
-                    'total_pkts': cast_integer(stats['tx_pkts']['total']),
-                    'total_pkt_bytes': cast_integer(stats['tx_bytes']['total']),
-                    'pkt_rate': cast_integer(stats['tx_pps']['total']),
-                    'pkt_bit_rate': cast_integer(stats['tx_bps']['total'])
+                    'total_pkts': cast_integer(stats['opackets']),
+                    'total_pkt_bytes': cast_integer(stats['obytes']),
+                    'pkt_rate': cast_integer(stats['tx_pps']),
+                    'pkt_bit_rate': cast_integer(stats['tx_bps'])
                 },
                 'rx': {
-                    'total_pkts': cast_integer(stats['rx_pkts']['total']),
-                    'total_pkt_bytes': cast_integer(stats['rx_bytes']['total']),
-                    'pkt_rate': cast_integer(stats['rx_pps']['total']),
-                    'pkt_bit_rate': cast_integer(stats['rx_bps']['total']),
+                    'total_pkts': cast_integer(stats['ipackets']),
+                    'total_pkt_bytes': cast_integer(stats['ibytes']),
+                    'pkt_rate': cast_integer(stats['rx_pps']),
+                    'pkt_bit_rate': cast_integer(stats['rx_bps']),
                     'dropped_pkts': cast_integer(
-                        stats['tx_pkts']['total'] - stats['rx_pkts']['total'])
+                        stats['opackets'] - stats['ipackets'])
                 }
             }
 
@@ -105,20 +105,6 @@ class TRex(AbstractTrafficGenerator):
                 lat['average']) if 'average' in lat else float('nan')
         total_tx_pkts = result[0]['tx']['total_pkts'] + result[1]['tx']['total_pkts']
         result["total_tx_rate"] = cast_integer(total_tx_pkts / self.config.duration_sec)
-        return result
-
-    def __combine_stats(self, in_stats, port_handle):
-        """Traverses TRex result dictionary and combines stream stats. Used for combining latency
-        and regular streams together.
-        """
-        result = defaultdict(lambda: defaultdict(float))
-
-        for pg_id in [self.stream_ids[port_handle]] + self.latencies[port_handle]:
-            record = in_stats['flow_stats'][pg_id]
-            for stat_type, stat_type_values in record.iteritems():
-                for ph, value in stat_type_values.iteritems():
-                    result[stat_type][ph] += value
-
         return result
 
     def __combine_latencies(self, in_stats, port_handle):
@@ -441,7 +427,7 @@ class TRex(AbstractTrafficGenerator):
         LOG.info('Cleared all existing streams.')
 
     def get_stats(self):
-        stats = self.client.get_pgid_stats()
+        stats = self.client.get_stats()
         return self.extract_stats(stats)
 
     def get_macs(self):

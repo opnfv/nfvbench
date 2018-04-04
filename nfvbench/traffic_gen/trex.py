@@ -216,6 +216,7 @@ class TRex(AbstractTrafficGenerator):
 
             if latency:
                 idx_lat = self.id.next()
+                pkt = self.create_pkt(stream_cfg, self.imix_avg_l2_size)
                 sl = STLStream(packet=pkt,
                                isg=isg,
                                flow_stats=STLFlowLatencyStats(pg_id=idx_lat),

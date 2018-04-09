@@ -314,46 +314,60 @@ NFVbench will dicover the MAC addresses to use for generated frames using:
 - either OpenStack discovery (find the MAC of an existing VM) in the case of PVP and PVVP service chains
 - or using dynamic ARP discovery (find MAC from IP) in the case of external chains.
 
-Cleanup Script
---------------
+Status and Cleanup of NFVbench Resources
+----------------------------------------
 
-The nfvbench_cleanup script will cleanup resources created by NFVbench. You need to pass the OpenStack RC file in order to connect to
-OpenStack.
+The --status option will display the status of NFVbench and list any NFVbench resources. You need to pass the OpenStack RC
+file in order to connect to OpenStack.
+
+.. code-block:: none
+
+    # nfvbench --status -r /tmp/nfvbench/openrc
+    2018-04-09 17:05:48,682 INFO Version: 1.3.2.dev1
+    2018-04-09 17:05:48,683 INFO Status: idle
+    2018-04-09 17:05:48,757 INFO Discovering instances nfvbench-loop-vm...
+    2018-04-09 17:05:49,252 INFO Discovering flavor nfvbench.medium...
+    2018-04-09 17:05:49,281 INFO Discovering networks...
+    2018-04-09 17:05:49,365 INFO No matching NFVbench resources found
+    #
+
+The Status can be either "idle" or "busy (run pending)".
+
+The --cleanup option will first discover resources created by NFVbench and prompt if you want to proceed with cleaning them up.
 Example of run:
 
 .. code-block:: none
 
-    # nfvbench_cleanup -r /tmp/nfvbench/openrc
-    Discovering Storage resources...
-    Discovering Compute resources...
-    Discovering Network resources...
-    Discovering Keystone resources...
-
-    SELECTED RESOURCES:
-    +-----------+-------------------+--------------------------------------+
-    | Type      | Name              | UUID                                 |
-    |-----------+-------------------+--------------------------------------|
-    | flavors   | nfvbench.medium   | 362b2215-89d1-4f46-8b89-8e58165ff5bc |
-    | instances | nfvbench-loop-vm0 | f78dfb74-1b8e-4c5c-8d83-652a7571da95 |
-    | networks  | nfvbench-net0     | 57d7e6c9-325f-4c13-9b1b-929344cc9c39 |
-    | networks  | nfvbench-net1     | 2d429bcd-33fa-4aa4-9f2e-299a735177c9 |
-    +-----------+-------------------+--------------------------------------+
-
-    Warning: You didn't specify a resource list file as the input. The script will delete all resources shown above.
+    # nfvbench --cleanup -r /tmp/nfvbench/openrc
+    2018-04-09 16:58:00,204 INFO Version: 1.3.2.dev1
+    2018-04-09 16:58:00,205 INFO Status: idle
+    2018-04-09 16:58:00,279 INFO Discovering instances nfvbench-loop-vm...
+    2018-04-09 16:58:00,829 INFO Discovering flavor nfvbench.medium...
+    2018-04-09 16:58:00,876 INFO Discovering networks...
+    2018-04-09 16:58:00,960 INFO Discovering ports...
+    2018-04-09 16:58:01,012 INFO Discovered 6 NFVbench resources:
+    +----------+-------------------+--------------------------------------+
+    | Type     | Name              | UUID                                 |
+    |----------+-------------------+--------------------------------------|
+    | Instance | nfvbench-loop-vm0 | b039b858-777e-467e-99fb-362f856f4a94 |
+    | Flavor   | nfvbench.medium   | a027003c-ad86-4f24-b676-2b05bb06adc0 |
+    | Network  | nfvbench-net0     | bca8d183-538e-4965-880e-fd92d48bfe0d |
+    | Network  | nfvbench-net1     | c582a201-8279-4309-8084-7edd6511092c |
+    | Port     |                   | 67740862-80ac-4371-b04e-58a0b0f05085 |
+    | Port     |                   | b5db95b9-e419-4725-951a-9a8f7841e66a |
+    +----------+-------------------+--------------------------------------+
+    2018-04-09 16:58:01,013 INFO NFVbench will delete all resources shown...
     Are you sure? (y/n) y
-    *** STORAGE cleanup
-    *** COMPUTE cleanup
-        . Waiting for 1 instances to be fully deleted...
-        . INSTANCE 1 left to be deleted, retries left=5...
-        . INSTANCE 1 left to be deleted, retries left=4...
-        + INSTANCE nfvbench-loop-vm0 is successfully deleted
-        + FLAVOR nfvbench.medium is successfully deleted
-    *** NETWORK cleanup
-        + Network port 075d91f3-fa6a-428c-bd3f-ebd40cd935e1 is successfully deleted
-        + Network port 3a7ccd8c-53a6-43d0-a823-4b5ca762d06e is successfully deleted
-        + NETWORK nfvbench-net0 is successfully deleted
-        + Network port 5b5a75bd-e0b5-4f81-91b9-9e216d194f48 is successfully deleted
-        + Network port cc2d8f1b-49fe-491e-9e44-6990fc57e891 is successfully deleted
-        + NETWORK nfvbench-net1 is successfully deleted
-    *** KEYSTONE cleanup
+    2018-04-09 16:58:01,865 INFO Deleting instance nfvbench-loop-vm0...
+    2018-04-09 16:58:02,058 INFO     Waiting for 1 instances to be fully deleted...
+    2018-04-09 16:58:02,182 INFO     1 yet to be deleted by Nova, retries left=6...
+    2018-04-09 16:58:04,506 INFO     1 yet to be deleted by Nova, retries left=5...
+    2018-04-09 16:58:06,636 INFO     1 yet to be deleted by Nova, retries left=4...
+    2018-04-09 16:58:08,701 INFO Deleting flavor nfvbench.medium...
+    2018-04-09 16:58:08,729 INFO Deleting port 67740862-80ac-4371-b04e-58a0b0f05085...
+    2018-04-09 16:58:09,102 INFO Deleting port b5db95b9-e419-4725-951a-9a8f7841e66a...
+    2018-04-09 16:58:09,620 INFO Deleting network nfvbench-net0...
+    2018-04-09 16:58:10,357 INFO Deleting network nfvbench-net1...
     #
+
+The --force-cleanup option will do the same but without prompting for confirmation.

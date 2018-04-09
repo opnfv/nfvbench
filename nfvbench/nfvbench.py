@@ -30,6 +30,7 @@ from pkg_resources import resource_string
 
 from __init__ import __version__
 from chain_runner import ChainRunner
+from cleanup import Cleaner
 from config import config_load
 from config import config_loads
 import credentials as credentials
@@ -49,6 +50,7 @@ fluent_logger = None
 
 class NFVBench(object):
     """Main class of NFV benchmarking tool."""
+
     STATUS_OK = 'OK'
     STATUS_ERROR = 'ERROR'
 
@@ -97,8 +99,8 @@ class NFVBench(object):
                 try:
                     if int(frame_size) < int(min_packet_size):
                         new_frame_sizes.append(min_packet_size)
-                        LOG.info("Adjusting frame size %s Bytes to minimum size %s Bytes due to "
-                                 + "traffic generator restriction", frame_size, min_packet_size)
+                        LOG.info("Adjusting frame size %s Bytes to minimum size %s Bytes due to " +
+                                 "traffic generator restriction", frame_size, min_packet_size)
                     else:
                         new_frame_sizes.append(frame_size)
                 except ValueError:
@@ -141,7 +143,7 @@ class NFVBench(object):
         }
 
     def prepare_summary(self, result):
-        """Prepares summary of the result to print and send it to logger (eg: fluentd)"""
+        """Prepare summary of the result to print and send it to logger (eg: fluentd)."""
         global fluent_logger
         summary = NFVBenchSummarizer(result, fluent_logger)
         LOG.info(str(summary))
@@ -223,12 +225,12 @@ class NFVBench(object):
         if self.config.openrc_file:
             self.config.openrc_file = os.path.expanduser(self.config.openrc_file)
 
-        self.config.ndr_run = (not self.config.no_traffic
-                               and 'ndr' in self.config.rate.strip().lower().split('_'))
-        self.config.pdr_run = (not self.config.no_traffic
-                               and 'pdr' in self.config.rate.strip().lower().split('_'))
-        self.config.single_run = (not self.config.no_traffic
-                                  and not (self.config.ndr_run or self.config.pdr_run))
+        self.config.ndr_run = (not self.config.no_traffic and
+                               'ndr' in self.config.rate.strip().lower().split('_'))
+        self.config.pdr_run = (not self.config.no_traffic and
+                               'pdr' in self.config.rate.strip().lower().split('_'))
+        self.config.single_run = (not self.config.no_traffic and
+                                  not (self.config.ndr_run or self.config.pdr_run))
 
         if self.config.vlans and len(self.config.vlans) != 2:
             raise Exception('Number of configured VLAN IDs for VLAN tagging must be exactly 2.')
@@ -251,6 +253,11 @@ class NFVBench(object):
 
 def parse_opts_from_cli():
     parser = argparse.ArgumentParser()
+
+    parser.add_argument('--status', dest='status',
+                        action='store_true',
+                        default=None,
+                        help='Provide NFVbench status')
 
     parser.add_argument('-c', '--config', dest='config',
                         action='store',
@@ -366,6 +373,16 @@ def parse_opts_from_cli():
                         action='store_true',
                         help='no cleanup after run')
 
+    parser.add_argument('--cleanup', dest='cleanup',
+                        default=None,
+                        action='store_true',
+                        help='Cleanup NFVbench resources (prompt to confirm)')
+
+    parser.add_argument('--force-cleanup', dest='force_cleanup',
+                        default=None,
+                        action='store_true',
+                        help='Cleanup NFVbench resources (do not prompt)')
+
     parser.add_argument('--json', dest='json',
                         action='store',
                         help='store results in json format file',
@@ -429,8 +446,7 @@ def load_default_config():
 
 
 def override_custom_traffic(config, frame_sizes, unidir):
-    """Override the traffic profiles with a custom one
-    """
+    """Override the traffic profiles with a custom one."""
     if frame_sizes is not None:
         traffic_profile_name = "custom_traffic_profile"
         config.traffic_profile = [
@@ -457,6 +473,23 @@ def check_physnet(name, netattrs):
         raise Exception("SRIOV requires segmentation_id to be specified for the {n} network"
                         .format(n=name))
 
+def status_cleanup(config, cleanup, force_cleanup):
+    LOG.info('Version: %s', pbr.version.VersionInfo('nfvbench').version_string_with_vcs())
+    # check if another run is pending
+    ret_code = 0
+    try:
+        with utils.RunLock():
+            LOG.info('Status: idle')
+    except Exception:
+        LOG.info('Status: busy (run pending)')
+        ret_code = 1
+    # check nfvbench resources
+    if config.openrc_file and config.service_chain != ChainType.EXT:
+        cleaner = Cleaner(config)
+        count = cleaner.show_resources()
+        if count and (cleanup or force_cleanup):
+            cleaner.clean(not force_cleanup)
+    sys.exit(ret_code)
 
 def main():
     global fluent_logger
@@ -565,6 +598,9 @@ def main():
         # update the config in the config plugin as it might have changed
         # in a copy of the dict (config plugin still holds the original dict)
         config_plugin.set_config(config)
+
+        if opts.status or opts.cleanup or opts.force_cleanup:
+            status_cleanup(config, opts.cleanup, opts.force_cleanup)
 
         # add file log if requested
         if config.log_file:

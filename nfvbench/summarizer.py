@@ -317,6 +317,12 @@ class NFVBenchSummarizer(Summarizer):
     def __chain_analysis_summarize(self, frame_size, analysis):
         self._put()
         self._put('L2 frame size:', frame_size)
+        if 'actual_l2frame_size' in analysis:
+            self._put('Actual l2 frame size:', analysis['actual_l2frame_size'])
+        elif self.config['ndr_run'] and 'actual_l2frame_size' in analysis['ndr']:
+            self._put('Actual l2 frame size:', analysis['ndr']['actual_l2frame_size'])
+        elif self.config['pdr_run'] and 'actual_l2frame_size' in analysis['pdr']:
+            self._put('Actual l2 frame size:', analysis['pdr']['actual_l2frame_size'])
         if 'analysis_duration_sec' in analysis:
             self._put('Chain analysis duration:',
                       Formatter.float(3)(analysis['analysis_duration_sec']), 'seconds')

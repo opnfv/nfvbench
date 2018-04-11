@@ -57,14 +57,14 @@ class ServiceChain(object):
             for vlan, device in zip(vlans, self.config.generator_config.devices):
                 self.stats_manager.set_vlan_tag(device, vlan)
 
-    def __get_result_per_frame_size(self, frame_size, bidirectional):
+    def __get_result_per_frame_size(self, requested_frame_size, actual_frame_size, bidirectional):
         start_time = time.time()
         traffic_result = {
-            frame_size: {}
+            requested_frame_size: {}
         }
         result = {}
         if not self.config.no_traffic:
-            self.clients['traffic'].set_traffic(frame_size, bidirectional)
+            self.clients['traffic'].set_traffic(actual_frame_size, bidirectional)
 
             if self.config.single_run:
                 result = self.stats_manager.run()
@@ -73,27 +73,34 @@ class ServiceChain(object):
 
                 for dr in ['pdr', 'ndr']:
                     if dr in results:
-                        traffic_result[frame_size][dr] = results[dr]
+                        if requested_frame_size != actual_frame_size:
+                            results[dr]['l2frame_size'] = requested_frame_size
+                            results[dr]['actual_l2frame_size'] = actual_frame_size
+                        traffic_result[requested_frame_size][dr] = results[dr]
                         if 'warning' in results[dr]['stats'] and results[dr]['stats']['warning']:
                             traffic_result['warning'] = results[dr]['stats']['warning']
-                traffic_result[frame_size]['iteration_stats'] = results['iteration_stats']
+                traffic_result[requested_frame_size]['iteration_stats'] = results['iteration_stats']
 
             result['analysis_duration_sec'] = time.time() - start_time
             if self.config.single_run:
                 result['run_config'] = self.clients['traffic'].get_run_config(result)
                 required = result['run_config']['direction-total']['orig']['rate_pps']
                 actual = result['stats']['total_tx_rate']
+                if requested_frame_size != actual_frame_size:
+                    result['actual_l2frame_size'] = actual_frame_size
                 warning = self.clients['traffic'].compare_tx_rates(required, actual)
                 if warning is not None:
                     result['run_config']['warning'] = warning
 
-        traffic_result[frame_size].update(result)
+        traffic_result[requested_frame_size].update(result)
         return traffic_result
 
     def __get_chain_result(self):
         result = OrderedDict()
-        for fs in self.config.frame_sizes:
-            result.update(self.__get_result_per_frame_size(fs, self.config.traffic.bidirectional))
+        for i in range(len(self.config.frame_sizes)):
+            result.update(self.__get_result_per_frame_size(self.config.requested_frame_sizes[i],
+                                                           self.config.frame_sizes[i],
+                                                           self.config.traffic.bidirectional))
 
         chain_result = {
             'flow_count': self.config.flow_count,

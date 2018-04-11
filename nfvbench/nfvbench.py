@@ -105,6 +105,7 @@ class NFVBench(object):
                         new_frame_sizes.append(frame_size)
                 except ValueError:
                     new_frame_sizes.append(frame_size)
+            self.config.requested_frame_sizes = self.config.frame_sizes
             self.config.frame_sizes = tuple(new_frame_sizes)
             result = {
                 "date": datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'),

@@ -1,0 +1,72 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5a3f45e8_61feeeaf",
+        "filename": "nfvbench/service_chain.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 60,
+      "author": {
+        "id": 5807
+      },
+      "writtenOn": "2018-04-12T15:07:02Z",
+      "side": 1,
+      "message": "to minimize, diffs suggest keeping frame_size variable name the same (to mean actual frame size) and only introduce requested_frame_size",
+      "revId": "bf22a8b2d5ebcde776e0268ac717705c72eb95bd",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5a3f45e8_e112fe07",
+        "filename": "nfvbench/service_chain.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 63,
+      "author": {
+        "id": 5807
+      },
+      "writtenOn": "2018-04-12T15:07:02Z",
+      "side": 1,
+      "message": "we need to be careful to keep backward compatibility.\nso a json result should be backward compatible.\nprobably need to keep the same name (frame_size) here",
+      "revId": "bf22a8b2d5ebcde776e0268ac717705c72eb95bd",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5a3f45e8_e1295e38",
+        "filename": "nfvbench/service_chain.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 77,
+      "author": {
+        "id": 5807
+      },
+      "writtenOn": "2018-04-12T15:07:02Z",
+      "side": 1,
+      "message": "this is not needed as the requested frame size is already keyed elsewhere in the dict (L79)",
+      "revId": "bf22a8b2d5ebcde776e0268ac717705c72eb95bd",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5a3f45e8_c1d5421d",
+        "filename": "nfvbench/service_chain.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 100,
+      "author": {
+        "id": 5807
+      },
+      "writtenOn": "2018-04-12T15:07:02Z",
+      "side": 1,
+      "message": "a bit more pythonic to use zip:\nfor req_fs, fs in zip(self.config.requested_frame_sizes, self.config.frame_sizes):",
+      "revId": "bf22a8b2d5ebcde776e0268ac717705c72eb95bd",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": false
+    }
+  ]
+}

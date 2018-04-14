@@ -434,6 +434,11 @@ def parse_opts_from_cli():
                         action='store',
                         help='Custom label for performance records')
 
+    parser.add_argument('--l2-loopback', '--l2loopback', dest='l2_loopback',
+                        action='store',
+                        metavar='<vlan>',
+                        help='Port to port or port to switch to port L2 loopback with VLAN id')
+
     opts, unknown_opts = parser.parse_known_args()
     return opts, unknown_opts
 
@@ -569,8 +574,18 @@ def main():
         if opts.no_int_config:
             config.no_int_config = opts.no_int_config
 
+        if opts.l2_loopback:
+            if config.service_chain != ChainType.EXT:
+                LOG.info('Changing service chain type to EXT')
+                config.service_chain = ChainType.EXT
+            if not config.no_arp:
+                LOG.info('Disabling ARP')
+                config.no_arp = True
+            config.vlans = [int(opts.l2_loopback), int(opts.l2_loopback)]
+            LOG.info('Running L2 loopback: using EXT chain and no ARP')
+
         if opts.use_sriov_middle_net:
-            if (not config.sriov) or (not config.service_chain == ChainType.PVVP):
+            if (not config.sriov) or (config.service_chain != ChainType.PVVP):
                 raise Exception("--use-sriov-middle-net is only valid for PVVP with SRIOV")
             config.use_sriov_middle_net = True
 

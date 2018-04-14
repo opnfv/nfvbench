@@ -434,6 +434,11 @@ def parse_opts_from_cli():
                         action='store',
                         help='Custom label for performance records')
 
+    parser.add_argument('--l2-loopback', '--l2loopback', dest='l2_loopback',
+                        action='store',
+                        metavar='<vlan>',
+                        help='L2 loopback at TOR level')
+
     opts, unknown_opts = parser.parse_known_args()
     return opts, unknown_opts
 
@@ -550,6 +555,14 @@ def main():
                 fluent_logger = FluentLogHandler(config.fluentd)
                 LOG.addHandler(fluent_logger)
                 break
+
+        if opts.l2_loopback:
+            if config.service_chain != ChainType.EXT:
+                config.service_chain = ChainType.EXT
+            if config.no_arp != True:
+                config.no_arp = True
+            config.vlans = [long(opts.l2_loopback), long(opts.l2_loopback)]
+            LOG.info('Running L2 loopback: using EXT chain and no ARP')
 
         # traffic profile override options
         override_custom_traffic(config, opts.frame_sizes, opts.unidir)

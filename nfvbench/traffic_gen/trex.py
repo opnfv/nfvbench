@@ -73,12 +73,19 @@ class TRex(AbstractTrafficGenerator):
         return self.client.get_server_version()
 
     def extract_stats(self, in_stats):
+        """Extract stats from dict returned by Trex API.
+
+        :param in_stats: dict as returned by TRex api
+        """
         utils.nan_replace(in_stats)
         LOG.debug(in_stats)
 
         result = {}
+        # port_handles should have only 2 elements: [0, 1]
+        # so (1 - ph) will be the index for the far end port
         for ph in self.port_handle:
             stats = in_stats[ph]
+            far_end_stats = in_stats[1 - ph]
             result[ph] = {
                 'tx': {
                     'total_pkts': cast_integer(stats['opackets']),
@@ -91,8 +98,10 @@ class TRex(AbstractTrafficGenerator):
                     'total_pkt_bytes': cast_integer(stats['ibytes']),
                     'pkt_rate': cast_integer(stats['rx_pps']),
                     'pkt_bit_rate': cast_integer(stats['rx_bps']),
+                    # how many pkts were dropped in RX direction
+                    # need to take the tx counter on the far end port
                     'dropped_pkts': cast_integer(
-                        stats['opackets'] - stats['ipackets'])
+                        far_end_stats['opackets'] - stats['ipackets'])
                 }
             }
 

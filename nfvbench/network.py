@@ -15,6 +15,8 @@
 
 
 class Interface(object):
+    """A class to hold the RX and TX counters for a virtual or physical interface.
+    """
 
     def __init__(self, name, device, tx_packets, rx_packets):
         self.name = name
@@ -48,6 +50,13 @@ class Interface(object):
 
 
 class Network(object):
+    """This class holds all interfaces that make up a logical neutron network.
+
+    A loopback packet path has exactly 2 networks.
+    The first interface is always one of the 2 traffic gen interface.
+    Subsequent interfaces are sorted along the path from the TG to the loopback point
+    which could be interfaces in a switch, a vswitch or a VM.
+    """
 
     def __init__(self, interfaces=None, reverse=False):
         if interfaces is None:

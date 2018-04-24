@@ -35,10 +35,14 @@ from utils import cast_integer
 
 
 class TrafficClientException(Exception):
+    """Generic traffic client exception."""
+
     pass
 
 
 class TrafficRunner(object):
+    """Serialize various steps required to run traffic."""
+
     def __init__(self, client, duration_sec, interval_sec=0):
         self.client = client
         self.start_time = None
@@ -89,6 +93,8 @@ class TrafficRunner(object):
 
 
 class IpBlock(object):
+    """Manage a block of IP addresses."""
+
     def __init__(self, base_ip, step_ip, count_ip):
         self.base_ip_int = Device.ip_to_int(base_ip)
         self.step = Device.ip_to_int(step_ip)
@@ -96,15 +102,13 @@ class IpBlock(object):
         self.next_free = 0
 
     def get_ip(self, index=0):
-        '''Return the IP address at given index
-        '''
+        """Return the IP address at given index."""
         if index < 0 or index >= self.max_available:
             raise IndexError('Index out of bounds')
         return Device.int_to_ip(self.base_ip_int + index * self.step)
 
     def reserve_ip_range(self, count):
-        '''Reserve a range of count consecutive IP addresses spaced by step
-        '''
+        """Reserve a range of count consecutive IP addresses spaced by step."""
         if self.next_free + count > self.max_available:
             raise IndexError('No more IP addresses next free=%d max_available=%d requested=%d' %
                              (self.next_free,
@@ -120,6 +124,8 @@ class IpBlock(object):
 
 
 class Device(object):
+    """Represent a port device and all information associated to it."""
+
     def __init__(self, port, pci, switch_port=None, vtep_vlan=None, ip=None, tg_gateway_ip=None,
                  gateway_ip=None, ip_addrs_step=None, tg_gateway_ip_addrs_step=None,
                  gateway_ip_addrs_step=None, udp_src_port=None, udp_dst_port=None,
@@ -158,6 +164,7 @@ class Device(object):
         if mac is None:
             raise TrafficClientException('Trying to set traffic generator MAC address as None')
         self.mac = mac
+        LOG.info("Port %d: src MAC %s", self.port, self.mac)
 
     def set_destination(self, dst):
         self.dst = dst
@@ -169,10 +176,10 @@ class Device(object):
         if self.vlan_tagging and vlan_tag is None:
             raise TrafficClientException('Trying to set VLAN tag as None')
         self.vlan_tag = vlan_tag
+        LOG.info("Port %d: VLAN %d", self.port, self.vlan_tag)
 
     def get_gw_ip(self, chain_index):
-        '''Retrieve the IP address assigned for the gateway of a given chain
-        '''
+        """Retrieve the IP address assigned for the gateway of a given chain."""
         return self.gw_ip_block.get_ip(chain_index)
 
     def get_stream_configs(self, service_chain):
@@ -222,8 +229,7 @@ class Device(object):
         return configs
 
     def ip_range_overlaps(self):
-        '''Check if this device ip range is overlapping with the dst device ip range
-        '''
+        """Check if this device ip range is overlapping with the dst device ip range."""
         src_base_ip = Device.ip_to_int(self.ip)
         dst_base_ip = Device.ip_to_int(self.dst.ip)
         src_last_ip = src_base_ip + self.flow_count - 1
@@ -367,6 +373,8 @@ class RunningTrafficProfile(object):
 
 
 class TrafficGeneratorFactory(object):
+    """Factory class to generate a traffic generator."""
+
     def __init__(self, config):
         self.config = config
 
@@ -406,6 +414,8 @@ class TrafficGeneratorFactory(object):
 
 
 class TrafficClient(object):
+    """Traffic generator client."""
+
     PORTS = [0, 1]
 
     def __init__(self, config, notifier=None, skip_sleep=False):
@@ -449,8 +459,8 @@ class TrafficClient(object):
         return self.gen.get_version()
 
     def ensure_end_to_end(self):
-        """
-        Ensure traffic generator receives packets it has transmitted.
+        """Ensure traffic generator receives packets it has transmitted.
+
         This ensures end to end connectivity and also waits until VMs are ready to forward packets.
 
         VMs that are started and in active state may not pass traffic yet. It is imperative to make
@@ -662,7 +672,7 @@ class TrafficClient(object):
             results[tag]['timestamp_sec'] = time.time()
 
     def __range_search(self, left, right, targets, results):
-        '''Perform a binary search for a list of targets inside a [left..right] range or rate
+        """Perform a binary search for a list of targets inside a [left..right] range or rate.
 
         left    the left side of the range to search as a % the line rate (100 = 100% line rate)
                 indicating the rate to send on each interface
@@ -671,7 +681,7 @@ class TrafficClient(object):
         targets a dict of drop rates to search (0.1 = 0.1%), indexed by the DR name or "tag"
                 ('ndr', 'pdr')
         results a dict to store results
-        '''
+        """
         if not targets:
             return
         LOG.info('Range search [%s .. %s] targets: %s', left, right, targets)
@@ -820,7 +830,7 @@ class TrafficClient(object):
         return config
 
     def get_run_config(self, results):
-        """Returns configuration which was used for the last run."""
+        """Return configuration which was used for the last run."""
         r = {}
         for idx, key in enumerate(["direction-forward", "direction-reverse"]):
             tx_rate = results["stats"][idx]["tx"]["total_pkts"] / self.config.duration_sec

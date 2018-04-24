@@ -832,9 +832,11 @@ class TrafficClient(object):
     def get_run_config(self, results):
         """Return configuration which was used for the last run."""
         r = {}
+        # because we want each direction to have the far end RX rates,
+        # use the far end index (1-idx) to retrieve the RX rates
         for idx, key in enumerate(["direction-forward", "direction-reverse"]):
             tx_rate = results["stats"][idx]["tx"]["total_pkts"] / self.config.duration_sec
-            rx_rate = results["stats"][idx]["rx"]["total_pkts"] / self.config.duration_sec
+            rx_rate = results["stats"][1 - idx]["rx"]["total_pkts"] / self.config.duration_sec
             r[key] = {
                 "orig": self.__convert_rates(self.run_config['rates'][idx]),
                 "tx": self.__convert_rates({'rate_pps': tx_rate}),

@@ -15,7 +15,6 @@
 #
 import time
 
-
 from log import LOG
 from network import Network
 from packet_analyzer import PacketAnalyzer
@@ -24,6 +23,7 @@ from stats_collector import IntervalCollector
 
 
 class StageManager(object):
+    """A class to stage resources in the systenm under test."""
 
     def __init__(self, config, cred, factory):
         self.config = config
@@ -67,7 +67,8 @@ class StageManager(object):
             self.client.dispose()
 
 
-class StatsManager(object):
+class PVPStatsManager(object):
+    """A class to generate traffic and extract results for PVP chains."""
 
     def __init__(self, config, clients, specs, factory, vlans, notifier=None):
         self.config = config
@@ -98,10 +99,22 @@ class StatsManager(object):
     def _get_data(self):
         return self.worker.get_data() if self.worker else {}
 
-    def _get_network(self, traffic_port, index, stats, reverse=False):
+    def _get_network(self, traffic_port, stats, reverse=False):
+        """Get the Network object corresponding to a given TG port.
+
+        :param traffic_port: must be either 0 or 1
+        :param stats: TG stats for given traffic port
+        :param reverse: specifies if the interface list for this network
+        should go from TG to loopback point (reverse=false) or
+        from loopback point to TG (reverse=true)
+        """
+        # build the interface list in fwd direction (TG To loopback point)
         interfaces = [self.clients['traffic'].get_interface(traffic_port, stats)]
         if self.worker:
-            interfaces.extend(self.worker.get_network_interfaces(index))
+            # if available,
+            # interfaces for workers must be aligned on the TG port number
+            interfaces.extend(self.worker.get_network_interfaces(traffic_port))
+        # let Network reverse the interface order if needed
         return Network(interfaces, reverse)
 
     def _config_interfaces(self):
@@ -131,9 +144,7 @@ class StatsManager(object):
         return self.worker.get_version() if self.worker else {}
 
     def run(self):
-        """
-        Run analysis in both direction and return the analysis
-        """
+        """Run analysis in both direction and return the analysis."""
         if self.worker:
             self.worker.run()
 
@@ -145,20 +156,17 @@ class StatsManager(object):
         }
 
         # fetch latest stats from traffic gen
-        if self.config.no_traffic:
-            stats = None
-        else:
-            stats = self.clients['traffic'].get_stats()
+        stats = self.clients['traffic'].get_stats()
         LOG.info('Requesting packet analysis on the forward direction...')
         result['packet_analysis']['direction-forward'] = \
-            self.get_analysis([self._get_network(0, 0, stats),
-                               self._get_network(0, 1, stats, reverse=True)])
+            self.get_analysis([self._get_network(0, stats),
+                               self._get_network(1, stats, reverse=True)])
         LOG.info('Packet analysis on the forward direction completed')
 
         LOG.info('Requesting packet analysis on the reverse direction...')
         result['packet_analysis']['direction-reverse'] = \
-            self.get_analysis([self._get_network(1, 1, stats),
-                               self._get_network(1, 0, stats, reverse=True)])
+            self.get_analysis([self._get_network(1, stats),
+                               self._get_network(0, stats, reverse=True)])
 
         LOG.info('Packet analysis on the reverse direction completed')
         return result
@@ -187,21 +195,14 @@ class StatsManager(object):
             self.worker.close()
 
 
-class PVPStatsManager(StatsManager):
+class PVVPStatsManager(PVPStatsManager):
+    """A Class to generate traffic and extract results for PVVP chains."""
 
     def __init__(self, config, clients, specs, factory, vlans, notifier=None):
-        StatsManager.__init__(self, config, clients, specs, factory, vlans, notifier)
-
-
-class PVVPStatsManager(StatsManager):
-
-    def __init__(self, config, clients, specs, factory, vlans, notifier=None):
-        StatsManager.__init__(self, config, clients, specs, factory, vlans, notifier)
+        PVPStatsManager.__init__(self, config, clients, specs, factory, vlans, notifier)
 
     def run(self):
-        """
-        Run analysis in both direction and return the analysis
-        """
+        """Run analysis in both direction and return the analysis."""
         fwd_v2v_net, rev_v2v_net = self.worker.run()
 
         stats = self._generate_traffic()
@@ -211,19 +212,16 @@ class PVVPStatsManager(StatsManager):
             'stats': stats
         }
         # fetch latest stats from traffic gen
-        if self.config.no_traffic:
-            stats = None
-        else:
-            stats = self.clients['traffic'].get_stats()
-        fwd_nets = [self._get_network(0, 0, stats)]
+        stats = self.clients['traffic'].get_stats()
+        fwd_nets = [self._get_network(0, stats)]
         if fwd_v2v_net:
             fwd_nets.append(fwd_v2v_net)
-        fwd_nets.append(self._get_network(0, 1, stats, reverse=True))
+        fwd_nets.append(self._get_network(1, stats, reverse=True))
 
-        rev_nets = [self._get_network(1, 1, stats)]
+        rev_nets = [self._get_network(1, stats)]
         if rev_v2v_net:
             rev_nets.append(rev_v2v_net)
-        rev_nets.append(self._get_network(1, 0, stats, reverse=True))
+        rev_nets.append(self._get_network(0, stats, reverse=True))
 
         LOG.info('Requesting packet analysis on the forward direction...')
         result['packet_analysis']['direction-forward'] = self.get_analysis(fwd_nets)
@@ -236,9 +234,11 @@ class PVVPStatsManager(StatsManager):
         return result
 
 
-class EXTStatsManager(StatsManager):
+class EXTStatsManager(PVPStatsManager):
+    """A Class to generate traffic and extract results for EXT chains."""
+
     def __init__(self, config, clients, specs, factory, vlans, notifier=None):
-        StatsManager.__init__(self, config, clients, specs, factory, vlans, notifier)
+        PVPStatsManager.__init__(self, config, clients, specs, factory, vlans, notifier)
 
     def _setup(self):
         if self.specs.openstack:

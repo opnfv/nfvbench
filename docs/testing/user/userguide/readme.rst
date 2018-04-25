@@ -179,7 +179,7 @@ NFVbench is agnostic of the virtual switch implementation and has been tested wi
 
 
 
-
-
-
-
+Limitations
+***********
+NFVbench only supports VLAN with OpenStack.
+NFVbench does not support VxLAN overlays.

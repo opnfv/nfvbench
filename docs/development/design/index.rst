@@ -12,4 +12,5 @@ OPNFV NFVbench Euphrates Design
 
    design
    versioning
+   traffic_desc
    ndrpdr

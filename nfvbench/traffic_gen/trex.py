@@ -251,7 +251,7 @@ class TRex(AbstractTrafficGenerator):
                 break
             except Exception as ex:
                 if it == (self.config.generic_retry_count - 1):
-                    raise ex
+                    raise
                 LOG.info("Retrying connection to TRex (%s)...", ex.message)
 
     def connect(self):

@@ -4,6 +4,7 @@
 .tox
 .cache
 .eggs
+.pytest_cache/
 venv
 nfvbench.egg-info
 nfvbenchvm/dib/dib-venv

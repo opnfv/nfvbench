@@ -89,11 +89,11 @@ class StatsManager(object):
         try:
             self.worker.set_vlans(self.vlans)
             self._config_interfaces()
-        except Exception as exc:
+        except Exception:
             # since the wrorker is up and running, we need to close it
             # in case of exception
             self.close()
-            raise exc
+            raise
 
     def _get_data(self):
         return self.worker.get_data() if self.worker else {}

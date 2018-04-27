@@ -2,7 +2,7 @@
 FROM ubuntu:16.04
 
 ENV TREX_VER "v2.32"
-ENV NFVBENCH_TAG "1.3.0"
+ENV NFVBENCH_TAG "stable/fraser"
 ENV VM_IMAGE_VER "0.6"
 
 RUN apt-get update && apt-get install -y \
@@ -39,4 +39,3 @@ RUN apt-get update && apt-get install -y \
 ENV TREX_STL_EXT_PATH "/opt/trex/$TREX_VER/external_libs"
 
 ENTRYPOINT ["/nfvbench/docker/nfvbench-entrypoint.sh"]
-

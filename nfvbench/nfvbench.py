@@ -574,6 +574,8 @@ def main():
         if opts.no_int_config:
             config.no_int_config = opts.no_int_config
 
+        # port to port loopback (direct or through switch)
+        config.l2_loopback = opts.l2_loopback
         if opts.l2_loopback:
             if config.service_chain != ChainType.EXT:
                 LOG.info('Changing service chain type to EXT')

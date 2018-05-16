@@ -486,6 +486,10 @@ class TrafficClient(object):
                        self.config.generic_poll_sec - 1) / self.config.generic_poll_sec
         mac_addresses = set()
         ln = 0
+        # in case of l2-loopback, we will only have 2 unique src MAC regardless of the
+        # number of chains configured because there are no VM involved
+        # otherwise, we expect to see packets coming from 2 unique MAC per chain
+        unique_src_mac_count = 2 if self.config.l2_loopback else self.config.service_chain_count * 2
         for it in xrange(retry_count):
             self.gen.clear_stats()
             self.gen.start_traffic()
@@ -501,9 +505,8 @@ class TrafficClient(object):
                 mac_addresses.add(packet['binary'][6:12])
                 if ln != len(mac_addresses):
                     ln = len(mac_addresses)
-                    LOG.info('Flows passing traffic %d / %d', ln,
-                             self.config.service_chain_count * 2)
-                if len(mac_addresses) == self.config.service_chain_count * 2:
+                    LOG.info('Received unique source MAC %d / %d', ln, unique_src_mac_count)
+                if len(mac_addresses) == unique_src_mac_count:
                     LOG.info('End-to-end connectivity ensured')
                     return
 

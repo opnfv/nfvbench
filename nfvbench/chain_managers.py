@@ -56,7 +56,7 @@ class StageManager(object):
         return self.client.ports
 
     def get_compute_nodes(self):
-        return self.client.compute_nodes
+        return self.client.compute_nodes if self.client else {}
 
     def set_vm_macs(self):
         if self.client and self.config.service_chain != ChainType.EXT:

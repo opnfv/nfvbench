@@ -582,7 +582,9 @@ def main():
                 LOG.info('Disabling ARP')
                 config.no_arp = True
             config.vlans = [int(opts.l2_loopback), int(opts.l2_loopback)]
-            LOG.info('Running L2 loopback: using EXT chain and no ARP')
+            # disable any form of interface config since we loop at the switch level
+            config.no_int_config = True
+            LOG.info('Running L2 loopback: using EXT chain/no ARP')
 
         if opts.use_sriov_middle_net:
             if (not config.sriov) or (config.service_chain != ChainType.PVVP):

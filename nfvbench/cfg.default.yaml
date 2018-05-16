@@ -231,8 +231,8 @@ loop_vm_name: 'nfvbench-loop-vm'
 # - PVVP uses left, middle and right
 # - for EXT chains, this structure is not relevant - refer to external_networks
 # Otherwise a new internal network will be created with that name, subnet and CIDR.
-# 
-# segmentation_id can be set to enforce a specific VLAN id - by default (empty) the VLAN id 
+#
+# segmentation_id can be set to enforce a specific VLAN id - by default (empty) the VLAN id
 #                 will be assigned by Neutron.
 #                 Must be unique for each network
 # physical_network can be set to pick a specific phsyical network - by default (empty) the
@@ -284,14 +284,14 @@ external_networks:
     right: 'nfvbench-net1'
 
 # Use 'true' to enable VLAN tagging of packets generated and sent by the traffic generator
-# Leave empty you do not want the traffic generator to insert the VLAN tag. This is 
+# Leave empty you do not want the traffic generator to insert the VLAN tag. This is
 # needed for example if VLAN tagging is enabled on switch (trunk mode) or if you want to hook directly to a NIC
 # By default is set to true (which is the nominal use case with TOR and trunk mode to Trex)
 vlan_tagging: true
 
 # Specify only when you want to override VLAN IDs used for tagging with own values (exactly 2).
-# Default behavior of VLAN tagging is to retrieve VLAN IDs from OpenStack networks provided above.
-# In case of VxLAN this setting is ignored and only vtep_vlan from traffic generator profile is used.
+# Default behavior (empty list) is to retrieve VLAN IDs from OpenStack networks described in external_networks.
+# This property is ignored in the case of l2-loopback
 # Example: [1998, 1999]
 vlans: []
 

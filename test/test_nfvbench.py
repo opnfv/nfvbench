@@ -627,6 +627,7 @@ def get_dummy_tg_config(chain_type, rate):
         'check_traffic_time_sec': 200,
         'generic_poll_sec': 2,
         'measurement': {'NDR': 0.001, 'PDR': 0.1, 'load_epsilon': 0.1},
+        'l2_loopback': False
     })
 
 def get_traffic_client():

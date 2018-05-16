@@ -131,6 +131,11 @@ sriov: false
 # Can be overriden by --no-int-config
 no_int_config: false
 
+# Perform port to port loopback (direct or through switch)
+# Should be used with EXT service chain and no ARP (no_arp: true)
+# Can be overriden by --l2-loopback
+l2_loopback: false
+
 # Resources created by NFVbench will not be removed
 # Can be overriden by --no-cleanup
 no_cleanup: false

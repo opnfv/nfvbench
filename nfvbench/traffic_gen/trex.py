@@ -455,10 +455,17 @@ class TRex(AbstractTrafficGenerator):
         self.client.stop(ports=self.port_handle)
 
     def start_capture(self):
+        """Capture all packets on both ports that are unicast to us."""
         if self.capture_id:
             self.stop_capture()
+        # Need to filter out unwanted packets so we do not end up counting
+        # src MACs of frames that are not unicast to us
+        src_mac_list = self.get_macs()
+        bpf_filter = "ether dst %s or ether dst %s" % (src_mac_list[0], src_mac_list[1])
+        # ports must be set in service in order to enable capture
         self.client.set_service_mode(ports=self.port_handle)
-        self.capture_id = self.client.start_capture(rx_ports=self.port_handle)
+        self.capture_id = self.client.start_capture(rx_ports=self.port_handle,
+                                                    bpf_filter=bpf_filter)
 
     def fetch_capture_packets(self):
         if self.capture_id:

@@ -754,6 +754,7 @@ class TrafficClient(object):
             time_elapsed_ratio = self.runner.time_elapsed() / self.run_config['duration_sec']
             if time_elapsed_ratio >= 1:
                 self.cancel_traffic()
+                time.sleep(self.config.pause_sec)
         self.interval_collector.reset()
 
         # get stats from the run

@@ -177,6 +177,7 @@ class NFVBench(object):
 
         self.config.duration_sec = float(self.config.duration_sec)
         self.config.interval_sec = float(self.config.interval_sec)
+        self.config.pause_sec = float(self.config.pause_sec)
 
         # Get traffic generator profile config
         if not self.config.generator_profile:

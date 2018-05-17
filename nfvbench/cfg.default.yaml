@@ -359,6 +359,9 @@ duration_sec: 60
 # Can be overridden by --interval
 interval_sec: 10
 
+# Default pause between iterations of a binary search (NDR/PDR)
+pause_sec: 2
+
 # NDR / PDR configuration
 measurement:
     # Drop rates represent the ratio of dropped packet to the total number of packets sent.

@@ -623,6 +623,7 @@ def get_dummy_tg_config(chain_type, rate):
         'no_arp': False,
         'duration_sec': 1,
         'interval_sec': 1,
+        'pause_sec': 1,
         'rate': rate,
         'check_traffic_time_sec': 200,
         'generic_poll_sec': 2,

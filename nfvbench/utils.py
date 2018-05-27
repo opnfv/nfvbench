@@ -92,12 +92,45 @@ def dict_to_json_dict(record):
     return json.loads(json.dumps(record, default=lambda obj: obj.to_json()))
 
 
-def get_intel_pci(nic_ports):
-    """Returns the first two PCI addresses of sorted PCI list for Intel NIC (i40e, ixgbe)"""
+def get_intel_pci(nic_slot=None, nic_ports=None):
+    """Returns two PCI address that will be used for NFVbench
+
+    @param nic_slot: The physical PCIe slot number in motherboard
+    @param nic_ports: Array of two integers indicating the ports to use on the NIC
+
+    When nic_slot and nic_ports are both supplied, the function will just return
+    the PCI addresses for them. The logic used is:
+        (1) Run "dmidecode -t slot"
+        (2) Grep for "SlotID:" with given nic_slot, and derive the bus address;
+        (3) Based on given nic_ports, generate the pci addresses based on above
+        base address;
+
+    When either nic_slot or nic_ports is not supplied, the function will
+    traverse all Intel NICs which use i40e or ixgbe driver, sorted by PCI
+    address, and return first two available ports which are not bonded
+    (802.11ad).
+    """
+
+    if nic_slot and nic_ports:
+        dmidecode = subprocess.check_output(['dmidecode', '-t', 'slot'])
+        regex = r"(?<=SlotID:%s).*?(....:..:..\..)" % nic_slot
+        match = re.search(regex, dmidecode, flags=re.DOTALL)
+        if not match:
+            return None
+
+        pcis = []
+        # On some servers, the "Bus Address" returned by dmidecode is not the
+        # base pci address of the NIC. So only keeping the bus part of the
+        # address for better compability.
+        bus = match.group(1)[:match.group(1).rindex(':') + 1] + "00."
+        for port in nic_ports:
+            pcis.append(bus + str(port))
+
+        return pcis
+
     hx = r'[0-9a-fA-F]'
     regex = r'({hx}{{4}}:({hx}{{2}}:{hx}{{2}}\.{hx}{{1}})).*(drv={driver}|.*unused=.*{driver})'
     pcis = []
-
     try:
         trex_base_dir = '/opt/trex'
         contents = os.listdir(trex_base_dir)
@@ -116,32 +149,22 @@ def get_intel_pci(nic_ports):
             continue
 
         matches.sort()
-        if nic_ports:
-            if max(nic_ports) > len(matches) - 1:
-                # If this is hard requirements (i.e. ports are defined
-                # explictly), but there are not enough ports for the
-                # current NIC, just skip the current NIC and looking for
-                # next available one.
-                continue
+        for port in matches:
+            intf_name = glob.glob("/sys/bus/pci/devices/%s/net/*" % port[0])
+            if not intf_name:
+                # Interface is not bind to kernel driver, so take it
+                pcis.append(port[1])
             else:
-                return [matches[idx][1] for idx in nic_ports]
-        else:
-            for port in matches:
-                intf_name = glob.glob("/sys/bus/pci/devices/%s/net/*" % port[0])
-                if not intf_name:
-                    # Interface is not bind to kernel driver, so take it
+                intf_name = intf_name[0][intf_name[0].rfind('/') + 1:]
+                process = subprocess.Popen(['ip', '-o', '-d', 'link', 'show', intf_name],
+                                           stdout=subprocess.PIPE,
+                                           stderr=subprocess.PIPE)
+                intf_info, _ = process.communicate()
+                if not re.search('team_slave|bond_slave', intf_info):
                     pcis.append(port[1])
-                else:
-                    intf_name = intf_name[0][intf_name[0].rfind('/') + 1:]
-                    process = subprocess.Popen(['ip', '-o', '-d', 'link', 'show', intf_name],
-                                               stdout=subprocess.PIPE,
-                                               stderr=subprocess.PIPE)
-                    intf_info, _ = process.communicate()
-                    if not re.search('team_slave|bond_slave', intf_info):
-                        pcis.append(port[1])
 
-                if len(pcis) == 2:
-                    break
+            if len(pcis) == 2:
+                break
 
     return pcis
 

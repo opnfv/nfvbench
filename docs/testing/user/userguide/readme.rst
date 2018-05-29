@@ -46,11 +46,21 @@ main purpose is to measure the performance of the NFVi infrastructure which is m
 
 External Chains
 ---------------
-NFVbench also supports settings that involve externally staged packet paths with or without OpenStack:
+NFVbench supports settings that involve externally staged packet paths with or without OpenStack:
 
 - run benchmarks on existing service chains at the L3 level that are staged externally by any other tool (e.g. any VNF capable of L3 routing)
 - run benchmarks on existing L2 chains that are configured externally (e.g. pure L2 forwarder such as DPDK testpmd)
 
+Direct L2 Loopback (Switch or wire loopback)
+--------------------------------------------
+NFVbench supports benchmarking of pure L2 loopbacks (see "--l2-loopback vlan" option)
+
+- Switch level loopback
+- Port to port wire loopback
+
+In this mode, NFVbench will take a vlan ID and send packets from each port to the other port
+(dest MAC set to the other port MAC) using the same VLAN ID on both ports.
+This can be useful for example to verify that the connectivity to the switch is working properly.
 
 Traffic Generation
 ------------------
@@ -116,7 +126,8 @@ Multi-Chaining (N*PVP or N*PVVP)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Multiple service chains can be setup by NFVbench without any limit on the concurrency (other than limits imposed by available resources on compute nodes).
-In the case of multiple service chains, NFVbench will instruct the traffic generator to use multiple L3 packet streams (frames directed to each path will have a unique destination MAC address).
+In the case of multiple service chains, NFVbench will instruct the traffic generator to use multiple L3 packet streams (frames directed to each path will
+have a unique destination MAC address).
 
 Example of multi-chaining with 2 concurrent PVP service chains:
 
@@ -126,6 +137,8 @@ This innovative feature will allow to measure easily the performance of a fully 
 
 Multi-chaining is currently limited to 1 compute node (PVP or PVVP intra-node) or 2 compute nodes (for PVVP inter-node).
 The 2 edge interfaces for all service chains will share the same 2 networks.
+The total traffic will be split equally across all chains.
+
 
 SR-IOV
 ^^^^^^

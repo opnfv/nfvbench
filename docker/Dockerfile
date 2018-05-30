@@ -2,7 +2,7 @@
 FROM ubuntu:16.04
 
 ENV TREX_VER "v2.32"
-ENV NFVBENCH_TAG "1.5.0"
+ENV NFVBENCH_TAG "1.5.1"
 ENV VM_IMAGE_VER "0.6"
 
 RUN apt-get update && apt-get install -y \
@@ -26,6 +26,7 @@ RUN apt-get update && apt-get install -y \
        && rm -rf /opt/trex/$TREX_VER/automation/trex_control_plane/stl/trex_stl_lib \
        && sed -i -e "s/2048 /512 /" -e "s/2048\"/512\"/" /opt/trex/$TREX_VER/trex-cfg \
        && pip install -U pip pbr \
+       && hash -r pip \
        && pip install -U setuptools \
        && cd / \
        && git clone --depth 1 -b $NFVBENCH_TAG https://gerrit.opnfv.org/gerrit/nfvbench \

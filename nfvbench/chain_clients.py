@@ -185,7 +185,7 @@ class BasicStageClient(object):
             return None
         return availability_zone + ':' + host
 
-    def _lookup_servers(self, name=None, nets=None, az=None, flavor_id=None):
+    def _lookup_servers(self, name=None, nets=None, flavor_id=None):
         error_msg = 'VM with the same name, but non-matching {} found. Aborting.'
         networks = set([net['name'] for net in nets]) if nets else None
         server_list = self.comp.get_server_list()
@@ -224,7 +224,10 @@ class BasicStageClient(object):
                                          files={nfvbenchvm_config_location: nfvbenchvm_config})
         if server:
             setattr(server, 'is_reuse', False)
-            LOG.info('Creating instance: %s on %s', name, az)
+            msg = 'Creating instance: %s' % name
+            if az:
+                msg += ' on %s' % az
+            LOG.info(msg)
         else:
             raise StageClientException('Unable to create instance: %s.' % (name))
         return server
@@ -380,8 +383,8 @@ class BasicStageClient(object):
             compute_nodes.append(az + ':' + hostname)
         return compute_nodes
 
-    def get_reusable_vm(self, name, nets, az):
-        servers = self._lookup_servers(name=name, nets=nets, az=az,
+    def get_reusable_vm(self, name, nets):
+        servers = self._lookup_servers(name=name, nets=nets,
                                        flavor_id=self.flavor_type['flavor'].id)
         if servers:
             server = servers[0]
@@ -477,15 +480,17 @@ class PVPStageClient(BasicStageClient):
         nets = self.config.internal_networks
         self.nets.extend([self._create_net(**n) for n in [nets.left, nets.right]])
 
-        az_list = self.comp.get_enabled_az_host_list(required_count=1)
-        if not az_list:
-            raise Exception('Not enough hosts found.')
+        if self.comp.config.compute_nodes:
+            az_list = self.comp.get_enabled_az_host_list(required_count=1)
+            if not az_list:
+                raise Exception('Not enough hosts found.')
+            az = az_list[0]
+        else:
+            az = None
 
-        az = az_list[0]
-        self.compute_nodes.add(az)
         for chain_index in xrange(self.config.service_chain_count):
             name = self.config.loop_vm_name + str(chain_index)
-            reusable_vm = self.get_reusable_vm(name, self.nets, az)
+            reusable_vm = self.get_reusable_vm(name, self.nets)
             if reusable_vm:
                 self.vms.append(reusable_vm)
             else:
@@ -498,7 +503,9 @@ class PVPStageClient(BasicStageClient):
                                                    ports[1]['mac_address'])
                 self.created_ports.extend(ports)
                 self.vms.append(self._create_server(name, ports, az, config_file))
+
         self._ensure_vms_active()
+        self.compute_nodes = set(self.get_loop_vm_compute_nodes())
         self.set_ports()
 
 
@@ -519,37 +526,36 @@ class PVVPStageClient(BasicStageClient):
         nets = self.config.internal_networks
         self.nets.extend([self._create_net(**n) for n in [nets.left, nets.right, nets.middle]])
 
-        required_count = 2 if self.config.inter_node else 1
-        az_list = self.comp.get_enabled_az_host_list(required_count=required_count)
+        if self.comp.config.compute_nodes:
+            required_count = 2 if self.config.inter_node else 1
+            az_list = self.comp.get_enabled_az_host_list(required_count=required_count)
+            if not az_list:
+                raise Exception('Not enough hosts found.')
 
-        if not az_list:
-            raise Exception('Not enough hosts found.')
-
-        az1 = az2 = az_list[0]
-        if self.config.inter_node:
-            if len(az_list) > 1:
-                az1 = az_list[0]
-                az2 = az_list[1]
-            else:
-                # fallback to intra-node
-                az1 = az2 = az_list[0]
-                self.config.inter_node = False
-                LOG.info('Using intra-node instead of inter-node.')
-
-        self.compute_nodes.add(az1)
-        self.compute_nodes.add(az2)
+            az1 = az2 = az_list[0]
+            if self.config.inter_node:
+                if len(az_list) > 1:
+                    az1 = az_list[0]
+                    az2 = az_list[1]
+                else:
+                    # fallback to intra-node
+                    az1 = az2 = az_list[0]
+                    self.config.inter_node = False
+                    LOG.info('Using intra-node instead of inter-node.')
+        else:
+            az1 = az2 = None
 
         # Create loop VMs
         for chain_index in xrange(self.config.service_chain_count):
             name0 = self.config.loop_vm_name + str(chain_index) + 'a'
             # Attach first VM to net0 and net2
             vm0_nets = self.nets[0::2]
-            reusable_vm0 = self.get_reusable_vm(name0, vm0_nets, az1)
+            reusable_vm0 = self.get_reusable_vm(name0, vm0_nets)
 
             name1 = self.config.loop_vm_name + str(chain_index) + 'b'
             # Attach second VM to net1 and net2
             vm1_nets = self.nets[1:]
-            reusable_vm1 = self.get_reusable_vm(name1, vm1_nets, az2)
+            reusable_vm1 = self.get_reusable_vm(name1, vm1_nets)
 
             if reusable_vm0 and reusable_vm1:
                 self.vms.extend([reusable_vm0, reusable_vm1])
@@ -593,4 +599,5 @@ class PVVPStageClient(BasicStageClient):
                                                     config_file1))
 
         self._ensure_vms_active()
+        self.compute_nodes = set(self.get_loop_vm_compute_nodes())
         self.set_ports()

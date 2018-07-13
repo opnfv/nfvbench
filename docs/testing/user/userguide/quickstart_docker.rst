@@ -115,7 +115,7 @@ To run NFVBench enabling REST server (mount the configuration json and the path 
 .. code-block:: bash
 
     cd ~/nfvbench_ws
-    docker run --detach --net=host --privileged -e HOST="127.0.0.1" -e PORT=7556 --e CONFIG_FILE="/tmp/nfvbench/nfvbenchconfig.json -v $PWD:/tmp/nfvbench -v /dev:/dev -v /lib/modules/$(uname -r):/lib/modules/$(uname -r) -v /usr/src/kernels:/usr/src/kernels --name nfvbench opnfv/nfvbench start_rest_server
+    docker run --detach --net=host --privileged -e HOST="127.0.0.1" -e PORT=7556 -e CONFIG_FILE="/tmp/nfvbench/nfvbenchconfig.json -v $PWD:/tmp/nfvbench -v /dev:/dev -v /lib/modules/$(uname -r):/lib/modules/$(uname -r) -v /usr/src/kernels:/usr/src/kernels --name nfvbench opnfv/nfvbench start_rest_server
 
 
 The create an alias to make it easy to execute nfvbench commands directly from the host shell prompt:

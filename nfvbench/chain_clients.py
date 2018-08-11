@@ -490,9 +490,9 @@ class PVPStageClient(BasicStageClient):
 
         for chain_index in xrange(self.config.service_chain_count):
             name = self.config.loop_vm_name + str(chain_index)
-            reusable_vm = self.get_reusable_vm(name, self.nets)
-            if reusable_vm:
-                self.vms.append(reusable_vm)
+            server = self.get_reusable_vm(name, self.nets)
+            if server:
+                self.vms.append(server)
             else:
                 vnic_type = 'direct' if self.config.sriov else 'normal'
                 ports = [self._create_port(net, vnic_type) for net in self.nets]
@@ -502,7 +502,16 @@ class PVPStageClient(BasicStageClient):
                                                    ports[0]['mac_address'],
                                                    ports[1]['mac_address'])
                 self.created_ports.extend(ports)
-                self.vms.append(self._create_server(name, ports, az, config_file))
+                server = self._create_server(name, ports, az, config_file)
+                self.vms.append(server)
+
+            if chain_index == 0:
+                # First VM, save the hypervisor name. Used in future for
+                # maintain affinity.
+                self._ensure_vms_active()
+                server = self.comp.poll_server(server)
+                az = "%s:%s" % (getattr(server, 'OS-EXT-AZ:availability_zone'),
+                                getattr(server, 'OS-EXT-SRV-ATTR:hypervisor_hostname'))
 
         self._ensure_vms_active()
         self.compute_nodes = set(self.get_loop_vm_compute_nodes())
@@ -589,14 +598,35 @@ class PVVPStageClient(BasicStageClient):
                                                     vm1_port_net2['mac_address'],
                                                     vm1_port_net1['mac_address'])
 
-                self.vms.append(self._create_server(name0,
-                                                    [vm0_port_net0, vm0_port_net2],
-                                                    az1,
-                                                    config_file0))
-                self.vms.append(self._create_server(name1,
-                                                    [vm1_port_net2, vm1_port_net1],
-                                                    az2,
-                                                    config_file1))
+                vm1 = self._create_server(name0, [vm0_port_net0, vm0_port_net2], az1, config_file0)
+                self.vms.append(vm1)
+                if chain_index == 0:
+                    # First VM on first chain, save the hypervisor name. Used
+                    # in future for maintain affinity.
+                    self._ensure_vms_active()
+                    vm1 = self.comp.poll_server(vm1)
+                    az1 = "%s:%s" % (getattr(vm1, 'OS-EXT-AZ:availability_zone'),
+                                     getattr(vm1, 'OS-EXT-SRV-ATTR:hypervisor_hostname'))
+                    if not self.config.inter_node:
+                        # By default, NOVA scheduler will try first with
+                        # different hypervisor for workload balance, but when
+                        # inter-node is not configured, use the same AZ to run
+                        # intra-node test case.
+                        az2 = az1
+
+                vm2 = self._create_server(name1, [vm1_port_net2, vm1_port_net1], az2, config_file1)
+                self.vms.append(vm2)
+                if chain_index == 0 and self.config.inter_node:
+                    # Second VM on first chain, save the hypervisor name. Used
+                    # in future for maintain affinity.
+                    self._ensure_vms_active()
+                    vm2 = self.comp.poll_server(vm2)
+                    az2 = "%s:%s" % (getattr(vm2, 'OS-EXT-AZ:availability_zone'),
+                                     getattr(vm2, 'OS-EXT-SRV-ATTR:hypervisor_hostname'))
+                    if az1 == az2:
+                        # Configure to run inter-node, but not enough node to run
+                        self.config.inter_node = False
+                        LOG.info('Using intra-node instead of inter-node.')
 
         self._ensure_vms_active()
         self.compute_nodes = set(self.get_loop_vm_compute_nodes())

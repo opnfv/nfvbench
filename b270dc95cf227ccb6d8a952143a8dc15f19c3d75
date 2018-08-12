@@ -34,6 +34,24 @@
       "revId": "b270dc95cf227ccb6d8a952143a8dc15f19c3d75",
       "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9a561d44_396f6b94",
+        "filename": "nfvbench/chain_clients.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 629,
+      "author": {
+        "id": 5807
+      },
+      "writtenOn": "2018-08-12T14:55:08Z",
+      "side": 1,
+      "message": "the simplest we can do fpr PVVP inter is as follows:\n- create first VM1 as it does now (let nova pick)\n- create anti-affinity rule for VM1\n- create second VM VM2 and let nova pick but with the anti-affinity rule - if it fails, abort the run \n- then for subsequent chains, follow the same placement as first chain\nThis will work in most cases and can fail if nova picks a host that does not have enough resources for subsequent chains - in that case it is ok to abort the run.",
+      "parentUuid": "9a561d44_f981734b",
+      "revId": "b270dc95cf227ccb6d8a952143a8dc15f19c3d75",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": false
     }
   ]
 }

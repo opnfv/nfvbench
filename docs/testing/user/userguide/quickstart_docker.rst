@@ -40,7 +40,7 @@ The NFVbench container requires the following Docker options to operate properly
 |                                                       | /tmp/nfvbench director in the container but any       |
 |                                                       | other similar mapping can work as well                |
 +-------------------------------------------------------+-------------------------------------------------------+
-| --net=host                                            | (optional) needed if you run the NFVbench ok          |
+| --net=host                                            | (optional) needed if you run the NFVbench             |
 |                                                       | server in the container (or use any appropriate       |
 |                                                       | docker network mode other than "host")                |
 +-------------------------------------------------------+-------------------------------------------------------+
@@ -79,7 +79,7 @@ the 2 NIC ports to use for generating traffic have the PCI addresses "04:00.0" a
                             "port": 1,
                         }
                     ],
-                    "intf_speed": "10Gbps",
+                    "intf_speed": "",
                     "ip": "127.0.0.1",
                     "name": "trex-local",
                     "software_mode": false,
@@ -156,7 +156,7 @@ Create a new file containing the minimal configuration for NFVbench, we can call
               - port: 1
                 switch_port:
                 pci:
-            intf_speed: 10Gbps
+            intf_speed:
 
 NFVbench requires an ``openrc`` file to connect to OpenStack using the OpenStack API. This file can be downloaded from the OpenStack Horizon dashboard (refer to the OpenStack documentation on how to
 retrieve the openrc file). The file pathname in the container must be stored in the "openrc_file" property. If it is stored on the host in the current directory, its full pathname must start with /tmp/nfvbench (since the current directory is mapped to /tmp/nfvbench in the container).
@@ -192,7 +192,7 @@ PCI addresses "0a:00.0" and "0a:00.1" (first 2 ports of the quad port NIC):
               - port: 1
                 switch_port:
                 pci: "0a:00.1"
-            intf_speed: 10Gbps
+            intf_speed:
 
 .. warning::
 
@@ -238,4 +238,3 @@ When no longer needed, the container can be terminated using the usual docker co
 
     docker kill nfvbench
     docker rm nfvbench
-

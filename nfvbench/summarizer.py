@@ -22,11 +22,60 @@ import bitmath
 import pytz
 from tabulate import tabulate
 
-from specs import ChainType
+def _annotate_chain_stats(chain_stats, nodrop_marker='=>'):
+    """Transform a plain chain stats into an annotated one.
 
+    Example:
+    {
+         0: {'packets': [2000054, 1999996, 1999996, 1999996],
+             'lat_min_usec': 10,
+             'lat_max_usec': 187,
+             'lat_avg_usec': 45},
+         1: {...},
+         'total': {...}
+    }
+    should become:
+    {
+         0: {'packets': [2000054, -58 (-0.034%), '=>', 1999996],
+             'lat_min_usec': 10,
+             'lat_max_usec': 187,
+             'lat_avg_usec': 45},
+         1: {...},
+         'total': {...}
+    }
+
+    In the case of shared net, some columns in packets array can have ''
+    """
+    for stats in chain_stats.values():
+        packets = stats['packets']
+        count = len(packets)
+        if count > 1:
+            # keep the first counter
+            annotated_packets = [packets[0]]
+            # modify all remaining counters
+            prev_count = packets[0]
+            for index in range(1, count):
+                cur_count = packets[index]
+                if cur_count == '':
+                    # an empty string indicates an unknown counter for a shared interface
+                    # do not annotate those
+                    annotated_value = ''
+                else:
+                    drop = cur_count - prev_count
+                    if drop:
+                        dr = (drop * 100.0) / prev_count if prev_count else 0
+                        annotated_value = '{:,} ({:.4f}%)'.format(drop, dr)
+                    else:
+                        # no drop
+                        # if last column we display the value
+                        annotated_value = cur_count if index == count - 1 else nodrop_marker
+                    prev_count = cur_count
+                annotated_packets.append(annotated_value)
+
+            stats['packets'] = annotated_packets
 
 class Formatter(object):
-    """Collection of string formatter methods"""
+    """Collection of string formatter methods."""
 
     @staticmethod
     def fixed(data):
@@ -83,7 +132,7 @@ class Formatter(object):
 
 
 class Table(object):
-    """ASCII readable table class"""
+    """ASCII readable table class."""
 
     def __init__(self, header):
         header_row, self.formatters = zip(*header)
@@ -108,7 +157,7 @@ class Table(object):
 
 
 class Summarizer(object):
-    """Generic summarizer class"""
+    """Generic summarizer class."""
 
     indent_per_level = 2
 
@@ -164,7 +213,7 @@ class Summarizer(object):
 
 
 class NFVBenchSummarizer(Summarizer):
-    """Summarize nfvbench json result"""
+    """Summarize nfvbench json result."""
 
     ndr_pdr_header = [
         ('-', Formatter.fixed),
@@ -195,21 +244,11 @@ class NFVBenchSummarizer(Summarizer):
         ('RX Rate (pps)', Formatter.suffix(' pps'))
     ]
 
-    chain_analysis_header = [
-        ('Interface', Formatter.standard),
-        ('Device', Formatter.standard),
-        ('Packets (fwd)', Formatter.standard),
-        ('Drops (fwd)', Formatter.standard),
-        ('Drop% (fwd)', Formatter.percentage),
-        ('Packets (rev)', Formatter.standard),
-        ('Drops (rev)', Formatter.standard),
-        ('Drop% (rev)', Formatter.percentage)
-    ]
-
     direction_keys = ['direction-forward', 'direction-reverse', 'direction-total']
     direction_names = ['Forward', 'Reverse', 'Total']
 
     def __init__(self, result, sender):
+        """Create a summarizer instance."""
         Summarizer.__init__(self)
         self.result = result
         self.config = self.result['config']
@@ -247,13 +286,10 @@ class NFVBenchSummarizer(Summarizer):
 
                 self._put('Components:')
                 with self._create_block():
-                    self._put('TOR:')
-                    with self._create_block(False):
-                        self._put('Type:', self.config['tor']['type'])
                     self._put('Traffic Generator:')
                     with self._create_block(False):
-                        self._put('Profile:', self.config['generator_config']['name'])
-                        self._put('Tool:', self.config['generator_config']['tool'])
+                        self._put('Profile:', self.config['tg-name'])
+                        self._put('Tool:', self.config['tg-tool'])
                     if network_benchmark['versions']:
                         self._put('Versions:')
                         with self._create_block():
@@ -274,9 +310,6 @@ class NFVBenchSummarizer(Summarizer):
 
     def __chain_summarize(self, chain_name, chain_benchmark):
         self._put(chain_name + ':')
-        if chain_name == ChainType.PVVP:
-            self._put('Mode:', chain_benchmark.get('mode'))
-            chain_name += "-" + chain_benchmark.get('mode')
         self.__record_header_put('service_chain', chain_name)
         with self._create_block():
             self._put('Traffic:')
@@ -323,11 +356,6 @@ class NFVBenchSummarizer(Summarizer):
             self._put('Actual l2 frame size:', analysis['ndr']['actual_l2frame_size'])
         elif self.config['pdr_run'] and 'actual_l2frame_size' in analysis['pdr']:
             self._put('Actual l2 frame size:', analysis['pdr']['actual_l2frame_size'])
-        if 'analysis_duration_sec' in analysis:
-            self._put('Chain analysis duration:',
-                      Formatter.float(3)(analysis['analysis_duration_sec']), 'seconds')
-            self.__record_data_put(frame_size, {'chain_analysis_duration': Formatter.float(3)(
-                analysis['analysis_duration_sec'])})
         if self.config['ndr_run']:
             self._put('NDR search duration:', Formatter.float(0)(analysis['ndr']['time_taken_sec']),
                       'seconds')
@@ -350,12 +378,13 @@ class NFVBenchSummarizer(Summarizer):
                     self._put(analysis['run_config']['warning'])
                 self._put()
 
-        if 'packet_analysis' in analysis:
-            self._put('Chain Analysis:')
-            self._put()
-            with self._create_block(False):
-                self._put_table(self.__get_chain_analysis_table(analysis['packet_analysis']))
+        if 'packet_path_stats' in analysis:
+            for dir in ['Forward', 'Reverse']:
+                self._put(dir + ' Chain Packet Counters and Latency:')
                 self._put()
+                with self._create_block(False):
+                    self._put_table(self._get_chain_table(analysis['packet_path_stats'][dir]))
+                    self._put()
 
     def __get_summary_table(self, traffic_result):
         if self.config['single_run']:
@@ -452,23 +481,42 @@ class NFVBenchSummarizer(Summarizer):
             })
         return config_table
 
-    def __get_chain_analysis_table(self, packet_analysis):
-        chain_analysis_table = Table(self.chain_analysis_header)
-        forward_analysis = packet_analysis['direction-forward']
-        reverse_analysis = packet_analysis['direction-reverse']
-        reverse_analysis.reverse()
-        for fwd, rev in zip(forward_analysis, reverse_analysis):
-            chain_analysis_table.add_row([
-                fwd['interface'],
-                fwd['device'],
-                fwd['packet_count'],
-                fwd.get('packet_drop_count', None),
-                fwd.get('packet_drop_percentage', None),
-                rev['packet_count'],
-                rev.get('packet_drop_count', None),
-                rev.get('packet_drop_percentage', None),
-            ])
-        return chain_analysis_table
+    def _get_chain_table(self, chain_stats):
+        """Retrieve the table for a direction.
+
+        chain_stats: {
+             'interfaces': ['Port0', 'drop %'', 'vhost0', 'Port1'],
+             'chains': {
+                 0: {'packets': [2000054, '-0.023%', 1999996, 1999996],
+                     'lat_min_usec': 10,
+                     'lat_max_usec': 187,
+                     'lat_avg_usec': 45},
+                 1: {...},
+                 'total': {...}
+             }
+        }
+        """
+        chains = chain_stats['chains']
+        _annotate_chain_stats(chains)
+        header = [('Chain', Formatter.standard)] + \
+                 [(ifname, Formatter.standard) for ifname in chain_stats['interfaces']]
+        # add latency columns if available Avg, Min, Max
+        lat_keys = []
+        lat_map = {'lat_avg_usec': 'Avg lat.',
+                   'lat_min_usec': 'Min lat.',
+                   'lat_max_usec': 'Max lat.'}
+        if 'lat_avg_usec' in chains[0]:
+            lat_keys = ['lat_avg_usec', 'lat_min_usec', 'lat_max_usec']
+            for key in lat_keys:
+                header.append((lat_map[key], Formatter.standard))
+
+        table = Table(header)
+        for chain in sorted(chains.keys()):
+            row = [chain] + chains[chain]['packets']
+            for lat_key in lat_keys:
+                row.append('{:,} usec'.format(chains[chain][lat_key]))
+            table.add_row(row)
+        return table
 
     def __record_header_put(self, key, value):
         if self.sender:

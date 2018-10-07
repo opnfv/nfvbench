@@ -13,44 +13,51 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 #
+"""Configuration Plugin.
 
+This module is used to override the configuration with platform specific constraints and extensions
+"""
 import abc
 import specs
 
 
 class ConfigPluginBase(object):
-    """Base class for config plugins. Need to implement public interfaces."""
+    """Base class for config plugins."""
+
     __metaclass__ = abc.ABCMeta
 
     class InitializationFailure(Exception):
+        """Used in case of any init failure."""
+
         pass
 
     def __init__(self, config):
+        """Save configuration."""
         if not config:
             raise ConfigPluginBase.InitializationFailure(
                 'Initialization parameters need to be assigned.')
-
         self.config = config
 
     @abc.abstractmethod
     def get_config(self):
-        """Returns updated default configuration file."""
+        """Return updated default configuration file."""
 
     def set_config(self, config):
-        """This method is called when the config has changed after this instance was initialized.
+        """Set a new configuration.
 
-        This is needed in teh frequent case where the main config is changed in a copy and to
+        This method is called when the config has changed after this instance was initialized.
+        This is needed in the frequent case where the main config is changed in a copy and to
         prevent this instance to keep pointing to the old copy of the config
         """
         self.config = config
 
     @abc.abstractmethod
     def get_openstack_spec(self):
-        """Returns OpenStack specs for host."""
+        """Return OpenStack specs for host."""
 
     @abc.abstractmethod
     def get_run_spec(self, config, openstack_spec):
-        """Returns RunSpec for given platform."""
+        """Return RunSpec for given platform."""
 
     @abc.abstractmethod
     def validate_config(self, cfg, openstack_spec):
@@ -58,19 +65,22 @@ class ConfigPluginBase(object):
 
     @abc.abstractmethod
     def prepare_results_config(self, cfg):
-        """This function is called before running configuration is copied.
+        """Insert any plugin specific information to the results.
+
+        This function is called before running configuration is copied.
         Example usage is to remove sensitive information like switch credentials.
         """
 
     @abc.abstractmethod
     def get_version(self):
-        """Returns platform version."""
+        """Return platform version."""
 
 
 class ConfigPlugin(ConfigPluginBase):
     """No-op config plugin class. Does not change anything."""
 
     def __init__(self, config):
+        """Invoke the base class constructor."""
         ConfigPluginBase.__init__(self, config)
 
     def get_config(self):
@@ -78,18 +88,21 @@ class ConfigPlugin(ConfigPluginBase):
         return self.config
 
     def get_openstack_spec(self):
-        """Returns OpenStack specs for host."""
+        """Return OpenStack specs for host."""
         return specs.OpenStackSpec()
 
     def get_run_spec(self, config, openstack_spec):
-        """Returns RunSpec for given platform."""
+        """Return RunSpec for given platform."""
         return specs.RunSpec(config.no_vswitch_access, openstack_spec)
 
     def validate_config(self, config, openstack_spec):
+        """Nothing to validate by default."""
         pass
 
     def prepare_results_config(self, cfg):
+        """Nothing to add the results by default."""
         return cfg
 
     def get_version(self):
+        """Return an empty version."""
         return {}

@@ -12,8 +12,9 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+"""Interface to the traffic generator clients including NDR/PDR binary search."""
+
 from datetime import datetime
-import re
 import socket
 import struct
 import time
@@ -26,8 +27,8 @@ from trex_stl_lib.api import STLError
 # pylint: enable=import-error
 
 from log import LOG
-from network import Interface
-from specs import ChainType
+from packet_stats import InterfaceStats
+from packet_stats import PacketPathStats
 from stats_collector import IntervalCollector
 from stats_collector import IterationCollector
 import traffic_gen.traffic_utils as utils
@@ -44,12 +45,16 @@ class TrafficRunner(object):
     """Serialize various steps required to run traffic."""
 
     def __init__(self, client, duration_sec, interval_sec=0):
+        """Create a traffic runner."""
         self.client = client
         self.start_time = None
         self.duration_sec = duration_sec
         self.interval_sec = interval_sec
 
     def run(self):
+        """Clear stats and instruct the traffic generator to start generating traffic."""
+        if self.is_running():
+            return None
         LOG.info('Running traffic generator')
         self.client.gen.clear_stats()
         self.client.gen.start_traffic()
@@ -57,22 +62,29 @@ class TrafficRunner(object):
         return self.poll_stats()
 
     def stop(self):
+        """Stop the current run and instruct the traffic generator to stop traffic."""
         if self.is_running():
             self.start_time = None
             self.client.gen.stop_traffic()
 
     def is_running(self):
+        """Check if a run is still pending."""
         return self.start_time is not None
 
     def time_elapsed(self):
+        """Return time elapsed since start of run."""
         if self.is_running():
             return time.time() - self.start_time
         return self.duration_sec
 
     def poll_stats(self):
+        """Poll latest stats from the traffic generator at fixed interval - sleeps if necessary.
+
+        return: latest stats or None if traffic is stopped
+        """
         if not self.is_running():
             return None
-        if self.client.skip_sleep:
+        if self.client.skip_sleep():
             self.stop()
             return self.client.get_stats()
         time_elapsed = self.time_elapsed()
@@ -96,6 +108,7 @@ class IpBlock(object):
     """Manage a block of IP addresses."""
 
     def __init__(self, base_ip, step_ip, count_ip):
+        """Create an IP block."""
         self.base_ip_int = Device.ip_to_int(base_ip)
         self.step = Device.ip_to_int(step_ip)
         self.max_available = count_ip
@@ -104,7 +117,7 @@ class IpBlock(object):
     def get_ip(self, index=0):
         """Return the IP address at given index."""
         if index < 0 or index >= self.max_available:
-            raise IndexError('Index out of bounds')
+            raise IndexError('Index out of bounds: %d (max=%d)' % (index, self.max_available))
         return Device.int_to_ip(self.base_ip_int + index * self.step)
 
     def reserve_ip_range(self, count):
@@ -120,69 +133,73 @@ class IpBlock(object):
         return (first_ip, last_ip)
 
     def reset_reservation(self):
+        """Reset all reservations and restart with a completely unused IP block."""
         self.next_free = 0
 
 
 class Device(object):
-    """Represent a port device and all information associated to it."""
+    """Represent a port device and all information associated to it.
 
-    def __init__(self, port, pci, switch_port=None, vtep_vlan=None, ip=None, tg_gateway_ip=None,
-                 gateway_ip=None, ip_addrs_step=None, tg_gateway_ip_addrs_step=None,
-                 gateway_ip_addrs_step=None, udp_src_port=None, udp_dst_port=None,
-                 dst_mac=None, chain_count=1, flow_count=1, vlan_tagging=False):
-        self.chain_count = chain_count
-        self.flow_count = flow_count
-        self.dst = None
+    In the curent version we only support 2 port devices for the traffic generator
+    identified as port 0 or port 1.
+    """
+
+    def __init__(self, port, generator_config, vtep_vlan=None):
+        """Create a new device for a given port."""
+        self.generator_config = generator_config
+        self.chain_count = generator_config.service_chain_count
+        self.flow_count = generator_config.flow_count / 2
         self.port = port
-        self.switch_port = switch_port
+        self.switch_port = generator_config.interfaces[port].get('switch_port', None)
         self.vtep_vlan = vtep_vlan
-        self.vlan_tag = None
-        self.vlan_tagging = vlan_tagging
-        self.pci = pci
+        self.pci = generator_config.interfaces[port].pci
         self.mac = None
-        self.dst_mac = dst_mac
-        self.vm_mac_list = None
-        subnet = IPNetwork(ip)
+        self.dest_macs = None
+        self.vlans = None
+        self.ip_addrs = generator_config.ip_addrs[port]
+        subnet = IPNetwork(self.ip_addrs)
         self.ip = subnet.ip.format()
-        self.ip_prefixlen = subnet.prefixlen
-        self.ip_addrs_step = ip_addrs_step
-        self.tg_gateway_ip_addrs_step = tg_gateway_ip_addrs_step
-        self.gateway_ip_addrs_step = gateway_ip_addrs_step
-        self.gateway_ip = gateway_ip
-        self.tg_gateway_ip = tg_gateway_ip
-        self.ip_block = IpBlock(self.ip, ip_addrs_step, flow_count)
-        self.gw_ip_block = IpBlock(gateway_ip,
-                                   gateway_ip_addrs_step,
-                                   chain_count)
-        self.tg_gw_ip_block = IpBlock(tg_gateway_ip,
-                                      tg_gateway_ip_addrs_step,
-                                      chain_count)
-        self.udp_src_port = udp_src_port
-        self.udp_dst_port = udp_dst_port
+        self.ip_addrs_step = generator_config.ip_addrs_step
+        self.ip_block = IpBlock(self.ip, self.ip_addrs_step, self.flow_count)
+        self.gw_ip_block = IpBlock(generator_config.gateway_ips[port],
+                                   generator_config.gateway_ip_addrs_step,
+                                   self.chain_count)
+        self.tg_gateway_ip_addrs = generator_config.tg_gateway_ip_addrs[port]
+        self.tg_gw_ip_block = IpBlock(self.tg_gateway_ip_addrs,
+                                      generator_config.tg_gateway_ip_addrs_step,
+                                      self.chain_count)
+        self.udp_src_port = generator_config.udp_src_port
+        self.udp_dst_port = generator_config.udp_dst_port
 
     def set_mac(self, mac):
+        """Set the local MAC for this port device."""
         if mac is None:
             raise TrafficClientException('Trying to set traffic generator MAC address as None')
         self.mac = mac
-        LOG.info("Port %d: src MAC %s", self.port, self.mac)
 
-    def set_destination(self, dst):
-        self.dst = dst
+    def get_peer_device(self):
+        """Get the peer device (device 0 -> device 1, or device 1 -> device 0)."""
+        return self.generator_config.devices[1 - self.port]
 
-    def set_vm_mac_list(self, vm_mac_list):
-        self.vm_mac_list = map(str, vm_mac_list)
+    def set_dest_macs(self, dest_macs):
+        """Set the list of dest MACs indexed by the chain id."""
+        self.dest_macs = map(str, dest_macs)
 
-    def set_vlan_tag(self, vlan_tag):
-        if self.vlan_tagging and vlan_tag is None:
-            raise TrafficClientException('Trying to set VLAN tag as None')
-        self.vlan_tag = vlan_tag
-        LOG.info("Port %d: VLAN %d", self.port, self.vlan_tag)
+    def set_vlans(self, vlans):
+        """Set the list of vlans to use indexed by the chain id."""
+        self.vlans = vlans
+        LOG.info("Port %d: VLANs %s", self.port, self.vlans)
 
     def get_gw_ip(self, chain_index):
         """Retrieve the IP address assigned for the gateway of a given chain."""
         return self.gw_ip_block.get_ip(chain_index)
 
-    def get_stream_configs(self, service_chain):
+    def get_stream_configs(self):
+        """Get the stream config for a given chain on this device.
+
+        Called by the traffic generator driver to program the traffic generator properly
+        before generating traffic
+        """
         configs = []
         # exact flow count for each chain is calculated as follows:
         # - all chains except the first will have the same flow count
@@ -191,24 +208,19 @@ class Device(object):
         # example 11 flows and 3 chains => 3, 4, 4
         flows_per_chain = (self.flow_count + self.chain_count - 1) / self.chain_count
         cur_chain_flow_count = self.flow_count - flows_per_chain * (self.chain_count - 1)
-
+        peer = self.get_peer_device()
         self.ip_block.reset_reservation()
-        self.dst.ip_block.reset_reservation()
+        peer.ip_block.reset_reservation()
 
         for chain_idx in xrange(self.chain_count):
             src_ip_first, src_ip_last = self.ip_block.reserve_ip_range(cur_chain_flow_count)
-            dst_ip_first, dst_ip_last = self.dst.ip_block.reserve_ip_range(cur_chain_flow_count)
+            dst_ip_first, dst_ip_last = peer.ip_block.reserve_ip_range(cur_chain_flow_count)
 
-            dst_mac = self.dst_mac[chain_idx] if self.dst_mac is not None else self.dst.mac
-            if not re.match("[0-9a-f]{2}([-:])[0-9a-f]{2}(\\1[0-9a-f]{2}){4}$", dst_mac.lower()):
-                raise TrafficClientException("Invalid MAC address '{mac}' specified in "
-                                             "mac_addrs_left/right".format(mac=dst_mac))
-
+            dest_mac = self.dest_macs[chain_idx] if self.dest_macs else peer.mac
             configs.append({
                 'count': cur_chain_flow_count,
                 'mac_src': self.mac,
-                'mac_dst': dst_mac if service_chain == ChainType.EXT else self.vm_mac_list[
-                    chain_idx],
+                'mac_dst': dest_mac,
                 'ip_src_addr': src_ip_first,
                 'ip_src_addr_max': src_ip_last,
                 'ip_src_count': cur_chain_flow_count,
@@ -220,216 +232,149 @@ class Device(object):
                 'udp_dst_port': self.udp_dst_port,
                 'mac_discovery_gw': self.get_gw_ip(chain_idx),
                 'ip_src_tg_gw': self.tg_gw_ip_block.get_ip(chain_idx),
-                'ip_dst_tg_gw': self.dst.tg_gw_ip_block.get_ip(chain_idx),
-                'vlan_tag': self.vlan_tag if self.vlan_tagging else None
+                'ip_dst_tg_gw': peer.tg_gw_ip_block.get_ip(chain_idx),
+                'vlan_tag': self.vlans[chain_idx] if self.vlans else None
             })
             # after first chain, fall back to the flow count for all other chains
             cur_chain_flow_count = flows_per_chain
-
         return configs
-
-    def ip_range_overlaps(self):
-        """Check if this device ip range is overlapping with the dst device ip range."""
-        src_base_ip = Device.ip_to_int(self.ip)
-        dst_base_ip = Device.ip_to_int(self.dst.ip)
-        src_last_ip = src_base_ip + self.flow_count - 1
-        dst_last_ip = dst_base_ip + self.flow_count - 1
-        return dst_last_ip >= src_base_ip and src_last_ip >= dst_base_ip
-
-    @staticmethod
-    def mac_to_int(mac):
-        return int(mac.translate(None, ":.- "), 16)
-
-    @staticmethod
-    def int_to_mac(i):
-        mac = format(i, 'x').zfill(12)
-        blocks = [mac[x:x + 2] for x in xrange(0, len(mac), 2)]
-        return ':'.join(blocks)
 
     @staticmethod
     def ip_to_int(addr):
+        """Convert an IP address from string to numeric."""
         return struct.unpack("!I", socket.inet_aton(addr))[0]
 
     @staticmethod
     def int_to_ip(nvalue):
+        """Convert an IP address from numeric to string."""
         return socket.inet_ntoa(struct.pack("!I", nvalue))
 
 
-class RunningTrafficProfile(object):
+class GeneratorConfig(object):
     """Represents traffic configuration for currently running traffic profile."""
 
     DEFAULT_IP_STEP = '0.0.0.1'
     DEFAULT_SRC_DST_IP_STEP = '0.0.0.1'
 
-    def __init__(self, config, generator_profile):
-        generator_config = self.__match_generator_profile(config.traffic_generator,
-                                                          generator_profile)
-        self.generator_config = generator_config
+    def __init__(self, config):
+        """Create a generator config."""
+        self.config = config
+        # name of the generator profile (normally trex or dummy)
+        # pick the default one if not specified explicitly from cli options
+        if not config.generator_profile:
+            config.generator_profile = config.traffic_generator.default_profile
+        # pick up the profile dict based on the name
+        gen_config = self.__match_generator_profile(config.traffic_generator,
+                                                    config.generator_profile)
+        self.gen_config = gen_config
+        # copy over fields from the dict
+        self.tool = gen_config.tool
+        self.ip = gen_config.ip
+        self.cores = gen_config.get('cores', 1)
+        if gen_config.intf_speed:
+            # interface speed is overriden from config
+            self.intf_speed = bitmath.parse_string(gen_config.intf_speed.replace('ps', '')).bits
+        else:
+            # interface speed is discovered/provided by the traffic generator
+            self.intf_speed = 0
+        self.software_mode = gen_config.get('software_mode', False)
+        self.interfaces = gen_config.interfaces
+        if self.interfaces[0].port != 0 or self.interfaces[1].port != 1:
+            raise TrafficClientException('Invalid port order/id in generator_profile.interfaces')
+
         self.service_chain = config.service_chain
         self.service_chain_count = config.service_chain_count
         self.flow_count = config.flow_count
-        self.host_name = generator_config.host_name
-        self.name = generator_config.name
-        self.tool = generator_config.tool
-        self.cores = generator_config.get('cores', 1)
-        self.ip_addrs_step = generator_config.ip_addrs_step or self.DEFAULT_SRC_DST_IP_STEP
+        self.host_name = gen_config.host_name
+
+        self.tg_gateway_ip_addrs = gen_config.tg_gateway_ip_addrs
+        self.ip_addrs = gen_config.ip_addrs
+        self.ip_addrs_step = gen_config.ip_addrs_step or self.DEFAULT_SRC_DST_IP_STEP
         self.tg_gateway_ip_addrs_step = \
-            generator_config.tg_gateway_ip_addrs_step or self.DEFAULT_IP_STEP
-        self.gateway_ip_addrs_step = generator_config.gateway_ip_addrs_step or self.DEFAULT_IP_STEP
-        self.gateway_ips = generator_config.gateway_ip_addrs
-        self.ip = generator_config.ip
-        self.intf_speed = bitmath.parse_string(generator_config.intf_speed.replace('ps', '')).bits
+            gen_config.tg_gateway_ip_addrs_step or self.DEFAULT_IP_STEP
+        self.gateway_ip_addrs_step = gen_config.gateway_ip_addrs_step or self.DEFAULT_IP_STEP
+        self.gateway_ips = gen_config.gateway_ip_addrs
+        self.udp_src_port = gen_config.udp_src_port
+        self.udp_dst_port = gen_config.udp_dst_port
+        self.devices = [Device(port, self) for port in [0, 1]]
+        # This should normally always be [0, 1]
+        self.ports = [device.port for device in self.devices]
+
+        # check that pci is not empty
+        if not gen_config.interfaces[0].get('pci', None) or \
+           not gen_config.interfaces[1].get('pci', None):
+            raise TrafficClientException("configuration interfaces pci fields cannot be empty")
+
+        self.pcis = [tgif['pci'] for tgif in gen_config.interfaces]
         self.vlan_tagging = config.vlan_tagging
-        self.no_arp = config.no_arp
-        self.src_device = None
-        self.dst_device = None
-        self.vm_mac_list = None
-        self.mac_addrs_left = generator_config.mac_addrs_left
-        self.mac_addrs_right = generator_config.mac_addrs_right
-        self.__prep_interfaces(generator_config)
+
+        # needed for result/summarizer
+        config['tg-name'] = gen_config.name
+        config['tg-tool'] = self.tool
 
     def to_json(self):
-        return dict(self.generator_config)
+        """Get json form to display the content into the overall result dict."""
+        return dict(self.gen_config)
 
-    def set_vm_mac_list(self, vm_mac_list):
-        self.src_device.set_vm_mac_list(vm_mac_list[0])
-        self.dst_device.set_vm_mac_list(vm_mac_list[1])
+    def set_dest_macs(self, port_index, dest_macs):
+        """Set the list of dest MACs indexed by the chain id on given port.
+
+        port_index: the port for which dest macs must be set
+        dest_macs: a list of dest MACs indexed by chain id
+        """
+        if len(dest_macs) != self.config.service_chain_count:
+            raise TrafficClientException('Dest MAC list %s must have %d entries' %
+                                         (dest_macs, self.config.service_chain_count))
+        self.devices[port_index].set_dest_macs(dest_macs)
+        LOG.info('Port %d: dst MAC %s', port_index, [str(mac) for mac in dest_macs])
+
+    def set_vlans(self, port_index, vlans):
+        """Set the list of vlans to use indexed by the chain id on given port.
+
+        port_index: the port for which VLANs must be set
+        vlans: a  list of vlan lists indexed by chain id
+        """
+        if len(vlans) != self.config.service_chain_count:
+            raise TrafficClientException('VLAN list %s must have %d entries' %
+                                         (vlans, self.config.service_chain_count))
+        self.devices[port_index].set_vlans(vlans)
 
     @staticmethod
     def __match_generator_profile(traffic_generator, generator_profile):
-        generator_config = AttrDict(traffic_generator)
-        generator_config.pop('default_profile')
-        generator_config.pop('generator_profile')
+        gen_config = AttrDict(traffic_generator)
+        gen_config.pop('default_profile')
+        gen_config.pop('generator_profile')
         matching_profile = [profile for profile in traffic_generator.generator_profile if
                             profile.name == generator_profile]
         if len(matching_profile) != 1:
             raise Exception('Traffic generator profile not found: ' + generator_profile)
 
-        generator_config.update(matching_profile[0])
-
-        return generator_config
-
-    def __prep_interfaces(self, generator_config):
-        src_config = {
-            'chain_count': self.service_chain_count,
-            'flow_count': self.flow_count / 2,
-            'ip': generator_config.ip_addrs[0],
-            'ip_addrs_step': self.ip_addrs_step,
-            'gateway_ip': self.gateway_ips[0],
-            'gateway_ip_addrs_step': self.gateway_ip_addrs_step,
-            'tg_gateway_ip': generator_config.tg_gateway_ip_addrs[0],
-            'tg_gateway_ip_addrs_step': self.tg_gateway_ip_addrs_step,
-            'udp_src_port': generator_config.udp_src_port,
-            'udp_dst_port': generator_config.udp_dst_port,
-            'vlan_tagging': self.vlan_tagging,
-            'dst_mac': generator_config.mac_addrs_left
-        }
-        dst_config = {
-            'chain_count': self.service_chain_count,
-            'flow_count': self.flow_count / 2,
-            'ip': generator_config.ip_addrs[1],
-            'ip_addrs_step': self.ip_addrs_step,
-            'gateway_ip': self.gateway_ips[1],
-            'gateway_ip_addrs_step': self.gateway_ip_addrs_step,
-            'tg_gateway_ip': generator_config.tg_gateway_ip_addrs[1],
-            'tg_gateway_ip_addrs_step': self.tg_gateway_ip_addrs_step,
-            'udp_src_port': generator_config.udp_src_port,
-            'udp_dst_port': generator_config.udp_dst_port,
-            'vlan_tagging': self.vlan_tagging,
-            'dst_mac': generator_config.mac_addrs_right
-        }
-
-        self.src_device = Device(**dict(src_config, **generator_config.interfaces[0]))
-        self.dst_device = Device(**dict(dst_config, **generator_config.interfaces[1]))
-        self.src_device.set_destination(self.dst_device)
-        self.dst_device.set_destination(self.src_device)
-
-        if self.service_chain == ChainType.EXT and not self.no_arp \
-                and self.src_device.ip_range_overlaps():
-            raise Exception('Overlapping IP address ranges src=%s dst=%d flows=%d' %
-                            self.src_device.ip,
-                            self.dst_device.ip,
-                            self.flow_count)
-
-    @property
-    def devices(self):
-        return [self.src_device, self.dst_device]
-
-    @property
-    def vlans(self):
-        return [self.src_device.vtep_vlan, self.dst_device.vtep_vlan]
-
-    @property
-    def ports(self):
-        return [self.src_device.port, self.dst_device.port]
-
-    @property
-    def switch_ports(self):
-        return [self.src_device.switch_port, self.dst_device.switch_port]
-
-    @property
-    def pcis(self):
-        return [self.src_device.pci, self.dst_device.pci]
-
-
-class TrafficGeneratorFactory(object):
-    """Factory class to generate a traffic generator."""
-
-    def __init__(self, config):
-        self.config = config
-
-    def get_tool(self):
-        return self.config.generator_config.tool
-
-    def get_generator_client(self):
-        tool = self.get_tool().lower()
-        if tool == 'trex':
-            from traffic_gen import trex
-            return trex.TRex(self.config)
-        elif tool == 'dummy':
-            from traffic_gen import dummy
-            return dummy.DummyTG(self.config)
-        return None
-
-    def list_generator_profile(self):
-        return [profile.name for profile in self.config.traffic_generator.generator_profile]
-
-    def get_generator_config(self, generator_profile):
-        return RunningTrafficProfile(self.config, generator_profile)
-
-    def get_matching_profile(self, traffic_profile_name):
-        matching_profile = [profile for profile in self.config.traffic_profile if
-                            profile.name == traffic_profile_name]
-
-        if len(matching_profile) > 1:
-            raise Exception('Multiple traffic profiles with the same name found.')
-        elif not matching_profile:
-            raise Exception('No traffic profile found.')
-
-        return matching_profile[0]
-
-    def get_frame_sizes(self, traffic_profile):
-        matching_profile = self.get_matching_profile(traffic_profile)
-        return matching_profile.l2frame_size
+        gen_config.update(matching_profile[0])
+        return gen_config
 
 
 class TrafficClient(object):
-    """Traffic generator client."""
+    """Traffic generator client with NDR/PDR binary seearch."""
 
     PORTS = [0, 1]
 
-    def __init__(self, config, notifier=None, skip_sleep=False):
-        generator_factory = TrafficGeneratorFactory(config)
-        self.gen = generator_factory.get_generator_client()
-        self.tool = generator_factory.get_tool()
+    def __init__(self, config, notifier=None):
+        """Create a new TrafficClient instance.
+
+        config: nfvbench config
+        notifier: notifier (optional)
+
+        A new instance is created everytime the nfvbench config may have changed.
+        """
         self.config = config
+        self.generator_config = GeneratorConfig(config)
+        self.tool = self.generator_config.tool
+        self.gen = self._get_generator()
         self.notifier = notifier
         self.interval_collector = None
         self.iteration_collector = None
         self.runner = TrafficRunner(self, self.config.duration_sec, self.config.interval_sec)
-        if self.gen is None:
-            raise TrafficClientException('%s is not a supported traffic generator' % self.tool)
-
+        self.config.frame_sizes = self._get_frame_sizes()
         self.run_config = {
             'l2frame_size': None,
             'duration_sec': self.config.duration_sec,
@@ -439,23 +384,70 @@ class TrafficClient(object):
         self.current_total_rate = {'rate_percent': '10'}
         if self.config.single_run:
             self.current_total_rate = utils.parse_rate_str(self.config.rate)
-        # UT with dummy TG can bypass all sleeps
-        self.skip_sleep = skip_sleep
+        self.ifstats = None
+        # Speed is either discovered when connecting to TG or set from config
+        # This variable is 0 if not yet discovered from TG or must be the speed of
+        # each interface in bits per second
+        self.intf_speed = self.generator_config.intf_speed
 
-    def set_macs(self):
-        for mac, device in zip(self.gen.get_macs(), self.config.generator_config.devices):
-            device.set_mac(mac)
+    def _get_generator(self):
+        tool = self.tool.lower()
+        if tool == 'trex':
+            from traffic_gen import trex
+            return trex.TRex(self)
+        if tool == 'dummy':
+            from traffic_gen import dummy
+            return dummy.DummyTG(self)
+        raise TrafficClientException('Unsupported generator tool name:' + self.tool)
+
+    def skip_sleep(self):
+        """Skip all sleeps when doing unit testing with dummy TG.
+
+        Must be overriden using mock.patch
+        """
+        return False
+
+    def _get_frame_sizes(self):
+        traffic_profile_name = self.config.traffic.profile
+        matching_profiles = [profile for profile in self.config.traffic_profile if
+                             profile.name == traffic_profile_name]
+        if len(matching_profiles) > 1:
+            raise TrafficClientException('Multiple traffic profiles with name: ' +
+                                         traffic_profile_name)
+        elif not matching_profiles:
+            raise TrafficClientException('Cannot find traffic profile: ' + traffic_profile_name)
+        return matching_profiles[0].l2frame_size
 
     def start_traffic_generator(self):
-        self.gen.init()
+        """Start the traffic generator process (traffic not started yet)."""
         self.gen.connect()
+        # pick up the interface speed if it is not set from config
+        intf_speeds = self.gen.get_port_speed_gbps()
+        # convert Gbps unit into bps
+        tg_if_speed = bitmath.parse_string(str(intf_speeds[0]) + 'Gb').bits
+        if self.intf_speed:
+            # interface speed is overriden from config
+            if self.intf_speed != tg_if_speed:
+                # Warn the user if the speed in the config is different
+                LOG.warning('Interface speed provided is different from actual speed (%d Gbps)',
+                            intf_speeds[0])
+        else:
+            # interface speed not provisioned by config
+            self.intf_speed = tg_if_speed
+            # also update the speed in the tg config
+            self.generator_config.intf_speed = tg_if_speed
+
+        # Save the traffic generator local MAC
+        for mac, device in zip(self.gen.get_macs(), self.generator_config.devices):
+            device.set_mac(mac)
 
     def setup(self):
+        """Set up the traffic client."""
         self.gen.set_mode()
-        self.gen.config_interface()
         self.gen.clear_stats()
 
     def get_version(self):
+        """Get the traffic generator version."""
         return self.gen.get_version()
 
     def ensure_end_to_end(self):
@@ -478,48 +470,50 @@ class TrafficClient(object):
             all 10 VMs 10 VMs are in operational state.
         """
         LOG.info('Starting traffic generator to ensure end-to-end connectivity')
-        rate_pps = {'rate_pps': str(self.config.service_chain_count * 1)}
+        # send 2pps on each chain and each direction
+        rate_pps = {'rate_pps': str(self.config.service_chain_count * 2)}
         self.gen.create_traffic('64', [rate_pps, rate_pps], bidirectional=True, latency=False)
 
         # ensures enough traffic is coming back
         retry_count = (self.config.check_traffic_time_sec +
                        self.config.generic_poll_sec - 1) / self.config.generic_poll_sec
         mac_addresses = set()
-        ln = 0
-        # in case of l2-loopback, we will only have 2 unique src MAC regardless of the
-        # number of chains configured because there are no VM involved
-        # otherwise, we expect to see packets coming from 2 unique MAC per chain
-        unique_src_mac_count = 2 if self.config.l2_loopback else self.config.service_chain_count * 2
+
+        # we expect to see packets coming from 2 unique MAC per chain
+        unique_src_mac_count = self.config.service_chain_count * 2
         for it in xrange(retry_count):
             self.gen.clear_stats()
             self.gen.start_traffic()
             self.gen.start_capture()
-            LOG.info('Waiting for packets to be received back... (%d / %d)', it + 1, retry_count)
-            if not self.skip_sleep:
+            LOG.info('Captured unique src mac %d/%d, capturing return packets (retry %d/%d)...',
+                     len(mac_addresses), unique_src_mac_count,
+                     it + 1, retry_count)
+            if not self.skip_sleep():
                 time.sleep(self.config.generic_poll_sec)
             self.gen.stop_traffic()
             self.gen.fetch_capture_packets()
             self.gen.stop_capture()
 
             for packet in self.gen.packet_list:
-                mac_addresses.add(packet['binary'][6:12])
-                if ln != len(mac_addresses):
-                    ln = len(mac_addresses)
-                    LOG.info('Received unique source MAC %d / %d', ln, unique_src_mac_count)
-                if len(mac_addresses) == unique_src_mac_count:
-                    LOG.info('End-to-end connectivity ensured')
-                    return
+                src_mac = packet['binary'][6:12]
+                if src_mac not in mac_addresses:
+                    LOG.info('Received packet from mac: %s',
+                             ':'.join(["%02x" % ord(x) for x in src_mac]))
+                    mac_addresses.add(src_mac)
 
-            if not self.skip_sleep:
-                time.sleep(self.config.generic_poll_sec)
+                if len(mac_addresses) == unique_src_mac_count:
+                    LOG.info('End-to-end connectivity established')
+                    return
 
         raise TrafficClientException('End-to-end connectivity cannot be ensured')
 
     def ensure_arp_successful(self):
+        """Resolve all IP using ARP and throw an exception in case of failure."""
         if not self.gen.resolve_arp():
             raise TrafficClientException('ARP cannot be resolved')
 
     def set_traffic(self, frame_size, bidirectional):
+        """Reconfigure the traffic generator for a new frame size."""
         self.run_config['bidirectional'] = bidirectional
         self.run_config['l2frame_size'] = frame_size
         self.run_config['rates'] = [self.get_per_direction_rate()]
@@ -537,7 +531,7 @@ class TrafficClient(object):
         self.gen.clear_streamblock()
         self.gen.create_traffic(frame_size, self.run_config['rates'], bidirectional, latency=True)
 
-    def modify_load(self, load):
+    def _modify_load(self, load):
         self.current_total_rate = {'rate_percent': str(load)}
         rate_per_direction = self.get_per_direction_rate()
 
@@ -548,6 +542,7 @@ class TrafficClient(object):
             self.run_config['rates'][1] = rate_per_direction
 
     def get_ndr_and_pdr(self):
+        """Start the NDR/PDR iteration and return the results."""
         dst = 'Bidirectional' if self.run_config['bidirectional'] else 'Unidirectional'
         targets = {}
         if self.config.ndr_run:
@@ -590,6 +585,7 @@ class TrafficClient(object):
         return float(dropped_pkts) / total_pkts * 100
 
     def get_stats(self):
+        """Collect final stats for previous run."""
         stats = self.gen.get_stats()
         retDict = {'total_tx_rate': stats['total_tx_rate']}
         for port in self.PORTS:
@@ -645,7 +641,7 @@ class TrafficClient(object):
     def __convert_rates(self, rate):
         return utils.convert_rates(self.run_config['l2frame_size'],
                                    rate,
-                                   self.config.generator_config.intf_speed)
+                                   self.intf_speed)
 
     def __ndr_pdr_found(self, tag, load):
         rates = self.__convert_rates({'rate_percent': load})
@@ -745,8 +741,11 @@ class TrafficClient(object):
             self.__range_search(middle, right, right_targets, results)
 
     def __run_search_iteration(self, rate):
-        # set load
-        self.modify_load(rate)
+        """Run one iteration at the given rate level.
+
+        rate: the rate to send on each port in percent (0 to 100)
+        """
+        self._modify_load(rate)
 
         # poll interval stats and collect them
         for stats in self.run_traffic():
@@ -754,12 +753,13 @@ class TrafficClient(object):
             time_elapsed_ratio = self.runner.time_elapsed() / self.run_config['duration_sec']
             if time_elapsed_ratio >= 1:
                 self.cancel_traffic()
-                time.sleep(self.config.pause_sec)
+                if not self.skip_sleep():
+                    time.sleep(self.config.pause_sec)
         self.interval_collector.reset()
 
         # get stats from the run
         stats = self.runner.client.get_stats()
-        current_traffic_config = self.get_traffic_config()
+        current_traffic_config = self._get_traffic_config()
         warning = self.compare_tx_rates(current_traffic_config['direction-total']['rate_pps'],
                                         stats['total_tx_rate'])
         if warning is not None:
@@ -768,11 +768,11 @@ class TrafficClient(object):
         # save reliable stats from whole iteration
         self.iteration_collector.add(stats, current_traffic_config['direction-total']['rate_pps'])
         LOG.info('Average drop rate: %f', stats['overall']['drop_rate_percent'])
-
         return stats, current_traffic_config['direction-total']
 
     @staticmethod
     def log_stats(stats):
+        """Log estimated stats during run."""
         report = {
             'datetime': str(datetime.now()),
             'tx_packets': stats['overall']['tx']['total_pkts'],
@@ -782,11 +782,12 @@ class TrafficClient(object):
         }
         LOG.info('TX: %(tx_packets)d; '
                  'RX: %(rx_packets)d; '
-                 'Dropped: %(drop_packets)d; '
-                 'Drop rate: %(drop_rate_percent).4f%%',
+                 'Est. Dropped: %(drop_packets)d; '
+                 'Est. Drop rate: %(drop_rate_percent).4f%%',
                  report)
 
     def run_traffic(self):
+        """Start traffic and return intermediate stats for each interval."""
         stats = self.runner.run()
         while self.runner.is_running:
             self.log_stats(stats)
@@ -799,16 +800,10 @@ class TrafficClient(object):
         yield stats
 
     def cancel_traffic(self):
+        """Stop traffic."""
         self.runner.stop()
 
-    def get_interface(self, port_index, stats):
-        port = self.gen.port_handle[port_index]
-        tx, rx = 0, 0
-        if stats and port in stats:
-            tx, rx = int(stats[port]['tx']['total_pkts']), int(stats[port]['rx']['total_pkts'])
-        return Interface('traffic-generator', self.tool.lower(), tx, rx)
-
-    def get_traffic_config(self):
+    def _get_traffic_config(self):
         config = {}
         load_total = 0.0
         bps_total = 0.0
@@ -856,8 +851,63 @@ class TrafficClient(object):
         r['direction-total'] = total
         return r
 
+    def insert_interface_stats(self, pps_list):
+        """Insert interface stats to a list of packet path stats.
+
+        pps_list: a list of packet path stats instances indexed by chain index
+
+        This function will insert the packet path stats for the traffic gen ports 0 and 1
+        with itemized per chain tx/rx counters.
+        There will be as many packet path stats as chains.
+        Each packet path stats will have exactly 2 InterfaceStats for port 0 and port 1
+        self.pps_list:
+        [
+        PacketPathStats(InterfaceStats(chain 0, port 0), InterfaceStats(chain 0, port 1)),
+        PacketPathStats(InterfaceStats(chain 1, port 0), InterfaceStats(chain 1, port 1)),
+        ...
+        ]
+        """
+        def get_if_stats(chain_idx):
+            return [InterfaceStats('p' + str(port), self.tool)
+                    for port in range(2)]
+        # keep the list of list of interface stats indexed by the chain id
+        self.ifstats = [get_if_stats(chain_idx)
+                        for chain_idx in range(self.config.service_chain_count)]
+        # note that we need to make a copy of the ifs list so that any modification in the
+        # list from pps will not change the list saved in self.ifstats
+        self.pps_list = [PacketPathStats(list(ifs)) for ifs in self.ifstats]
+        # insert the corresponding pps in the passed list
+        pps_list.extend(self.pps_list)
+
+    def update_interface_stats(self, diff=False):
+        """Update all interface stats.
+
+        diff: if False, simply refresh the interface stats values with latest values
+              if True, diff the interface stats with the latest values
+        Make sure that the interface stats inserted in insert_interface_stats() are updated
+        with proper values.
+        self.ifstats:
+        [
+        [InterfaceStats(chain 0, port 0), InterfaceStats(chain 0, port 1)],
+        [InterfaceStats(chain 1, port 0), InterfaceStats(chain 1, port 1)],
+        ...
+        ]
+        """
+        if diff:
+            stats = self.gen.get_stats()
+            for chain_idx, ifs in enumerate(self.ifstats):
+                # each ifs has exactly 2 InterfaceStats and 2 Latency instances
+                # corresponding to the
+                # port 0 and port 1 for the given chain_idx
+                # Note that we cannot use self.pps_list[chain_idx].if_stats to pick the
+                # interface stats for the pps because it could have been modified to contain
+                # additional interface stats
+                self.gen.get_stream_stats(stats, ifs, self.pps_list[chain_idx].latencies, chain_idx)
+
+
     @staticmethod
     def compare_tx_rates(required, actual):
+        """Compare the actual TX rate to the required TX rate."""
         threshold = 0.9
         are_different = False
         try:
@@ -876,6 +926,7 @@ class TrafficClient(object):
         return None
 
     def get_per_direction_rate(self):
+        """Get the rate for each direction."""
         divisor = 2 if self.run_config['bidirectional'] else 1
         if 'rate_percent' in self.current_total_rate:
             # don't split rate if it's percentage
@@ -884,6 +935,7 @@ class TrafficClient(object):
         return utils.divide_rate(self.current_total_rate, divisor)
 
     def close(self):
+        """Close this instance."""
         try:
             self.gen.stop_traffic()
         except Exception:

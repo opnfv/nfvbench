@@ -20,18 +20,29 @@ imix_avg_l2_size = None
 
 
 def convert_rates(l2frame_size, rate, intf_speed):
+    """Convert a given rate unit into the other rate units.
+
+    l2frame_size: size of the L2 frame in bytes or 'IMIX'
+    rate: a dict that has at least one of the following key:
+          'rate_pps', 'rate_bps', 'rate_percent'
+          with the corresponding input value
+    intf_speed: the line rate speed in bits per second
+    """
     avg_packet_size = get_average_packet_size(l2frame_size)
     if 'rate_pps' in rate:
+        # input = packets/sec
         initial_rate_type = 'rate_pps'
         pps = rate['rate_pps']
         bps = pps_to_bps(pps, avg_packet_size)
         load = bps_to_load(bps, intf_speed)
     elif 'rate_bps' in rate:
+        # input = bits per second
         initial_rate_type = 'rate_bps'
         bps = rate['rate_bps']
         load = bps_to_load(bps, intf_speed)
         pps = bps_to_pps(bps, avg_packet_size)
     elif 'rate_percent' in rate:
+        # input = percentage of the line rate (between 0.0 and 100.0)
         initial_rate_type = 'rate_percent'
         load = rate['rate_percent']
         bps = load_to_bps(load, intf_speed)

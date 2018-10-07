@@ -44,7 +44,7 @@ HTTP Interface
 
 This request simply returns whatever content is sent in the body of the request (body should be in json format, only used for testing)
 
-Example request: 
+Example request:
 
 .. code-block:: bash
 
@@ -219,30 +219,13 @@ The entire default configuration can be viewed using the --show-json-config opti
         },
         "name": "(built-in default config)",
         "no_cleanup": false,
-        "no_int_config": false,
-        "no_reset": false,
-        "no_tor_access": false,
         "no_traffic": false,
-        "no_vswitch_access": false,
         "openrc_file": "/tmp/nfvbench/openstack/openrc",
-        "openstack_defaults": "/tmp/nfvbench/openstack/defaults.yaml",
-        "openstack_setup": "/tmp/nfvbench/openstack/setup_data.yaml",
         "rate": "ndr_pdr",
         "service_chain": "PVP",
         "service_chain_count": 1,
         "sriov": false,
         "std_json": null,
-        "tor": {
-            "switches": [
-                {
-                    "host": "172.26.233.12",
-                    "password": "lab",
-                    "port": 22,
-                    "username": "admin"
-                }
-            ],
-            "type": "N9K"
-        },
         "traffic": {
             "bidirectional": true,
             "profile": "traffic_profile_64B"
@@ -271,7 +254,7 @@ The entire default configuration can be viewed using the --show-json-config opti
                             "vlan": null
                         }
                     ],
-                    "intf_speed": "10Gbps",
+                    "intf_speed": null,
                     "ip": "127.0.0.1",
                     "name": "trex-local",
                     "tool": "TRex"
@@ -324,12 +307,6 @@ The entire default configuration can be viewed using the --show-json-config opti
         ],
         "unidir_reverse_traffic_pps": 1,
         "vlan_tagging": true,
-        "vts_ncs": {
-            "host": null,
-            "password": "secret",
-            "port": 22,
-            "username": "admin"
-        }
     }
 
 
@@ -445,7 +422,8 @@ use the default NFVbench configuration but do not generate traffic (no_traffic p
     {u'status': u'PENDING', u'error_message': u'nfvbench run still pending'}
 
     {u'status': u'OK', u'result': {u'date': u'2017-03-31 22:04:59', u'nfvbench_version': u'0.3.5',
-    u'config': {u'compute_nodes': None, u'compute_node_user': u'root', u'vts_ncs': {u'username': u'admin', u'host': None, u'password': u'secret', u'port': 22}, u'traffic_generator': {u'tg_gateway_ip_addrs': [u'1.1.0.100', u'2.2.0.100'], u'ip_addrs_step': u'0.0.0.1', u'step_mac': None, u'generator_profile': [{u'intf_speed': u'10Gbps', u'interfaces': [{u'pci': u'0a:00.0', u'port': 0, u'vlan': 1998, u'switch_port': None},
+     u'config': {u'compute_nodes': None, u'compute_node_user': u'root', u'traffic_generator': {u'tg_gateway_ip_addrs': [u'1.1.0.100', u'2.2.0.100'], u'ip_addrs_step': u'0.0.0.1',
+     u'step_mac': None, u'generator_profile': [{u'intf_speed': u'', u'interfaces': [{u'pci': u'0a:00.0', u'port': 0, u'vlan': 1998, u'switch_port': None},
 
     ...
 
@@ -458,10 +436,3 @@ Example of invocation using Websocket/SocketIO, execute NFVbench using the defau
 .. code-block:: bash
 
     [root@sjc04-pod3-mgmt ~]# docker exec -it nfvbench nfvbench_client -c '{"duration":5,"rate":"5kpps"}' --use-socketio  http://127.0.0.1:7555 >results.json
-
-
-
-
-
-
-

@@ -13,18 +13,47 @@
 #    under the License.
 
 import abc
+import sys
 
 from nfvbench.log import LOG
 import traffic_utils
 
+class Latency(object):
+    """A class to hold latency data."""
+
+    def __init__(self, latency_list=None):
+        """Create a latency instance.
+
+        latency_list: aggregate all latency values from list if not None
+        """
+        self.min_usec = sys.maxint
+        self.max_usec = 0
+        self.avg_usec = 0
+        if latency_list:
+            for lat in latency_list:
+                if lat.available():
+                    self.min_usec = min(self.min_usec, lat.min_usec)
+                    self.max_usec = max(self.max_usec, lat.max_usec)
+                    self.avg_usec += lat.avg_usec
+            # round to nearest usec
+            self.avg_usec = int(round(float(self.avg_usec) / len(latency_list)))
+
+    def available(self):
+        """Return True if latency information is available."""
+        return self.min_usec != sys.maxint
+
 
 class TrafficGeneratorException(Exception):
+    """Exception for traffic generator."""
+
     pass
 
 
 class AbstractTrafficGenerator(object):
-    def __init__(self, config):
-        self.config = config
+    def __init__(self, traffic_client):
+        self.traffic_client = traffic_client
+        self.generator_config = traffic_client.generator_config
+        self.config = traffic_client.config
         self.imix_l2_sizes = [64, 594, 1518]
         self.imix_ratios = [7, 4, 1]
         self.imix_avg_l2_size = 0
@@ -36,17 +65,7 @@ class AbstractTrafficGenerator(object):
         return None
 
     @abc.abstractmethod
-    def init(self):
-        # Must be implemented by sub classes
-        return None
-
-    @abc.abstractmethod
     def connect(self):
-        # Must be implemented by sub classes
-        return None
-
-    @abc.abstractmethod
-    def config_interface(self):
         # Must be implemented by sub classes
         return None
 
@@ -56,22 +75,18 @@ class AbstractTrafficGenerator(object):
         return None
 
     def modify_rate(self, rate, reverse):
+        """Change the rate per port.
+
+        rate: new rate in % (0 to 100)
+        reverse: 0 for port 0, 1 for port 1
+        """
         port_index = int(reverse)
         port = self.port_handle[port_index]
         self.rates[port_index] = traffic_utils.to_rate_str(rate)
-        LOG.info('Modified traffic stream for %s, new rate=%s.', port,
-                 traffic_utils.to_rate_str(rate))
-
-    def modify_traffic(self):
-        # Must be implemented by sub classes
-        return None
+        LOG.info('Modified traffic stream for port %s, new rate=%s.', port, self.rates[port_index])
 
     @abc.abstractmethod
     def get_stats(self):
-        # Must be implemented by sub classes
-        return None
-
-    def clear_traffic(self):
         # Must be implemented by sub classes
         return None
 
@@ -87,8 +102,36 @@ class AbstractTrafficGenerator(object):
 
     @abc.abstractmethod
     def cleanup(self):
-        # Must be implemented by sub classes
+        """Cleanup the traffic generator."""
         return None
+
+    def clear_streamblock(self):
+        """Clear all streams from the traffic generator."""
+        pass
+
+    @abc.abstractmethod
+    def resolve_arp(self):
+        """Resolve all configured remote IP addresses.
+
+        return: True if ARP resolved successfully
+        """
+        pass
+
+    @abc.abstractmethod
+    def get_macs(self):
+        """Return the local port MAC addresses.
+
+        return: a list of MAC addresses indexed by the port#
+        """
+        pass
+
+    @abc.abstractmethod
+    def get_port_speed_gbps(self):
+        """Return the local port speeds.
+
+        return: a list of speed in Gbps indexed by the port#
+        """
+        pass
 
     def adjust_imix_min_size(self, min_size):
         # assume the min size is always the first entry

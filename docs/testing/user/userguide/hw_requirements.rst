@@ -30,7 +30,7 @@ The 2 corresponding ports on the switch(es) facing the Trex ports on the Linux s
 Using a TOR switch is more representative of a real deployment and allows to measure packet flows on any compute node in the rack without rewiring and includes the overhead of the TOR switch.
 
 Although not the primary targeted use case, NFVbench could also support the direct wiring of the traffic generator to
-a compute node without a switch (although that will limit some of the features that invove multiple compute nodes in the packet path).
+a compute node without a switch.
 
 Software Requirements
 ---------------------

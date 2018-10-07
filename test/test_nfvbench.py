@@ -13,259 +13,34 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 #
+from mock_trex import no_op
+
 import json
 import logging
-import os
 import sys
 
+from attrdict import AttrDict
+from mock import patch
 import pytest
 
-from attrdict import AttrDict
 from nfvbench.config import config_loads
 from nfvbench.credentials import Credentials
 from nfvbench.fluentd import FluentLogHandler
 import nfvbench.log
-from nfvbench.network import Interface
-from nfvbench.network import Network
-from nfvbench.specs import ChainType
-from nfvbench.specs import Encaps
+import nfvbench.nfvbench
+from nfvbench.traffic_client import Device
+from nfvbench.traffic_client import GeneratorConfig
+from nfvbench.traffic_client import IpBlock
+from nfvbench.traffic_client import TrafficClient
 import nfvbench.traffic_gen.traffic_utils as traffic_utils
 
-__location__ = os.path.realpath(os.path.join(os.getcwd(),
-                                             os.path.dirname(__file__)))
 
+# just to get rid of the unused function warning
+no_op()
 
-@pytest.fixture
-def openstack_vxlan_spec():
-    return AttrDict(
-        {
-            'openstack': AttrDict({
-                'vswitch': "VTS",
-                'encaps': Encaps.VxLAN}),
-            'run_spec': AttrDict({
-                'use_vpp': True
-            })
-        }
-    )
-
-
-# =========================================================================
-# PVP Chain tests
-# =========================================================================
-
-def test_chain_interface():
-    iface = Interface('testname', 'vpp', tx_packets=1234, rx_packets=4321)
-    assert iface.name == 'testname'
-    assert iface.device == 'vpp'
-    assert iface.get_packet_count('tx') == 1234
-    assert iface.get_packet_count('rx') == 4321
-    assert iface.get_packet_count('wrong_key') == 0
-
-
-# pylint: disable=redefined-outer-name
-@pytest.fixture(scope='session')
-def iface1():
-    return Interface('iface1', 'trex', tx_packets=10000, rx_packets=1234)
-
-
-@pytest.fixture(scope='session')
-def iface2():
-    return Interface('iface2', 'n9k', tx_packets=1234, rx_packets=9901)
-
-
-@pytest.fixture(scope='session')
-def iface3():
-    return Interface('iface3', 'n9k', tx_packets=9900, rx_packets=1234)
-
-
-@pytest.fixture(scope='session')
-def iface4():
-    return Interface('iface4', 'vpp', tx_packets=1234, rx_packets=9801)
-
-
-@pytest.fixture(scope='session')
-def net1(iface1, iface2, iface3, iface4):
-    return Network([iface1, iface2, iface3, iface4], reverse=False)
-
-
-@pytest.fixture(scope='session')
-def net2(iface1, iface2, iface3):
-    return Network([iface1, iface2, iface3], reverse=True)
-
-
-def test_chain_network(net1, net2, iface1, iface2, iface3, iface4):
-    assert [iface1, iface2, iface3, iface4] == net1.get_interfaces()
-    assert [iface3, iface2, iface1] == net2.get_interfaces()
-    net2.add_interface(iface4)
-    assert [iface4, iface3, iface2, iface1] == net2.get_interfaces()
-
-
-# pylint: enable=redefined-outer-name
-
-# pylint: disable=pointless-string-statement
-"""
-def test_chain_analysis(net1, monkeypatch, openstack_vxlan_spec):
-    def mock_empty(self, *args, **kwargs):
-        pass
-
-    monkeypatch.setattr(ServiceChain, '_setup', mock_empty)
-
-    f = ServiceChain(AttrDict({'service_chain': 'DUMMY'}), [], {'tor': {}}, openstack_vxlan_spec,
-                     lambda x, y, z: None)
-    result = f.get_analysis([net1])
-    assert result[1]['packet_drop_count'] == 99
-    assert result[1]['packet_drop_percentage'] == 0.99
-    assert result[2]['packet_drop_count'] == 1
-    assert result[2]['packet_drop_percentage'] == 0.01
-    assert result[3]['packet_drop_count'] == 99
-    assert result[3]['packet_drop_percentage'] == 0.99
-
-    net1.reverse = True
-    result = f.get_analysis([net1])
-    assert result[1]['packet_drop_count'] == 0
-    assert result[1]['packet_drop_percentage'] == 0.0
-    assert result[2]['packet_drop_count'] == 0
-    assert result[2]['packet_drop_percentage'] == 0.0
-    assert result[3]['packet_drop_count'] == 0
-    assert result[3]['packet_drop_percentage'] == 0.0
-
-
-@pytest.fixture
-def pvp_chain(monkeypatch, openstack_vxlan_spec):
-    tor_vni1 = Interface('vni-4097', 'n9k', 50, 77)
-    vsw_vni1 = Interface('vxlan_tunnel0', 'vpp', 77, 48)
-    vsw_vif1 = Interface('VirtualEthernet0/0/2', 'vpp', 48, 77)
-    vsw_vif2 = Interface('VirtualEthernet0/0/3', 'vpp', 77, 47)
-    vsw_vni2 = Interface('vxlan_tunnel1', 'vpp', 43, 77)
-    tor_vni2 = Interface('vni-4098', 'n9k', 77, 40)
-
-    def mock_init(self, *args, **kwargs):
-        self.vni_ports = [4097, 4098]
-        self.specs = openstack_vxlan_spec
-        self.clients = {
-            'vpp': AttrDict({
-                'set_interface_counters': lambda: None,
-            })
-        }
-        self.worker = AttrDict({
-            'run': lambda: None,
-        })
-
-    def mock_empty(self, *args, **kwargs):
-        pass
-
-    def mock_get_network(self, traffic_port, vni_id, reverse=False):
-        if vni_id == 0:
-            return Network([tor_vni1, vsw_vni1, vsw_vif1], reverse)
-        else:
-            return Network([tor_vni2, vsw_vni2, vsw_vif2], reverse)
-
-    def mock_get_data(self):
-        return {}
-
-    monkeypatch.setattr(PVPChain, '_get_network', mock_get_network)
-    monkeypatch.setattr(PVPChain, '_get_data', mock_get_data)
-    monkeypatch.setattr(PVPChain, '_setup', mock_empty)
-    monkeypatch.setattr(VxLANWorker, '_clear_interfaces', mock_empty)
-    monkeypatch.setattr(PVPChain, '_generate_traffic', mock_empty)
-    monkeypatch.setattr(PVPChain, '__init__', mock_init)
-    return PVPChain(None, None, {'vm': None, 'vpp': None, 'tor': None, 'traffic': None}, None)
-
-
-def test_pvp_chain_run(pvp_chain):
-    result = pvp_chain.run()
-    expected_result = {
-        'raw_data': {},
-        'stats': None,
-        'packet_analysis': {
-            'direction-forward': [
-                OrderedDict([
-                    ('interface', 'vni-4097'),
-                    ('device', 'n9k'),
-                    ('packet_count', 50)
-                ]),
-                OrderedDict([
-                    ('interface', 'vxlan_tunnel0'),
-                    ('device', 'vpp'),
-                    ('packet_count', 48),
-                    ('packet_drop_count', 2),
-                    ('packet_drop_percentage', 4.0)
-                ]),
-                OrderedDict([
-                    ('interface', 'VirtualEthernet0/0/2'),
-                    ('device', 'vpp'),
-                    ('packet_count', 48),
-                    ('packet_drop_count', 0),
-                    ('packet_drop_percentage', 0.0)
-                ]),
-                OrderedDict([
-                    ('interface', 'VirtualEthernet0/0/3'),
-                    ('device', 'vpp'),
-                    ('packet_count', 47),
-                    ('packet_drop_count', 1),
-                    ('packet_drop_percentage', 2.0)
-                ]),
-                OrderedDict([
-                    ('interface', 'vxlan_tunnel1'),
-                    ('device', 'vpp'),
-                    ('packet_count', 43),
-                    ('packet_drop_count', 4),
-                    ('packet_drop_percentage', 8.0)
-                ]),
-                OrderedDict([
-                    ('interface', 'vni-4098'),
-                    ('device', 'n9k'),
-                    ('packet_count', 40),
-                    ('packet_drop_count', 3),
-                    ('packet_drop_percentage', 6.0)
-                ])
-            ],
-            'direction-reverse': [
-                OrderedDict([
-                    ('interface', 'vni-4098'),
-                    ('device', 'n9k'),
-                    ('packet_count', 77)
-                ]),
-                OrderedDict([
-                    ('interface', 'vxlan_tunnel1'),
-                    ('device', 'vpp'),
-                    ('packet_count', 77),
-                    ('packet_drop_count', 0),
-                    ('packet_drop_percentage', 0.0)
-                ]),
-                OrderedDict([
-                    ('interface', 'VirtualEthernet0/0/3'),
-                    ('device', 'vpp'),
-                    ('packet_count', 77),
-                    ('packet_drop_count', 0),
-                    ('packet_drop_percentage', 0.0)
-                ]),
-                OrderedDict([
-                    ('interface', 'VirtualEthernet0/0/2'),
-                    ('device', 'vpp'),
-                    ('packet_count', 77),
-                    ('packet_drop_count', 0),
-                    ('packet_drop_percentage', 0.0)
-                ]),
-                OrderedDict([
-                    ('interface', 'vxlan_tunnel0'),
-                    ('device', 'vpp'),
-                    ('packet_count', 77),
-                    ('packet_drop_count', 0),
-                    ('packet_drop_percentage', 0.0)
-                ]),
-                OrderedDict([
-                    ('interface', 'vni-4097'),
-                    ('device', 'n9k'),
-                    ('packet_count', 77),
-                    ('packet_drop_count', 0),
-                    ('packet_drop_percentage', 0.0)
-                ])
-            ]
-        }
-    }
-    assert result == expected_result
-"""
+def setup_module(module):
+    """Enable log."""
+    nfvbench.log.setup(mute_stdout=True)
 
 # =========================================================================
 # Traffic client tests
@@ -298,7 +73,6 @@ def test_parse_rate_str():
             return True
         else:
             return False
-
         return False
 
     assert should_raise_error('101')
@@ -326,12 +100,13 @@ def test_rate_conversion():
     assert traffic_utils.pps_to_bps(31.6066319896, 1518) == pytest.approx(388888)
     assert traffic_utils.pps_to_bps(3225895.85831, 340.3) == pytest.approx(9298322222)
 
+
 # pps at 10Gbps line rate for 64 byte frames
 LR_64B_PPS = 14880952
 LR_1518B_PPS = 812743
 
 def assert_equivalence(reference, value, allowance_pct=1):
-    '''Asserts if a value is equivalent to a reference value with given margin
+    """Assert if a value is equivalent to a reference value with given margin.
 
     :param float reference: reference value to compare to
     :param float value: value to compare to reference
@@ -340,7 +115,7 @@ def assert_equivalence(reference, value, allowance_pct=1):
         1 : must be equal within 1% of the reference value
         ...
         100: always true
-    '''
+    """
     if reference == 0:
         assert value == 0
     else:
@@ -359,37 +134,9 @@ def test_load_from_rate():
                                                              avg_frame_size=1518,
                                                              line_rate='20Gbps'))
 
-"""
-@pytest.fixture
-def traffic_client(monkeypatch):
-
-    def mock_init(self, *args, **kwargs):
-        self.run_config = {
-            'bidirectional': False,
-            'l2frame_size': '64',
-            'duration_sec': 30,
-            'rates': [{'rate_percent': '10'}, {'rate_pps': '1'}]
-        }
-
-    def mock_modify_load(self, load):
-        self.run_config['rates'][0] = {'rate_percent': str(load)}
-        self.current_load = load
-
-    monkeypatch.setattr(TrafficClient, '__init__', mock_init)
-    monkeypatch.setattr(TrafficClient, 'modify_load', mock_modify_load)
-
-    return TrafficClient()
-"""
-
-
-# pylint: enable=pointless-string-statement
-
 # =========================================================================
 # Other tests
 # =========================================================================
-
-def setup_module(module):
-    nfvbench.log.setup(mute_stdout=True)
 
 def test_no_credentials():
     cred = Credentials('/completely/wrong/path/openrc', None, False)
@@ -398,36 +145,6 @@ def test_no_credentials():
         assert False
     else:
         assert True
-
-
-# Because trex_stl_lib may not be installed when running unit test
-# nfvbench.traffic_client will try to import STLError:
-# from trex_stl_lib.api import STLError
-# will raise ImportError: No module named trex_stl_lib.api
-try:
-    import trex_stl_lib.api
-
-    assert trex_stl_lib.api
-except ImportError:
-    # Make up a trex_stl_lib.api.STLError class
-    class STLError(Exception):
-        pass
-
-
-    from types import ModuleType
-
-    stl_lib_mod = ModuleType('trex_stl_lib')
-    sys.modules['trex_stl_lib'] = stl_lib_mod
-    api_mod = ModuleType('trex_stl_lib.api')
-    stl_lib_mod.api = api_mod
-    sys.modules['trex_stl_lib.api'] = api_mod
-    api_mod.STLError = STLError
-
-# pylint: disable=wrong-import-position,ungrouped-imports
-from nfvbench.traffic_client import Device
-from nfvbench.traffic_client import IpBlock
-from nfvbench.traffic_client import TrafficClient
-from nfvbench.traffic_client import TrafficGeneratorFactory
 
 def test_ip_block():
     ipb = IpBlock('10.0.0.0', '0.0.0.1', 256)
@@ -444,70 +161,34 @@ def test_ip_block():
     with pytest.raises(IndexError):
         ipb.get_ip(256)
 
-
-def check_config(configs, cc, fc, src_ip, dst_ip, step_ip):
-    '''Verify that the range configs for each chain have adjacent IP ranges
-    of the right size and without holes between chains
-    '''
-    step = Device.ip_to_int(step_ip)
+def check_stream_configs(gen_config):
+    """Verify that the range for each chain have adjacent IP ranges without holes between chains."""
+    config = gen_config.config
+    tgc = config['traffic_generator']
+    step = Device.ip_to_int(tgc['ip_addrs_step'])
     cfc = 0
-    sip = Device.ip_to_int(src_ip)
-    dip = Device.ip_to_int(dst_ip)
-    for index in range(cc):
-        config = configs[index]
-        assert config['ip_src_count'] == config['ip_dst_count']
-        assert Device.ip_to_int(config['ip_src_addr']) == sip
-        assert Device.ip_to_int(config['ip_dst_addr']) == dip
-        count = config['ip_src_count']
+    sip = Device.ip_to_int(tgc['ip_addrs'][0].split('/')[0])
+    dip = Device.ip_to_int(tgc['ip_addrs'][1].split('/')[0])
+    stream_configs = gen_config.devices[0].get_stream_configs()
+    for index in range(config['service_chain_count']):
+        stream_cfg = stream_configs[index]
+        assert stream_cfg['ip_src_count'] == stream_cfg['ip_dst_count']
+        assert Device.ip_to_int(stream_cfg['ip_src_addr']) == sip
+        assert Device.ip_to_int(stream_cfg['ip_dst_addr']) == dip
+        count = stream_cfg['ip_src_count']
         cfc += count
         sip += count * step
         dip += count * step
-    assert cfc == fc
+    assert cfc == int(config['flow_count'] / 2)
 
-
-def create_device(fc, cc, ip, gip, tggip, step_ip, mac):
-    return Device(0, 0, flow_count=fc, chain_count=cc, ip=ip, gateway_ip=gip, tg_gateway_ip=tggip,
-                  ip_addrs_step=step_ip,
-                  tg_gateway_ip_addrs_step=step_ip,
-                  gateway_ip_addrs_step=step_ip,
-                  dst_mac=mac)
-
-
-def check_device_flow_config(step_ip):
-    fc = 99999
-    cc = 10
-    ip0 = '10.0.0.0'
-    ip1 = '20.0.0.0'
-    tggip = '50.0.0.0'
-    gip = '60.0.0.0'
-    mac = ['00:11:22:33:44:55'] * cc
-    dev0 = create_device(fc, cc, ip0, gip, tggip, step_ip, mac)
-    dev1 = create_device(fc, cc, ip1, gip, tggip, step_ip, mac)
-    dev0.set_destination(dev1)
-    configs = dev0.get_stream_configs(ChainType.EXT)
-    check_config(configs, cc, fc, ip0, ip1, step_ip)
-
+def _check_device_flow_config(step_ip):
+    config = _get_dummy_tg_config('PVP', '1Mpps', scc=10, fc=99999, step_ip=step_ip)
+    gen_config = GeneratorConfig(config)
+    check_stream_configs(gen_config)
 
 def test_device_flow_config():
-    check_device_flow_config('0.0.0.1')
-    check_device_flow_config('0.0.0.2')
-
-
-def test_device_ip_range():
-    def ip_range_overlaps(ip0, ip1, flows):
-        tggip = '50.0.0.0'
-        gip = '60.0.0.0'
-        mac = ['00:11:22:33:44:55'] * 10
-        dev0 = create_device(flows, 10, ip0, gip, tggip, '0.0.0.1', mac)
-        dev1 = create_device(flows, 10, ip1, gip, tggip, '0.0.0.1', mac)
-        dev0.set_destination(dev1)
-        return dev0.ip_range_overlaps()
-
-    assert not ip_range_overlaps('10.0.0.0', '20.0.0.0', 10000)
-    assert ip_range_overlaps('10.0.0.0', '10.0.1.0', 10000)
-    assert ip_range_overlaps('10.0.0.0', '10.0.1.0', 257)
-    assert ip_range_overlaps('10.0.1.0', '10.0.0.0', 257)
-
+    _check_device_flow_config('0.0.0.1')
+    _check_device_flow_config('0.0.0.2')
 
 def test_config():
     refcfg = {1: 100, 2: {21: 100, 22: 200}, 3: None}
@@ -596,7 +277,8 @@ def assert_ndr_pdr(stats, ndr, ndr_dr, pdr, pdr_dr):
     assert_equivalence(pdr, stats['pdr']['rate_percent'])
     assert_equivalence(pdr_dr, stats['pdr']['stats']['overall']['drop_percentage'])
 
-def get_dummy_tg_config(chain_type, rate):
+def _get_dummy_tg_config(chain_type, rate, scc=1, fc=10, step_ip='0.0.0.1',
+                         ip0='10.0.0.0/8', ip1='20.0.0.0/8'):
     return AttrDict({
         'traffic_generator': {'host_name': 'nfvbench_tg',
                               'default_profile': 'dummy',
@@ -606,19 +288,23 @@ def get_dummy_tg_config(chain_type, rate):
                                                      'intf_speed': '10Gbps',
                                                      'interfaces': [{'port': 0, 'pci': '0.0'},
                                                                     {'port': 1, 'pci': '0.0'}]}],
-                              'ip_addrs_step': '0.0.0.1',
-                              'ip_addrs': ['10.0.0.0/8', '20.0.0.0/8'],
+                              'ip_addrs_step': step_ip,
+                              'ip_addrs': [ip0, ip1],
                               'tg_gateway_ip_addrs': ['1.1.0.100', '2.2.0.100'],
-                              'tg_gateway_ip_addrs_step': '0.0.0.1',
+                              'tg_gateway_ip_addrs_step': step_ip,
                               'gateway_ip_addrs': ['1.1.0.2', '2.2.0.2'],
-                              'gateway_ip_addrs_step': '0.0.0.1',
+                              'gateway_ip_addrs_step': step_ip,
                               'mac_addrs_left': None,
                               'mac_addrs_right': None,
                               'udp_src_port': None,
                               'udp_dst_port': None},
+        'traffic': {'profile': 'profile_64',
+                    'bidirectional': True},
+        'traffic_profile': [{'name': 'profile_64', 'l2frame_size': ['64']}],
+        'generator_profile': None,
         'service_chain': chain_type,
-        'service_chain_count': 1,
-        'flow_count': 10,
+        'service_chain_count': scc,
+        'flow_count': fc,
         'vlan_tagging': True,
         'no_arp': False,
         'duration_sec': 1,
@@ -631,23 +317,22 @@ def get_dummy_tg_config(chain_type, rate):
         'l2_loopback': False
     })
 
-def get_traffic_client():
-    config = get_dummy_tg_config('PVP', 'ndr_pdr')
+def _get_traffic_client():
+    config = _get_dummy_tg_config('PVP', 'ndr_pdr')
     config['ndr_run'] = True
     config['pdr_run'] = True
     config['generator_profile'] = 'dummy'
     config['single_run'] = False
-    generator_factory = TrafficGeneratorFactory(config)
-    config.generator_config = generator_factory.get_generator_config(config.generator_profile)
-    traffic_client = TrafficClient(config, skip_sleep=True)
+    traffic_client = TrafficClient(config)
     traffic_client.start_traffic_generator()
     traffic_client.set_traffic('64', True)
     return traffic_client
 
+@patch.object(TrafficClient, 'skip_sleep', lambda x: True)
 def test_ndr_at_lr():
-    traffic_client = get_traffic_client()
+    """Test NDR at line rate."""
+    traffic_client = _get_traffic_client()
     tg = traffic_client.gen
-
     # this is a perfect sut with no loss at LR
     tg.set_response_curve(lr_dr=0, ndr=100, max_actual_tx=100, max_11_tx=100)
     # tx packets should be line rate for 64B and no drops...
@@ -655,16 +340,20 @@ def test_ndr_at_lr():
     # NDR and PDR should be at 100%
     traffic_client.ensure_end_to_end()
     results = traffic_client.get_ndr_and_pdr()
-
     assert_ndr_pdr(results, 200.0, 0.0, 200.0, 0.0)
 
+@patch.object(TrafficClient, 'skip_sleep', lambda x: True)
 def test_ndr_at_50():
-    traffic_client = get_traffic_client()
+    """Test NDR at 50% line rate.
+
+    This is a sut with an NDR of 50% and linear drop rate after NDR up to 20% drops at LR
+    (meaning that if you send 100% TX, you will only receive 80% RX)
+    the tg requested TX/actual TX ratio is up to 50%, after 50%
+    is linear up 80% actuak TX when requesting 100%
+    """
+    traffic_client = _get_traffic_client()
     tg = traffic_client.gen
-    # this is a sut with an NDR of 50% and linear drop rate after NDR up to 20% drops at LR
-    # (meaning that if you send 100% TX, you will only receive 80% RX)
-    # the tg requested TX/actual TX ratio is 1up to 50%, after 50%
-    # is linear up 80% actuak TX when requesting 100%
+
     tg.set_response_curve(lr_dr=20, ndr=50, max_actual_tx=80, max_11_tx=50)
     # tx packets should be half line rate for 64B and no drops...
     assert tg.get_tx_pps_dropped_pps(50) == (LR_64B_PPS / 2, 0)
@@ -674,12 +363,16 @@ def test_ndr_at_50():
     results = traffic_client.get_ndr_and_pdr()
     assert_ndr_pdr(results, 100.0, 0.0, 100.781, 0.09374)
 
+@patch.object(TrafficClient, 'skip_sleep', lambda x: True)
 def test_ndr_pdr_low_cpu():
-    traffic_client = get_traffic_client()
+    """Test NDR and PDR with too low cpu.
+
+    This test is for the case where the TG is underpowered and cannot send fast enough for the NDR
+    true NDR=40%, actual TX at 50% = 30%, actual measured DR is 0%
+    The ndr/pdr should bail out with a warning and a best effort measured NDR of 30%
+    """
+    traffic_client = _get_traffic_client()
     tg = traffic_client.gen
-    # This test is for the case where the TG is underpowered and cannot send fast enough for the NDR
-    # true NDR=40%, actual TX at 50% = 30%, actual measured DR is 0%
-    # The ndr/pdr should bail out with a warning and a best effort measured NDR of 30%
     tg.set_response_curve(lr_dr=50, ndr=40, max_actual_tx=60, max_11_tx=0)
     # tx packets should be 30% at requested half line rate for 64B and no drops...
     assert tg.get_tx_pps_dropped_pps(50) == (int(LR_64B_PPS * 0.3), 0)
@@ -689,11 +382,15 @@ def test_ndr_pdr_low_cpu():
     # pp = pprint.PrettyPrinter(indent=4)
     # pp.pprint(results)
 
-import nfvbench.nfvbench
-
+@patch.object(TrafficClient, 'skip_sleep', lambda x: True)
 def test_no_openstack():
-    config = get_dummy_tg_config('EXT', '1000pps')
+    """Test nfvbench using main."""
+    config = _get_dummy_tg_config('EXT', '1000pps')
     config.openrc_file = None
+    config.vlans = [[100], [200]]
+    config['traffic_generator']['mac_addrs_left'] = ['00:00:00:00:00:00']
+    config['traffic_generator']['mac_addrs_right'] = ['00:00:00:00:01:00']
+    del config['generator_profile']
     old_argv = sys.argv
     sys.argv = [old_argv[0], '-c', json.dumps(config)]
     nfvbench.nfvbench.main()

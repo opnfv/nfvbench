@@ -54,7 +54,7 @@ class ComputeCleaner(object):
                 except Exception:
                     LOG.exception("Instance %s deletion failed", server.name)
             LOG.info('    Waiting for %d instances to be fully deleted...', len(self.servers))
-            retry_count = 5 + len(self.servers) * 2
+            retry_count = 15 + len(self.servers) * 5
             while True:
                 retry_count -= 1
                 self.servers = [server for server in self.servers if self.instance_exists(server)]
@@ -66,7 +66,7 @@ class ComputeCleaner(object):
                              len(self.servers), retry_count)
                     time.sleep(2)
                 else:
-                    LOG.warning('    instance deletion verification timed out: %d not removed',
+                    LOG.warning('    instance deletion verification time-out: %d still not deleted',
                                 len(self.servers))
                     break
 
@@ -74,20 +74,19 @@ class ComputeCleaner(object):
 class NetworkCleaner(object):
     """A cleaner for network resources."""
 
-    def __init__(self, neutron_client, network_names):
+    def __init__(self, neutron_client, network_name_prefixes):
         self.neutron_client = neutron_client
         LOG.info('Discovering networks...')
         all_networks = self.neutron_client.list_networks()['networks']
         self.networks = []
+        net_ids = []
         for net in all_networks:
-            try:
-                network_names.remove(net['name'])
-                self.networks.append(net)
-            except ValueError:
-                pass
-            if not network_names:
-                break
-        net_ids = [net['id'] for net in self.networks]
+            netname = net['name']
+            for prefix in network_name_prefixes:
+                if netname.startswith(prefix):
+                    self.networks.append(net)
+                    net_ids.append(net['id'])
+                    break
         if net_ids:
             LOG.info('Discovering ports...')
             all_ports = self.neutron_client.list_ports()['ports']
@@ -161,8 +160,8 @@ class Cleaner(object):
                 table.extend(res_list)
         count = len(table) - 1
         if count:
-            LOG.info('Discovered %d NFVbench resources:', count)
-            print tabulate(table, headers="firstrow", tablefmt="psql")
+            LOG.info('Discovered %d NFVbench resources:\n%s', count,
+                     tabulate(table, headers="firstrow", tablefmt="psql"))
         else:
             LOG.info('No matching NFVbench resources found')
         return count

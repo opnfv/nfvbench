@@ -17,31 +17,11 @@
 
 class BasicWorker(object):
 
-    def __init__(self, config, clients, specs):
-        self.config = config
-        self.clients = clients
-        self.specs = specs
-
-    def set_vlan_tag(self, device, vlan):
-        device.set_vlan_tag(vlan)
-
-    def set_vlans(self, vlans):
-        pass
-
-    def config_interfaces(self):
-        pass
-
-    def get_data(self):
-        return {}
-
-    def get_network_interfaces(self, index):
-        return []
-
-    def clear_interfaces(self):
-        pass
-
-    def run(self):
-        return None, None
+    def __init__(self, stats_manager):
+        self.stats_manager = stats_manager
+        self.chain_manager = stats_manager.chain_runner.chain_manager
+        self.config = stats_manager.config
+        self.specs = stats_manager.specs
 
     def get_compute_nodes_bios(self):
         return {}
@@ -50,4 +30,24 @@ class BasicWorker(object):
         return {}
 
     def close(self):
+        pass
+
+    def insert_interface_stats(self, pps_list):
+        """Insert interface stats to a list of packet path stats.
+
+        pps_list: a list of packet path stats instances indexed by chain index
+
+        Specialized workers can insert their own interface stats inside each existing packet path
+        stats for every chain.
+        """
+        pass
+
+    def update_interface_stats(self, diff=False):
+        """Update all interface stats.
+
+        diff: if False, simply refresh the interface stats values with latest values
+              if True, diff the interface stats with the latest values
+        Make sure that the interface stats inserted in insert_interface_stats() are updated
+        with proper values
+        """
         pass

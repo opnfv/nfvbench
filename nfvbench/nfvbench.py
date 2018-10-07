@@ -15,7 +15,6 @@
 #
 
 import argparse
-from collections import defaultdict
 import copy
 import datetime
 import importlib
@@ -34,7 +33,6 @@ from cleanup import Cleaner
 from config import config_load
 from config import config_loads
 import credentials as credentials
-from factory import BasicFactory
 from fluentd import FluentLogHandler
 import log
 from log import LOG
@@ -42,7 +40,6 @@ from nfvbenchd import WebSocketIoServer
 from specs import ChainType
 from specs import Specs
 from summarizer import NFVBenchSummarizer
-from traffic_client import TrafficGeneratorFactory
 import utils
 
 fluent_logger = None
@@ -55,7 +52,9 @@ class NFVBench(object):
     STATUS_ERROR = 'ERROR'
 
     def __init__(self, config, openstack_spec, config_plugin, factory, notifier=None):
+        # the base config never changes for a given NFVbench instance
         self.base_config = config
+        # this is the running config, updated at every run()
         self.config = None
         self.config_plugin = config_plugin
         self.factory = factory
@@ -65,18 +64,8 @@ class NFVBench(object):
         self.chain_runner = None
         self.specs = Specs()
         self.specs.set_openstack_spec(openstack_spec)
-        self.clients = defaultdict(lambda: None)
         self.vni_ports = []
         sys.stdout.flush()
-
-    def setup(self):
-        self.specs.set_run_spec(self.config_plugin.get_run_spec(self.config, self.specs.openstack))
-        self.chain_runner = ChainRunner(self.config,
-                                        self.clients,
-                                        self.cred,
-                                        self.specs,
-                                        self.factory,
-                                        self.notifier)
 
     def set_notifier(self, notifier):
         self.notifier = notifier
@@ -91,8 +80,15 @@ class NFVBench(object):
             fluent_logger.start_new_run()
         LOG.info(args)
         try:
-            self.update_config(opts)
-            self.setup()
+            # recalc the running config based on the base config and options for this run
+            self._update_config(opts)
+            self.specs.set_run_spec(self.config_plugin.get_run_spec(self.config,
+                                                                    self.specs.openstack))
+            self.chain_runner = ChainRunner(self.config,
+                                            self.cred,
+                                            self.specs,
+                                            self.factory,
+                                            self.notifier)
             new_frame_sizes = []
             min_packet_size = "68" if self.config.vlan_tagging else "64"
             for frame_size in self.config.frame_sizes:
@@ -132,7 +128,7 @@ class NFVBench(object):
                 self.chain_runner.close()
 
         if status == NFVBench.STATUS_OK:
-            result = utils.dict_to_json_dict(result)
+            # result2 = utils.dict_to_json_dict(result)
             return {
                 'status': status,
                 'result': result
@@ -158,98 +154,65 @@ class NFVBench(object):
                                self.config.flow_count,
                                self.config.frame_sizes)
 
-    def update_config(self, opts):
+    def _update_config(self, opts):
+        """Recalculate the running config based on the base config and opts.
+
+        Sanity check on the config is done here as well.
+        """
         self.config = AttrDict(dict(self.base_config))
         self.config.update(opts)
+        config = self.config
 
-        self.config.service_chain = self.config.service_chain.upper()
-        self.config.service_chain_count = int(self.config.service_chain_count)
-        self.config.flow_count = utils.parse_flow_count(self.config.flow_count)
-        required_flow_count = self.config.service_chain_count * 2
-        if self.config.flow_count < required_flow_count:
+        config.service_chain = config.service_chain.upper()
+        config.service_chain_count = int(config.service_chain_count)
+        if config.l2_loopback:
+            # force the number of chains to be 1 in case of l2 loopback
+            config.service_chain_count = 1
+            config.service_chain = ChainType.EXT
+            config.no_arp = True
+            LOG.info('Running L2 loopback: using EXT chain/no ARP')
+        config.flow_count = utils.parse_flow_count(config.flow_count)
+        required_flow_count = config.service_chain_count * 2
+        if config.flow_count < required_flow_count:
             LOG.info("Flow count %d has been set to minimum value of '%d' "
-                     "for current configuration", self.config.flow_count,
+                     "for current configuration", config.flow_count,
                      required_flow_count)
-            self.config.flow_count = required_flow_count
+            config.flow_count = required_flow_count
 
-        if self.config.flow_count % 2 != 0:
-            self.config.flow_count += 1
+        if config.flow_count % 2:
+            config.flow_count += 1
 
-        self.config.duration_sec = float(self.config.duration_sec)
-        self.config.interval_sec = float(self.config.interval_sec)
-        self.config.pause_sec = float(self.config.pause_sec)
+        config.duration_sec = float(config.duration_sec)
+        config.interval_sec = float(config.interval_sec)
+        config.pause_sec = float(config.pause_sec)
 
-        # Get traffic generator profile config
-        if not self.config.generator_profile:
-            self.config.generator_profile = self.config.traffic_generator.default_profile
+        if config.traffic is None or not config.traffic:
+            raise Exception("Missing traffic property in configuration")
 
-        generator_factory = TrafficGeneratorFactory(self.config)
-        self.config.generator_config = \
-            generator_factory.get_generator_config(self.config.generator_profile)
+        if config.openrc_file:
+            config.openrc_file = os.path.expanduser(config.openrc_file)
 
-        # Check length of mac_addrs_left/right for serivce_chain EXT with no_arp
-        if self.config.service_chain == ChainType.EXT and self.config.no_arp:
-            if not (self.config.generator_config.mac_addrs_left is None and
-                    self.config.generator_config.mac_addrs_right is None):
-                if (self.config.generator_config.mac_addrs_left is None or
-                        self.config.generator_config.mac_addrs_right is None):
-                    raise Exception("mac_addrs_left and mac_addrs_right must either "
-                                    "both be None or have a number of entries matching "
-                                    "service_chain_count")
-                if not (len(self.config.generator_config.mac_addrs_left) ==
-                        self.config.service_chain_count and
-                        len(self.config.generator_config.mac_addrs_right) ==
-                        self.config.service_chain_count):
-                    raise Exception("length of mac_addrs_left ({a}) and/or mac_addrs_right ({b}) "
-                                    "does not match service_chain_count ({c})"
-                                    .format(a=len(self.config.generator_config.mac_addrs_left),
-                                            b=len(self.config.generator_config.mac_addrs_right),
-                                            c=self.config.service_chain_count))
+        config.ndr_run = (not config.no_traffic and
+                          'ndr' in config.rate.strip().lower().split('_'))
+        config.pdr_run = (not config.no_traffic and
+                          'pdr' in config.rate.strip().lower().split('_'))
+        config.single_run = (not config.no_traffic and
+                             not (config.ndr_run or config.pdr_run))
 
-        if not any(self.config.generator_config.pcis):
-            raise Exception("PCI addresses configuration for selected traffic generator profile "
-                            "({tg_profile}) are missing. Please specify them in configuration file."
-                            .format(tg_profile=self.config.generator_profile))
-
-        if self.config.traffic is None or not self.config.traffic:
-            raise Exception("No traffic profile found in traffic configuration, "
-                            "please fill 'traffic' section in configuration file.")
-
-        if isinstance(self.config.traffic, tuple):
-            self.config.traffic = self.config.traffic[0]
-
-        self.config.frame_sizes = generator_factory.get_frame_sizes(self.config.traffic.profile)
-
-        self.config.ipv6_mode = False
-        self.config.no_dhcp = True
-        self.config.same_network_only = True
-        if self.config.openrc_file:
-            self.config.openrc_file = os.path.expanduser(self.config.openrc_file)
-
-        self.config.ndr_run = (not self.config.no_traffic and
-                               'ndr' in self.config.rate.strip().lower().split('_'))
-        self.config.pdr_run = (not self.config.no_traffic and
-                               'pdr' in self.config.rate.strip().lower().split('_'))
-        self.config.single_run = (not self.config.no_traffic and
-                                  not (self.config.ndr_run or self.config.pdr_run))
-
-        if self.config.vlans and len(self.config.vlans) != 2:
-            raise Exception('Number of configured VLAN IDs for VLAN tagging must be exactly 2.')
-
-        self.config.json_file = self.config.json if self.config.json else None
-        if self.config.json_file:
-            (path, _filename) = os.path.split(self.config.json)
+        config.json_file = config.json if config.json else None
+        if config.json_file:
+            (path, _filename) = os.path.split(config.json)
             if not os.path.exists(path):
                 raise Exception('Please provide existing path for storing results in JSON file. '
                                 'Path used: {path}'.format(path=path))
 
-        self.config.std_json_path = self.config.std_json if self.config.std_json else None
-        if self.config.std_json_path:
-            if not os.path.exists(self.config.std_json):
+        config.std_json_path = config.std_json if config.std_json else None
+        if config.std_json_path:
+            if not os.path.exists(config.std_json):
                 raise Exception('Please provide existing path for storing results in JSON file. '
-                                'Path used: {path}'.format(path=self.config.std_json_path))
+                                'Path used: {path}'.format(path=config.std_json_path))
 
-        self.config_plugin.validate_config(self.config, self.specs.openstack)
+        self.config_plugin.validate_config(config, self.specs.openstack)
 
 
 def parse_opts_from_cli():
@@ -284,7 +247,7 @@ def parse_opts_from_cli():
                         help='Port on which server will be listening (default 7555)')
 
     parser.add_argument('-sc', '--service-chain', dest='service_chain',
-                        choices=BasicFactory.chain_classes,
+                        choices=ChainType.names,
                         action='store',
                         help='Service chain to run')
 
@@ -348,21 +311,6 @@ def parse_opts_from_cli():
                         action='store_true',
                         help='Do not use ARP to find MAC addresses, '
                              'instead use values in config file')
-
-    parser.add_argument('--no-reset', dest='no_reset',
-                        default=None,
-                        action='store_true',
-                        help='Do not reset counters prior to running')
-
-    parser.add_argument('--no-int-config', dest='no_int_config',
-                        default=None,
-                        action='store_true',
-                        help='Skip interfaces config on EXT service chain')
-
-    parser.add_argument('--no-tor-access', dest='no_tor_access',
-                        default=None,
-                        action='store_true',
-                        help='Skip TOR switch configuration and retrieving of stats')
 
     parser.add_argument('--no-vswitch-access', dest='no_vswitch_access',
                         default=None,
@@ -572,8 +520,6 @@ def main():
             config.service_chain_count = opts.service_chain_count
         if opts.no_vswitch_access:
             config.no_vswitch_access = opts.no_vswitch_access
-        if opts.no_int_config:
-            config.no_int_config = opts.no_int_config
 
         # port to port loopback (direct or through switch)
         if opts.l2_loopback:
@@ -585,8 +531,6 @@ def main():
                 LOG.info('Disabling ARP')
                 config.no_arp = True
             config.vlans = [int(opts.l2_loopback), int(opts.l2_loopback)]
-            # disable any form of interface config since we loop at the switch level
-            config.no_int_config = True
             LOG.info('Running L2 loopback: using EXT chain/no ARP')
 
         if opts.use_sriov_middle_net:

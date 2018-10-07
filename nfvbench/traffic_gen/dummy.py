@@ -12,6 +12,7 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+from nfvbench.log import LOG
 from traffic_base import AbstractTrafficGenerator
 import traffic_utils as utils
 
@@ -23,33 +24,32 @@ class DummyTG(AbstractTrafficGenerator):
     Useful for unit testing without actually generating any traffic.
     """
 
-    def __init__(self, config):
-        AbstractTrafficGenerator.__init__(self, config)
+    def __init__(self, traffic_client):
+        AbstractTrafficGenerator.__init__(self, traffic_client)
         self.port_handle = []
         self.rates = []
         self.l2_frame_size = 0
-        self.duration_sec = self.config.duration_sec
-        self.intf_speed = config.generator_config.intf_speed
+        self.duration_sec = traffic_client.config.duration_sec
+        self.intf_speed = traffic_client.generator_config.intf_speed
         self.set_response_curve()
-        self.packet_list = [{
-            "binary": "01234567890123456789"
-        }, {
-            "binary": "98765432109876543210"
-        }]
+        # for packet capture, generate 2*scc random packets
+        # normally we should generate packets coming from the right dest macs
+        scc = traffic_client.config.service_chain_count
+        self.packet_list = [self._get_packet_capture(mac_id) for mac_id in range(scc * 2)]
+
+    def _get_packet_capture(self, mac_id):
+        return {'binary': 'SSSSSS01234' + str(mac_id)}
 
     def get_version(self):
         return "0.1"
 
-    def init(self):
-        pass
-
     def get_tx_pps_dropped_pps(self, tx_rate):
-        '''Get actual tx packets based on requested tx rate
+        """Get actual tx packets based on requested tx rate.
 
         :param tx_rate: requested TX rate with unit ('40%', '1Mbps', '1000pps')
 
         :return: the actual TX pps and the dropped pps corresponding to the requested TX rate
-        '''
+        """
         dr, tx = self.__get_dr_actual_tx(tx_rate)
         actual_tx_bps = utils.load_to_bps(tx, self.intf_speed)
         avg_packet_size = utils.get_average_packet_size(self.l2_frame_size)
@@ -61,14 +61,14 @@ class DummyTG(AbstractTrafficGenerator):
         return int(tx_packets), int(dropped)
 
     def set_response_curve(self, lr_dr=0, ndr=100, max_actual_tx=100, max_11_tx=100):
-        '''Set traffic gen response characteristics
+        """Set traffic gen response characteristics.
 
         Specifies the drop rate curve and the actual TX curve
         :param float lr_dr: The actual drop rate at TX line rate (in %, 0..100)
         :param float ndr: The true NDR  (0 packet drop) in % (0..100) of line rate"
         :param float max_actual_tx: highest actual TX when requested TX is 100%
         :param float max_11_tx: highest requested TX that results in same actual TX
-        '''
+        """
         self.target_ndr = ndr
         if ndr < 100:
             self.dr_slope = float(lr_dr) / (100 - ndr)
@@ -82,10 +82,11 @@ class DummyTG(AbstractTrafficGenerator):
             self.tx_slope = 0
 
     def __get_dr_actual_tx(self, requested_tx_rate):
-        '''Get drop rate at given requested tx rate
+        """Get drop rate at given requested tx rate.
+
         :param float requested_tx_rate: requested tx rate in % (0..100)
         :return: the drop rate and actual tx rate at that requested_tx_rate in % (0..100)
-        '''
+        """
         if requested_tx_rate <= self.max_11_tx:
             actual_tx = requested_tx_rate
         else:
@@ -97,14 +98,8 @@ class DummyTG(AbstractTrafficGenerator):
         return dr, actual_tx
 
     def connect(self):
-        ports = list(self.config.generator_config.ports)
+        ports = list(self.traffic_client.generator_config.ports)
         self.port_handle = ports
-
-    def is_arp_successful(self):
-        return True
-
-    def config_interface(self):
-        pass
 
     def create_traffic(self, l2frame_size, rates, bidirectional, latency=True):
         self.rates = [utils.to_rate_str(rate) for rate in rates]
@@ -114,7 +109,7 @@ class DummyTG(AbstractTrafficGenerator):
         pass
 
     def get_stats(self):
-        '''Get stats from current run.
+        """Get stats from current run.
 
         The binary search mainly looks at 2 results to make the decision:
             actual tx packets
@@ -122,7 +117,7 @@ class DummyTG(AbstractTrafficGenerator):
         From the Requested TX rate - we get the Actual TX rate and the RX drop rate
         From the Run duration and actual TX rate - we get the actual total tx packets
         From the Actual tx packets and RX drop rate - we get the RX dropped packets
-        '''
+        """
         result = {}
         total_tx_pps = 0
 
@@ -160,8 +155,23 @@ class DummyTG(AbstractTrafficGenerator):
         result['total_tx_rate'] = total_tx_pps
         return result
 
+    def get_stream_stats(self, tg_stats, if_stats, latencies, chain_idx):
+        for port in range(2):
+            if_stats[port].tx = 1000
+            if_stats[port].rx = 1000
+            latencies[port].min_usec = 10
+            latencies[port].max_usec = 100
+            latencies[port].avg_usec = 50
+
     def get_macs(self):
         return ['00.00.00.00.00.01', '00.00.00.00.00.02']
+
+    def get_port_speed_gbps(self):
+        """Return the local port speeds.
+
+        return: a list of speed in Gbps indexed by the port#
+        """
+        return [10, 10]
 
     def clear_stats(self):
         pass
@@ -188,4 +198,6 @@ class DummyTG(AbstractTrafficGenerator):
         pass
 
     def resolve_arp(self):
+        """Resolve ARP sucessfully."""
+        LOG.info('Dummy TG ARP OK')
         return True

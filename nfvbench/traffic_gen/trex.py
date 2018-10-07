@@ -17,7 +17,6 @@ import random
 import time
 import traceback
 
-from collections import defaultdict
 from itertools import count
 from nfvbench.log import LOG
 from nfvbench.specs import ChainType
@@ -54,23 +53,44 @@ from trex_stl_lib.services.trex_stl_service_arp import STLServiceARP
 
 
 class TRex(AbstractTrafficGenerator):
-    LATENCY_PPS = 1000
+    """TRex traffic generator driver."""
 
-    def __init__(self, runner):
-        AbstractTrafficGenerator.__init__(self, runner)
+    LATENCY_PPS = 1000
+    CHAIN_PG_ID_MASK = 0x007F
+    PORT_PG_ID_MASK = 0x0080
+    LATENCY_PG_ID_MASK = 0x0100
+
+    def __init__(self, traffic_client):
+        AbstractTrafficGenerator.__init__(self, traffic_client)
         self.client = None
         self.id = count()
-        self.latencies = defaultdict(list)
-        self.stream_ids = defaultdict(list)
         self.port_handle = []
-        self.streamblock = defaultdict(list)
+        self.chain_count = self.generator_config.service_chain_count
         self.rates = []
+        # A dict of list of dest macs indexed by port#
+        # the dest macs in the list are indexed by the chain id
         self.arps = {}
         self.capture_id = None
         self.packet_list = []
 
     def get_version(self):
+        """Get the Trex version."""
         return self.client.get_server_version()
+
+    def get_pg_id(self, port, chain_id):
+        """Calculate the packet group IDs to use for a given port/stream type/chain_id.
+
+        port: 0 or 1
+        chain_id: identifies to which chain the pg_id is associated (0 to 255)
+        return: pg_id, lat_pg_id
+
+        We use a bit mask to set up the 3 fields:
+        0x007F: chain ID (8 bits for a max of 128 chains)
+        0x0080: port bit
+        0x0100: latency bit
+        """
+        pg_id = port * TRex.PORT_PG_ID_MASK | chain_id
+        return pg_id, pg_id | TRex.LATENCY_PG_ID_MASK
 
     def extract_stats(self, in_stats):
         """Extract stats from dict returned by Trex API.
@@ -78,7 +98,7 @@ class TRex(AbstractTrafficGenerator):
         :param in_stats: dict as returned by TRex api
         """
         utils.nan_replace(in_stats)
-        LOG.debug(in_stats)
+        # LOG.debug(in_stats)
 
         result = {}
         # port_handles should have only 2 elements: [0, 1]
@@ -104,38 +124,123 @@ class TRex(AbstractTrafficGenerator):
                         far_end_stats['opackets'] - stats['ipackets'])
                 }
             }
+            self.__combine_latencies(in_stats, result[ph]['rx'], ph)
 
-            lat = self.__combine_latencies(in_stats, ph)
-            result[ph]['rx']['max_delay_usec'] = cast_integer(
-                lat['total_max']) if 'total_max' in lat else float('nan')
-            result[ph]['rx']['min_delay_usec'] = cast_integer(
-                lat['total_min']) if 'total_min' in lat else float('nan')
-            result[ph]['rx']['avg_delay_usec'] = cast_integer(
-                lat['average']) if 'average' in lat else float('nan')
         total_tx_pkts = result[0]['tx']['total_pkts'] + result[1]['tx']['total_pkts']
         result["total_tx_rate"] = cast_integer(total_tx_pkts / self.config.duration_sec)
+        result["flow_stats"] = in_stats["flow_stats"]
+        result["latency"] = in_stats["latency"]
         return result
 
-    def __combine_latencies(self, in_stats, port_handle):
-        """Traverses TRex result dictionary and combines chosen latency stats."""
-        if not self.latencies[port_handle]:
-            return {}
+    def get_stream_stats(self, trex_stats, if_stats, latencies, chain_idx):
+        """Extract the aggregated stats for a given chain.
 
-        result = defaultdict(float)
-        result['total_min'] = float("inf")
-        for lat_id in self.latencies[port_handle]:
-            lat = in_stats['latency'][lat_id]
-            result['dropped_pkts'] += lat['err_cntrs']['dropped']
-            result['total_max'] = max(lat['latency']['total_max'], result['total_max'])
-            result['total_min'] = min(lat['latency']['total_min'], result['total_min'])
-            result['average'] += lat['latency']['average']
+        trex_stats: stats as returned by get_stats()
+        if_stats: a list of 2 interface stats to update (port 0 and 1)
+        latencies: a list of 2 Latency instances to update for this chain (port 0 and 1)
+                   latencies[p] is the latency for packets sent on port p
+                   if there are no latency streams, the Latency instances are not modified
+        chain_idx: chain index of the interface stats
 
-        result['average'] /= len(self.latencies[port_handle])
+        The packet counts include normal and latency streams.
 
-        return result
+        Trex returns flows stats as follows:
 
-    def create_pkt(self, stream_cfg, l2frame_size):
+        'flow_stats': {0: {'rx_bps': {0: 0, 1: 0, 'total': 0},
+                   'rx_bps_l1': {0: 0.0, 1: 0.0, 'total': 0.0},
+                   'rx_bytes': {0: nan, 1: nan, 'total': nan},
+                   'rx_pkts': {0: 0, 1: 15001, 'total': 15001},
+                   'rx_pps': {0: 0, 1: 0, 'total': 0},
+                   'tx_bps': {0: 0, 1: 0, 'total': 0},
+                   'tx_bps_l1': {0: 0.0, 1: 0.0, 'total': 0.0},
+                   'tx_bytes': {0: 1020068, 1: 0, 'total': 1020068},
+                   'tx_pkts': {0: 15001, 1: 0, 'total': 15001},
+                   'tx_pps': {0: 0, 1: 0, 'total': 0}},
+               1: {'rx_bps': {0: 0, 1: 0, 'total': 0},
+                   'rx_bps_l1': {0: 0.0, 1: 0.0, 'total': 0.0},
+                   'rx_bytes': {0: nan, 1: nan, 'total': nan},
+                   'rx_pkts': {0: 0, 1: 15001, 'total': 15001},
+                   'rx_pps': {0: 0, 1: 0, 'total': 0},
+                   'tx_bps': {0: 0, 1: 0, 'total': 0},
+                   'tx_bps_l1': {0: 0.0, 1: 0.0, 'total': 0.0},
+                   'tx_bytes': {0: 1020068, 1: 0, 'total': 1020068},
+                   'tx_pkts': {0: 15001, 1: 0, 'total': 15001},
+                   'tx_pps': {0: 0, 1: 0, 'total': 0}},
+                128: {'rx_bps': {0: 0, 1: 0, 'total': 0},
+                'rx_bps_l1': {0: 0.0, 1: 0.0, 'total': 0.0},
+                'rx_bytes': {0: nan, 1: nan, 'total': nan},
+                'rx_pkts': {0: 15001, 1: 0, 'total': 15001},
+                'rx_pps': {0: 0, 1: 0, 'total': 0},
+                'tx_bps': {0: 0, 1: 0, 'total': 0},
+                'tx_bps_l1': {0: 0.0, 1: 0.0, 'total': 0.0},
+                'tx_bytes': {0: 0, 1: 1020068, 'total': 1020068},
+                'tx_pkts': {0: 0, 1: 15001, 'total': 15001},
+                'tx_pps': {0: 0, 1: 0, 'total': 0}},etc...
 
+        the pg_id (0, 1, 128,...) is the key of the dict and is obtained using the
+        get_pg_id() method.
+        packet counters for a given stream sent on port p are reported as:
+        - tx_pkts[p] on port p
+        - rx_pkts[1-p] on the far end port
+
+        This is a tricky/critical counter transposition operation because
+        the results are grouped by port (not by stream):
+        tx_pkts_port(p=0) comes from pg_id(port=0, chain_idx)['tx_pkts'][0]
+        rx_pkts_port(p=0) comes from pg_id(port=1, chain_idx)['rx_pkts'][0]
+        tx_pkts_port(p=1) comes from pg_id(port=1, chain_idx)['tx_pkts'][1]
+        rx_pkts_port(p=1) comes from pg_id(port=0, chain_idx)['rx_pkts'][1]
+
+        or using a more generic formula:
+        tx_pkts_port(p) comes from pg_id(port=p, chain_idx)['tx_pkts'][p]
+        rx_pkts_port(p) comes from pg_id(port=1-p, chain_idx)['rx_pkts'][p]
+
+        the second formula is equivalent to
+        rx_pkts_port(1-p) comes from pg_id(port=p, chain_idx)['rx_pkts'][1-p]
+
+        If there are latency streams, those same counters need to be added in the same way
+        """
+        for ifs in if_stats:
+            ifs.tx = ifs.rx = 0
+        for port in range(2):
+            pg_id, lat_pg_id = self.get_pg_id(port, chain_idx)
+            for pid in [pg_id, lat_pg_id]:
+                try:
+                    pg_stats = trex_stats['flow_stats'][pid]
+                    if_stats[port].tx += pg_stats['tx_pkts'][port]
+                    if_stats[1 - port].rx += pg_stats['rx_pkts'][1 - port]
+                except KeyError:
+                    pass
+            try:
+                lat = trex_stats['latency'][lat_pg_id]['latency']
+                # dropped_pkts += lat['err_cntrs']['dropped']
+                latencies[port].max_usec = int(round(lat['total_max']))
+                latencies[port].min_usec = int(round(lat['total_min']))
+                latencies[port].avg_usec = int(round(lat['average']))
+            except KeyError:
+                pass
+
+    def __combine_latencies(self, in_stats, results, port_handle):
+        """Traverse TRex result dictionary and combines chosen latency stats."""
+        total_max = 0
+        average = 0
+        total_min = float("inf")
+        for chain_id in range(self.chain_count):
+            try:
+                _, lat_pg_id = self.get_pg_id(port_handle, chain_id)
+                lat = in_stats['latency'][lat_pg_id]['latency']
+                # dropped_pkts += lat['err_cntrs']['dropped']
+                total_max = max(lat['total_max'], total_max)
+                total_min = min(lat['total_min'], total_min)
+                average += lat['average']
+            except KeyError:
+                pass
+        if total_min == float("inf"):
+            total_min = 0
+        results['min_delay_usec'] = total_min
+        results['max_delay_usec'] = total_max
+        results['avg_delay_usec'] = int(average / self.chain_count)
+
+    def _create_pkt(self, stream_cfg, l2frame_size):
         pkt_base = Ether(src=stream_cfg['mac_src'], dst=stream_cfg['mac_dst'])
         if stream_cfg['vlan_tag'] is not None:
             # 50 = 14 (Ethernet II) + 4 (Vlan tag) + 4 (CRC Checksum) + 20 (IPv4) + 8 (UDP)
@@ -195,47 +300,41 @@ class TRex(AbstractTrafficGenerator):
 
         return STLPktBuilder(pkt=pkt_base / payload, vm=STLScVmRaw(vm_param))
 
-    def generate_streams(self, port_handle, stream_cfg, l2frame, isg=0.0, latency=True):
-        idx_lat = None
+    def generate_streams(self, port, chain_id, stream_cfg, l2frame, latency=True):
+        """Create a list of streams corresponding to a given chain and stream config.
+
+        port: port where the streams originate (0 or 1)
+        chain_id: the chain to which the streams are associated to
+        stream_cfg: stream configuration
+        l2frame: L2 frame size
+        latency: if True also create a latency stream
+        """
         streams = []
+        pg_id, lat_pg_id = self.get_pg_id(port, chain_id)
         if l2frame == 'IMIX':
             min_size = 64 if stream_cfg['vlan_tag'] is None else 68
             self.adjust_imix_min_size(min_size)
-            for t, (ratio, l2_frame_size) in enumerate(zip(self.imix_ratios, self.imix_l2_sizes)):
-                pkt = self.create_pkt(stream_cfg, l2_frame_size)
+            for ratio, l2_frame_size in zip(self.imix_ratios, self.imix_l2_sizes):
+                pkt = self._create_pkt(stream_cfg, l2_frame_size)
                 streams.append(STLStream(packet=pkt,
-                                         isg=0.1 * t,
-                                         flow_stats=STLFlowStats(
-                                             pg_id=self.stream_ids[port_handle]),
+                                         flow_stats=STLFlowStats(pg_id=pg_id),
                                          mode=STLTXCont(pps=ratio)))
 
             if latency:
-                idx_lat = self.id.next()
-                pkt = self.create_pkt(stream_cfg, self.imix_avg_l2_size)
-                sl = STLStream(packet=pkt,
-                               isg=isg,
-                               flow_stats=STLFlowLatencyStats(pg_id=idx_lat),
-                               mode=STLTXCont(pps=self.LATENCY_PPS))
-                streams.append(sl)
+                # for IMIX, the latency packets have the average IMIX packet size
+                pkt = self._create_pkt(stream_cfg, self.imix_avg_l2_size)
+
         else:
-            pkt = self.create_pkt(stream_cfg, l2frame)
+            pkt = self._create_pkt(stream_cfg, l2frame)
             streams.append(STLStream(packet=pkt,
-                                     flow_stats=STLFlowStats(pg_id=self.stream_ids[port_handle]),
+                                     flow_stats=STLFlowStats(pg_id=pg_id),
                                      mode=STLTXCont()))
 
-            if latency:
-                idx_lat = self.id.next()
-                streams.append(STLStream(packet=pkt,
-                                         flow_stats=STLFlowLatencyStats(pg_id=idx_lat),
-                                         mode=STLTXCont(pps=self.LATENCY_PPS)))
-
         if latency:
-            self.latencies[port_handle].append(idx_lat)
-
+            streams.append(STLStream(packet=pkt,
+                                     flow_stats=STLFlowLatencyStats(pg_id=lat_pg_id),
+                                     mode=STLTXCont(pps=self.LATENCY_PPS)))
         return streams
-
-    def init(self):
-        pass
 
     @timeout(5)
     def __connect(self, client):
@@ -255,8 +354,9 @@ class TRex(AbstractTrafficGenerator):
                 LOG.info("Retrying connection to TRex (%s)...", ex.message)
 
     def connect(self):
-        LOG.info("Connecting to TRex...")
-        server_ip = self.config.generator_config.ip
+        """Connect to the TRex server."""
+        server_ip = self.generator_config.ip
+        LOG.info("Connecting to TRex (%s)...", server_ip)
 
         # Connect to TRex server
         self.client = STLClient(server=server_ip)
@@ -289,10 +389,36 @@ class TRex(AbstractTrafficGenerator):
             else:
                 raise TrafficGeneratorException(e.message)
 
-        ports = list(self.config.generator_config.ports)
+        ports = list(self.generator_config.ports)
         self.port_handle = ports
         # Prepare the ports
         self.client.reset(ports)
+        # Read HW information from each port
+        # this returns an array of dict (1 per port)
+        """
+        Example of output for Intel XL710
+        [{'arp': '-', 'src_ipv4': '-', u'supp_speeds': [40000], u'is_link_supported': True,
+          'grat_arp': 'off', 'speed': 40, u'index': 0, 'link_change_supported': 'yes',
+          u'rx': {u'counters': 127, u'caps': [u'flow_stats', u'latency']},
+          u'is_virtual': 'no', 'prom': 'off', 'src_mac': u'3c:fd:fe:a8:24:48', 'status': 'IDLE',
+          u'description': u'Ethernet Controller XL710 for 40GbE QSFP+',
+          'dest': u'fa:16:3e:3c:63:04', u'is_fc_supported': False, 'vlan': '-',
+          u'driver': u'net_i40e', 'led_change_supported': 'yes', 'rx_filter_mode': 'hardware match',
+          'fc': 'none', 'link': 'UP', u'hw_mac': u'3c:fd:fe:a8:24:48', u'pci_addr': u'0000:5e:00.0',
+          'mult': 'off', 'fc_supported': 'no', u'is_led_supported': True, 'rx_queue': 'off',
+          'layer_mode': 'Ethernet', u'numa': 0}, ...]
+        """
+        self.port_info = self.client.get_port_info(ports)
+        LOG.info('Connected to TRex')
+        for id, port in enumerate(self.port_info):
+            LOG.info('   Port %d: %s speed=%dGbps mac=%s pci=%s driver=%s',
+                     id, port['description'], port['speed'], port['src_mac'],
+                     port['pci_addr'], port['driver'])
+        # Make sure the 2 ports have the same speed
+        if self.port_info[0]['speed'] != self.port_info[1]['speed']:
+            raise TrafficGeneratorException('Traffic generator ports speed mismatch: %d/%d Gbps' %
+                                            (self.port_info[0]['speed'],
+                                             self.port_info[1]['speed']))
 
     def set_mode(self):
         if self.config.service_chain == ChainType.EXT and not self.config.no_arp:
@@ -302,7 +428,7 @@ class TRex(AbstractTrafficGenerator):
 
     def __set_l3_mode(self):
         self.client.set_service_mode(ports=self.port_handle, enabled=True)
-        for port, device in zip(self.port_handle, self.config.generator_config.devices):
+        for port, device in zip(self.port_handle, self.generator_config.devices):
             try:
                 self.client.set_l3_mode(port=port,
                                         src_ipv4=device.tg_gateway_ip,
@@ -315,62 +441,85 @@ class TRex(AbstractTrafficGenerator):
 
     def __set_l2_mode(self):
         self.client.set_service_mode(ports=self.port_handle, enabled=True)
-        for port, device in zip(self.port_handle, self.config.generator_config.devices):
-            for cfg in device.get_stream_configs(self.config.generator_config.service_chain):
+        for port, device in zip(self.port_handle, self.generator_config.devices):
+            for cfg in device.get_stream_configs():
                 self.client.set_l2_mode(port=port, dst_mac=cfg['mac_dst'])
         self.client.set_service_mode(ports=self.port_handle, enabled=False)
 
     def __start_server(self):
         server = TRexTrafficServer()
-        server.run_server(self.config.generator_config, self.config.vlan_tagging)
+        server.run_server(self.generator_config)
 
     def resolve_arp(self):
-        self.client.set_service_mode(ports=self.port_handle)
-        LOG.info('Polling ARP until successful')
-        resolved = 0
-        attempt = 0
-        for port, device in zip(self.port_handle, self.config.generator_config.devices):
-            ctx = self.client.create_service_ctx(port=port)
+        """Resolve all configured remote IP addresses.
 
+        return: True if ARP resolved successfully
+        """
+        self.client.set_service_mode(ports=self.port_handle)
+        LOG.info('Polling ARP until successful...')
+        arps = {}
+        for port, device in zip(self.port_handle, self.generator_config.devices):
+            # there should be 1 stream config per chain
+            stream_configs = device.get_stream_configs()
+            chain_count = len(stream_configs)
+            ctx = self.client.create_service_ctx(port=port)
+            # all dest macs on this port indexed by chain ID
+            dst_macs = [None] * chain_count
+            dst_macs_count = 0
+            # the index in the list is the chain id
             arps = [
                 STLServiceARP(ctx,
                               src_ip=cfg['ip_src_tg_gw'],
                               dst_ip=cfg['mac_discovery_gw'],
                               vlan=device.vlan_tag if device.vlan_tagging else None)
-                for cfg in device.get_stream_configs(self.config.generator_config.service_chain)
+                for cfg in stream_configs()
             ]
 
-            for _ in xrange(self.config.generic_retry_count):
-                attempt += 1
+            for attempt in range(self.config.generic_retry_count):
                 try:
                     ctx.run(arps)
                 except STLError:
                     LOG.error(traceback.format_exc())
                     continue
 
-                self.arps[port] = [arp.get_record().dst_mac for arp in arps
-                                   if arp.get_record().dst_mac is not None]
-
-                if len(self.arps[port]) == self.config.service_chain_count:
-                    resolved += 1
+                unresolved = []
+                for chain_id, mac in enumerate(dst_macs):
+                    if not mac:
+                        arp_record = arps[chain_id].get_record()
+                        if arp_record.dest_mac:
+                            dst_macs[chain_id] = arp_record.dst_mac
+                            dst_macs_count += 1
+                            LOG.info('   ARP: port=%d chain=%d IP=%s -> MAC=%s',
+                                     port, chain_id,
+                                     arp_record.dst_ip, arp_record.dst_mac)
+                        else:
+                            unresolved.append(arp_record.dst_ip)
+                if dst_macs_count == chain_count:
+                    arps[port] = dst_macs
                     LOG.info('ARP resolved successfully for port %s', port)
                     break
                 else:
-                    failed = [arp.get_record().dst_ip for arp in arps
-                              if arp.get_record().dst_mac is None]
-                    LOG.info('Retrying ARP for: %s (%d / %d)',
-                             failed, attempt, self.config.generic_retry_count)
-                    time.sleep(self.config.generic_poll_sec)
+                    retry = attempt + 1
+                    LOG.info('Retrying ARP for: %s (retry %d/%d)',
+                             unresolved, retry, self.config.generic_retry_count)
+                    if retry < self.config.generic_retry_count:
+                        time.sleep(self.config.generic_poll_sec)
+            else:
+                LOG.error('ARP timed out for port %s (resolved %d out of %d)',
+                          port,
+                          dst_macs_count,
+                          chain_count)
+                break
 
         self.client.set_service_mode(ports=self.port_handle, enabled=False)
-        return resolved == len(self.port_handle)
-
-    def config_interface(self):
-        pass
+        if len(arps) == len(self.port_handle):
+            self.arps = arps
+            return True
+        return False
 
     def __is_rate_enough(self, l2frame_size, rates, bidirectional, latency):
         """Check if rate provided by user is above requirements. Applies only if latency is True."""
-        intf_speed = self.config.generator_config.intf_speed
+        intf_speed = self.generator_config.intf_speed
         if latency:
             if bidirectional:
                 mult = 2
@@ -392,6 +541,14 @@ class TRex(AbstractTrafficGenerator):
         return {'result': True}
 
     def create_traffic(self, l2frame_size, rates, bidirectional, latency=True):
+        """Program all the streams in Trex server.
+
+        l2frame_size: L2 frame size or IMIX
+        rates: a list of 2 rates to run each direction
+               each rate is a dict like {'rate_pps': '10kpps'}
+        bidirectional: True if bidirectional
+        latency: True if latency measurement is needed
+        """
         r = self.__is_rate_enough(l2frame_size, rates, bidirectional, latency)
         if not r['result']:
             raise TrafficGeneratorException(
@@ -399,59 +556,89 @@ class TRex(AbstractTrafficGenerator):
                 .format(pps=r['rate_pps'],
                         bps=r['rate_bps'],
                         load=r['rate_percent']))
-
-        stream_cfgs = [d.get_stream_configs(self.config.generator_config.service_chain)
-                       for d in self.config.generator_config.devices]
+        # a dict of list of streams indexed by port#
+        # in case of fixed size, has self.chain_count * 2 * 2 streams
+        # (1 normal + 1 latency stream per direction per chain)
+        # for IMIX, has self.chain_count * 2 * 4 streams
+        # (3 normal + 1 latency stream per direction per chain)
+        streamblock = {}
+        for port in self.port_handle:
+            streamblock[port] = []
+        stream_cfgs = [d.get_stream_configs() for d in self.generator_config.devices]
         self.rates = [utils.to_rate_str(rate) for rate in rates]
+        for chain_id, (fwd_stream_cfg, rev_stream_cfg) in enumerate(zip(*stream_cfgs)):
+            if self.arps:
+                # in case of external chain with ARP, fill in the proper dest MAC
+                # based on the 2 ARP replies for each chain
+                fwd_stream_cfg['mac_dst'] = self.arps[self.port_handle[0]][chain_id]
+                rev_stream_cfg['mac_dst'] = self.arps[self.port_handle[1]][chain_id]
 
-        for ph in self.port_handle:
-            # generate one pg_id for each direction
-            self.stream_ids[ph] = self.id.next()
-
-        for i, (fwd_stream_cfg, rev_stream_cfg) in enumerate(zip(*stream_cfgs)):
-            if self.config.service_chain == ChainType.EXT and not self.config.no_arp:
-                fwd_stream_cfg['mac_dst'] = self.arps[self.port_handle[0]][i]
-                rev_stream_cfg['mac_dst'] = self.arps[self.port_handle[1]][i]
-
-            self.streamblock[0].extend(self.generate_streams(self.port_handle[0],
-                                                             fwd_stream_cfg,
-                                                             l2frame_size,
-                                                             latency=latency))
+            streamblock[0].extend(self.generate_streams(self.port_handle[0],
+                                                        chain_id,
+                                                        fwd_stream_cfg,
+                                                        l2frame_size,
+                                                        latency=latency))
             if len(self.rates) > 1:
-                self.streamblock[1].extend(self.generate_streams(self.port_handle[1],
-                                                                 rev_stream_cfg,
-                                                                 l2frame_size,
-                                                                 isg=10.0,
-                                                                 latency=bidirectional and latency))
+                streamblock[1].extend(self.generate_streams(self.port_handle[1],
+                                                            chain_id,
+                                                            rev_stream_cfg,
+                                                            l2frame_size,
+                                                            latency=bidirectional and latency))
 
-        for ph in self.port_handle:
-            self.client.add_streams(self.streamblock[ph], ports=ph)
-            LOG.info('Created traffic stream for port %s.', ph)
+        for port in self.port_handle:
+            self.client.add_streams(streamblock[port], ports=port)
+            LOG.info('Created %d traffic streams for port %s.', len(streamblock[port]), port)
 
     def clear_streamblock(self):
-        self.streamblock = defaultdict(list)
-        self.latencies = defaultdict(list)
-        self.stream_ids = defaultdict(list)
+        """Clear all streams from TRex."""
         self.rates = []
         self.client.reset(self.port_handle)
-        LOG.info('Cleared all existing streams.')
+        LOG.info('Cleared all existing streams')
 
     def get_stats(self):
+        """Get stats from Trex."""
         stats = self.client.get_stats()
         return self.extract_stats(stats)
 
     def get_macs(self):
-        return [self.client.get_port_attr(port=port)['src_mac'] for port in self.port_handle]
+        """Return the Trex local port MAC addresses.
+
+        return: a list of MAC addresses indexed by the port#
+        """
+        return [port['src_mac'] for port in self.port_info]
+
+    def get_port_speed_gbps(self):
+        """Return the Trex local port MAC addresses.
+
+        return: a list of speed in Gbps indexed by the port#
+        """
+        return [port['speed'] for port in self.port_info]
+
+    def get_dest_macs(self):
+        """Return the dest MAC for all chains for both ports for the current traffic setup.
+
+        return: a list of MAC addresses indexed by the port# [[m00, m01...], [m10, m11...]]
+
+        If ARP are used, resolve_arp() must be called prior to calling this method.
+        """
+        # if ARP was used, return the dest MACs resolved by ARP
+        if self.arps:
+            return [self.arps[port] for port in self.port_handle]
+        # no ARP, use the dest MACs as configured in the devices
+        return [d.dest_macs for d in self.generator_config.devices]
 
     def clear_stats(self):
+        """Clear all stats in the traffic gneerator."""
         if self.port_handle:
             self.client.clear_stats()
 
     def start_traffic(self):
+        """Start generating traffic in all ports."""
         for port, rate in zip(self.port_handle, self.rates):
             self.client.start(ports=port, mult=rate, duration=self.config.duration_sec, force=True)
 
     def stop_traffic(self):
+        """Stop generating traffic."""
         self.client.stop(ports=self.port_handle)
 
     def start_capture(self):
@@ -468,18 +655,21 @@ class TRex(AbstractTrafficGenerator):
                                                     bpf_filter=bpf_filter)
 
     def fetch_capture_packets(self):
+        """Fetch capture packets in capture mode."""
         if self.capture_id:
             self.packet_list = []
             self.client.fetch_capture_packets(capture_id=self.capture_id['id'],
                                               output=self.packet_list)
 
     def stop_capture(self):
+        """Stop capturing packets."""
         if self.capture_id:
             self.client.stop_capture(capture_id=self.capture_id['id'])
             self.capture_id = None
             self.client.set_service_mode(ports=self.port_handle, enabled=False)
 
     def cleanup(self):
+        """Cleanup Trex driver."""
         if self.client:
             try:
                 self.client.reset(self.port_handle)

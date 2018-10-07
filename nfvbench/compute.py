@@ -11,8 +11,6 @@
 #    WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
 #    License for the specific language governing permissions and limitations
 #    under the License.
-"""Module for Openstack compute operations"""
-import os
 import time
 import traceback
 
@@ -28,10 +26,9 @@ from log import LOG
 
 
 class Compute(object):
-    def __init__(self, nova_client, glance_client, neutron_client, config):
+    def __init__(self, nova_client, glance_client, config):
         self.novaclient = nova_client
         self.glance_client = glance_client
-        self.neutronclient = neutron_client
         self.config = config
 
     def find_image(self, image_name):
@@ -43,9 +40,7 @@ class Compute(object):
         return None
 
     def upload_image_via_url(self, final_image_name, image_file, retry_count=60):
-        '''
-        Directly uploads image to Nova via URL if image is not present
-        '''
+        """Directly upload image to Nova via URL if image is not present."""
         retry = 0
         try:
             # check image is file/url based.
@@ -93,56 +88,6 @@ class Compute(object):
 
         return True
 
-    # Remove keypair name from openstack if exists
-    def remove_public_key(self, name):
-        keypair_list = self.novaclient.keypairs.list()
-        for key in keypair_list:
-            if key.name == name:
-                self.novaclient.keypairs.delete(name)
-                LOG.info('Removed public key %s', name)
-                break
-
-    # Test if keypair file is present if not create it
-    def create_keypair(self, name, private_key_pair_file):
-        self.remove_public_key(name)
-        keypair = self.novaclient.keypairs.create(name)
-        # Now write the keypair to the file if requested
-        if private_key_pair_file:
-            kpf = os.open(private_key_pair_file,
-                          os.O_WRONLY | os.O_CREAT, 0o600)
-            with os.fdopen(kpf, 'w') as kpf:
-                kpf.write(keypair.private_key)
-        return keypair
-
-    # Add an existing public key to openstack
-    def add_public_key(self, name, public_key_file):
-        self.remove_public_key(name)
-        # extract the public key from the file
-        public_key = None
-        try:
-            with open(os.path.expanduser(public_key_file)) as pkf:
-                public_key = pkf.read()
-        except IOError as exc:
-            LOG.error('Cannot open public key file %s: %s', public_key_file, exc)
-            return None
-        keypair = self.novaclient.keypairs.create(name, public_key)
-        return keypair
-
-    def init_key_pair(self, kp_name, ssh_access):
-        '''Initialize the key pair for all test VMs
-        if a key pair is specified in access, use that key pair else
-        create a temporary key pair
-        '''
-        if ssh_access.public_key_file:
-            return self.add_public_key(kp_name, ssh_access.public_key_file)
-        keypair = self.create_keypair(kp_name, None)
-        ssh_access.private_key = keypair.private_key
-        return keypair
-
-    def find_network(self, label):
-        net = self.novaclient.networks.find(label=label)
-        return net
-
     # Create a server instance with name vmname
     # and check that it gets into the ACTIVE state
     def create_server(self, vmname, image, flavor, key_name,
@@ -174,48 +119,6 @@ class Compute(object):
         servers_list = self.novaclient.servers.list()
         return servers_list
 
-    def find_floating_ips(self):
-        floating_ip = self.novaclient.floating_ips.list()
-        return floating_ip
-
-    def create_floating_ips(self, pool):
-        return self.novaclient.floating_ips.create(pool)
-
-    # Return the server network for a server
-    def find_server_network(self, vmname):
-        servers_list = self.get_server_list()
-        for server in servers_list:
-            if server.name == vmname and server.status == "ACTIVE":
-                return server.networks
-        return None
-
-    # Returns True if server is present false if not.
-    # Retry for a few seconds since after VM creation sometimes
-    # it takes a while to show up
-    def find_server(self, vmname, retry_count):
-        for retry_attempt in range(retry_count):
-            servers_list = self.get_server_list()
-            for server in servers_list:
-                if server.name == vmname and server.status == "ACTIVE":
-                    return True
-            # Sleep between retries
-            LOG.debug("[%s] VM not yet found, retrying %s of %s...",
-                      vmname, (retry_attempt + 1), retry_count)
-            time.sleep(self.config.generic_poll_sec)
-        LOG.error("[%s] VM not found, after %s attempts", vmname, retry_count)
-        return False
-
-    # Returns True if server is found and deleted/False if not,
-    # retry the delete if there is a delay
-    def delete_server_by_name(self, vmname):
-        servers_list = self.get_server_list()
-        for server in servers_list:
-            if server.name == vmname:
-                LOG.info('Deleting server %s', server)
-                self.novaclient.servers.delete(server)
-                return True
-        return False
-
     def delete_server(self, server):
         self.novaclient.servers.delete(server)
 
@@ -226,20 +129,9 @@ class Compute(object):
         except Exception:
             return None
 
-    def create_flavor(self, name, ram, vcpus, disk, ephemeral=0, override=False):
-        if override:
-            self.delete_flavor(name)
+    def create_flavor(self, name, ram, vcpus, disk, ephemeral=0):
         return self.novaclient.flavors.create(name=name, ram=ram, vcpus=vcpus, disk=disk,
                                               ephemeral=ephemeral)
-
-    def delete_flavor(self, flavor=None, name=None):
-        try:
-            if not flavor:
-                flavor = self.find_flavor(name)
-            flavor.delete()
-            return True
-        except Exception:
-            return False
 
     def normalize_az_host(self, az, host):
         if not az:
@@ -247,11 +139,12 @@ class Compute(object):
         return az + ':' + host
 
     def auto_fill_az(self, host_list, host):
-        '''
+        """Auto fill az:host.
+
         no az provided, if there is a host list we can auto-fill the az
         else we use the configured az if available
         else we return an error
-        '''
+        """
         if host_list:
             for hyp in host_list:
                 if hyp.host == host:
@@ -265,7 +158,8 @@ class Compute(object):
         return None
 
     def sanitize_az_host(self, host_list, az_host):
-        '''
+        """Sanitize the az:host string.
+
         host_list: list of hosts as retrieved from openstack (can be empty)
         az_host: either a host or a az:host string
         if a host, will check host is in the list, find the corresponding az and
@@ -273,7 +167,7 @@ class Compute(object):
         if az:host is passed will check the host is in the list and az matches
         if host_list is empty, will return the configured az if there is no
                     az passed
-        '''
+        """
         if ':' in az_host:
             # no host_list, return as is (no check)
             if not host_list:
@@ -301,9 +195,6 @@ class Compute(object):
     #   The list of all hosts is retrieved first from openstack
     #        if this fails, checks and az auto-fill are disabled
     #
-    #   If the user provides a list of hypervisors (--hypervisor)
-    #       that list is checked and returned
-    #
     #   If the user provides a configured az name (config.availability_zone)
     #       up to the first 2 hosts from the list that match the az are returned
     #
@@ -315,49 +206,10 @@ class Compute(object):
     #   [ az1:hyp1, az2:hyp2 ]
     #   []  if an error occurred (error message printed to console)
     #
-    def get_az_host_list(self):
-        avail_list = []
-        host_list = []
-
-        try:
-            host_list = self.novaclient.services.list()
-        except novaclient.exceptions.Forbidden:
-            LOG.warning('Operation Forbidden: could not retrieve list of hosts'
-                        ' (likely no permission)')
-
-        for host in host_list:
-            # this host must be a compute node
-            if host.binary != 'nova-compute' or host.state != 'up':
-                continue
-            candidate = None
-            if self.config.availability_zone:
-                if host.zone == self.config.availability_zone:
-                    candidate = self.normalize_az_host(None, host.host)
-            else:
-                candidate = self.normalize_az_host(host.zone, host.host)
-            if candidate:
-                avail_list.append(candidate)
-                # pick first 2 matches at most
-                if len(avail_list) == 2:
-                    break
-
-        # if empty we insert the configured az
-        if not avail_list:
-
-            if not self.config.availability_zone:
-                LOG.error('Availability_zone must be configured')
-            elif host_list:
-                LOG.error('No host matching the selection for availability zone: %s',
-                          self.config.availability_zone)
-                avail_list = []
-            else:
-                avail_list = [self.config.availability_zone]
-        return avail_list
-
     def get_enabled_az_host_list(self, required_count=1):
-        """
-        Check which hypervisors are enabled and on which compute nodes they are running.
-        Pick required count of hosts.
+        """Check which hypervisors are enabled and on which compute nodes they are running.
+
+        Pick up to the required count of hosts (can be less or zero)
 
         :param required_count: count of compute-nodes to return
         :return: list of enabled available compute nodes
@@ -398,76 +250,3 @@ class Compute(object):
         hyper = self.novaclient.hypervisors.search(hyper_name)[0]
         # get full hypervisor object
         return self.novaclient.hypervisors.get(hyper.id)
-
-    # Given 2 VMs test if they are running on same Host or not
-    def check_vm_placement(self, vm_instance1, vm_instance2):
-        try:
-            server_instance_1 = self.novaclient.servers.get(vm_instance1)
-            server_instance_2 = self.novaclient.servers.get(vm_instance2)
-            return bool(server_instance_1.hostId == server_instance_2.hostId)
-        except novaclient.exceptions:
-            LOG.warning("Exception in retrieving the hostId of servers")
-
-    # Create a new security group with appropriate rules
-    def security_group_create(self):
-        # check first the security group exists
-        sec_groups = self.neutronclient.list_security_groups()['security_groups']
-        group = [x for x in sec_groups if x['name'] == self.config.security_group_name]
-        if group:
-            return group[0]
-
-        body = {
-            'security_group': {
-                'name': self.config.security_group_name,
-                'description': 'PNS Security Group'
-            }
-        }
-        group = self.neutronclient.create_security_group(body)['security_group']
-        self.security_group_add_rules(group)
-
-        return group
-
-    # Delete a security group
-    def security_group_delete(self, group):
-        if group:
-            LOG.info("Deleting security group")
-            self.neutronclient.delete_security_group(group['id'])
-
-    # Add rules to the security group
-    def security_group_add_rules(self, group):
-        body = {
-            'security_group_rule': {
-                'direction': 'ingress',
-                'security_group_id': group['id'],
-                'remote_group_id': None
-            }
-        }
-        if self.config.ipv6_mode:
-            body['security_group_rule']['ethertype'] = 'IPv6'
-            body['security_group_rule']['remote_ip_prefix'] = '::/0'
-        else:
-            body['security_group_rule']['ethertype'] = 'IPv4'
-            body['security_group_rule']['remote_ip_prefix'] = '0.0.0.0/0'
-
-        # Allow ping traffic
-        body['security_group_rule']['protocol'] = 'icmp'
-        body['security_group_rule']['port_range_min'] = None
-        body['security_group_rule']['port_range_max'] = None
-        self.neutronclient.create_security_group_rule(body)
-
-        # Allow SSH traffic
-        body['security_group_rule']['protocol'] = 'tcp'
-        body['security_group_rule']['port_range_min'] = 22
-        body['security_group_rule']['port_range_max'] = 22
-        self.neutronclient.create_security_group_rule(body)
-
-        # Allow TCP/UDP traffic for perf tools like iperf/nuttcp
-        # 5001: Data traffic (standard iperf data port)
-        # 5002: Control traffic (non standard)
-        # note that 5000/tcp is already picked by openstack keystone
-        body['security_group_rule']['protocol'] = 'tcp'
-        body['security_group_rule']['port_range_min'] = 5001
-        body['security_group_rule']['port_range_max'] = 5002
-        self.neutronclient.create_security_group_rule(body)
-        body['security_group_rule']['protocol'] = 'udp'
-        self.neutronclient.create_security_group_rule(body)

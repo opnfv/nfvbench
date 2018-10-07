@@ -17,11 +17,12 @@
 class Encaps(object):
     VLAN = "VLAN"
     VxLAN = "VxLAN"
-    BASIC = "BASIC"
+    NO_ENCAPS = "NONE"
 
     encaps_mapping = {
         'VLAN': VLAN,
-        'VXLAN': VxLAN
+        'VXLAN': VxLAN,
+        'NONE': NO_ENCAPS
     }
 
     @classmethod
@@ -33,22 +34,13 @@ class ChainType(object):
     PVP = "PVP"
     PVVP = "PVVP"
     EXT = "EXT"
-
-    chain_mapping = {
-        'PVP': PVP,
-        'PVVP': PVVP,
-        'EXT': EXT
-    }
-
-    @classmethod
-    def get_chain_type(cls, chain):
-        return cls.chain_mapping.get(chain.upper(), None)
+    names = [EXT, PVP, PVVP]
 
 
 class OpenStackSpec(object):
     def __init__(self):
         self.__vswitch = "BASIC"
-        self.__encaps = Encaps.BASIC
+        self.__encaps = Encaps.NO_ENCAPS
 
     @property
     def vswitch(self):

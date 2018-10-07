@@ -50,7 +50,7 @@ The staging component is in charge of staging the OpenStack resources that are u
 For example, for a PVP packet path, this module will create 2 Neutron networks and one VM instance connected to these 2 networks.
 Multi-chaining and VM placement is also handled by this module.
 
-Main class: nfvbench.chain_managers.StageManager
+Main class: nfvbench.chaining.ChainManager
 
 Traffic Generation
 ------------------
@@ -70,4 +70,4 @@ At the end of a traffic generation session, this component collects the results 
 is suitable for the various output formats (JSON, REST, file, fluentd).
 In the case of multi-chaining, it handles aggregation of results across chains.
 
-Main class: nfvbench.chain_managers.StatsManager
+Main class: nfvbench.stats_manager.StatsManager

@@ -5,6 +5,52 @@
 RELEASE NOTES
 +++++++++++++
 
+Release 2.0
+===========
+Major release highlights:
+
+- Dedicated chain networks
+- VxLAN support with VTEP in the traffic generator
+- Enhanced chain analysis
+- Code refactoring and enhanced unit testing
+- Miscellaneous enhancement
+
+Dedicated chain networks
+------------------------
+NFVbench 1.x only supported shared networks across chains.
+For example, 20xPVP would create only 2 networks (left and right) shared by all chains.
+With NFVbench 2.0, chain networks will become dedicated (unshared) by default with an option in
+the nfvbench configuration to shared them. A 20xPVP run will create 2x20 networks instead.
+
+Enhanced chain analysis
+-----------------------
+The new chain analysis improves at multiple levels:
+
+- there is now one table for each direction (forward and reverse) that both read from left to right
+- per-chain packet counters and latency
+- all-chain aggregate packet counters and latency
+- supports both shared and dedicated chain networks
+
+Code refactoring and enhanced unit testing
+------------------------------------------
+The overall code structure is now better partitioned in the following functions:
+
+- staging and resource discovery
+- traffic generator
+- stats collection
+
+The staging algorithm was rewritten to be:
+
+- a lot more robust to errors and to handle better resource reuse use cases.
+  For example when a network with a matching name is discovered the new code will verify that the
+  network is associated to the right VM instance
+- a lot more strict when it comes to the inventory of MAC addresses. For example the association
+  from each VM MAC to a chain index for each Trex port is handled in a much more strict manner.
+
+Although not all code is unit tested, the most critical parts are unit tested with the use of
+the mock library. The resulting unit test code can run in isolation without needing a real system under test.
+
+
 OPNFV Fraser Release
 ====================
 
@@ -55,10 +101,3 @@ This is the introductory release for NFVbench. In this release, NFVbench provide
 - detailed results in JSON format
 - summary tabular results
 - can send logs and results to one or more fluentd aggregators (per configuration)
-
-
-
-
-
-
-

@@ -8,13 +8,19 @@ Frequently Asked Questions
 General Questions
 =================
 
+Can NFVbench be used without OpenStack
+--------------------------------------
+Yes. This can be done using the EXT chain mode, with or without ARP
+(depending on whether your systen under test can do routing) and by setting the openrc_file
+property to empty in the NFVbench configuration.
+
 Can NFVbench be used with a different traffic generator than TRex?
 ------------------------------------------------------------------
 This is possible but requires developing a new python class to manage the new traffic generator interface.
 
 Can I connect Trex directly to my compute node?
 -----------------------------------------------
-That is possible but you will not be able to run more advanced use cases such as PVVP inter-node which requires 2 compute nodes.
+Yes.
 
 Can I drive NFVbench using a REST interface?
 --------------------------------------------
@@ -41,4 +47,3 @@ The most common issues that prevent traffic from passing are:
 
    - if the switch port is configured as access port, you must disable vlan_tagging in the NFVbench configuration
    - of the switch port is configured as trunk (recommended method), you must enable it
-

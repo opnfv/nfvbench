@@ -34,6 +34,24 @@
       "revId": "5575160af221295267b3d0396f4f756b5d7ef9c9",
       "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5a682502_ece24202",
+        "filename": "nfvbench/chain_managers.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 85,
+      "author": {
+        "id": 6909
+      },
+      "writtenOn": "2018-10-08T17:11:02Z",
+      "side": 1,
+      "message": "Ah, yes, yes.\n\nif self.worker:\n    self.worker.set_vlan_tag(device, vlan)\nelse:\n    device.set_vlan_tag(vlan)",
+      "parentUuid": "5a682502_acd84a54",
+      "revId": "5575160af221295267b3d0396f4f756b5d7ef9c9",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": false
     }
   ]
 }

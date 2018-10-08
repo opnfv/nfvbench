@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5a682502_2c1d5a10",
+        "filename": "nfvbench/chain_managers.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 85,
+      "author": {
+        "id": 6909
+      },
+      "writtenOn": "2018-10-08T16:37:19Z",
+      "side": 1,
+      "message": "base_class \u003d self.worker if self.worker else device\nbase_class.set_vlan_tag(device, vlan)",
+      "revId": "5575160af221295267b3d0396f4f756b5d7ef9c9",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": false
+    }
+  ]
+}

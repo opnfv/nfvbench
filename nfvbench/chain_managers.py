@@ -81,7 +81,8 @@ class PVPStatsManager(object):
         self._setup()
 
     def set_vlan_tag(self, device, vlan):
-        self.worker.set_vlan_tag(device, vlan)
+        if self.worker:
+            self.worker.set_vlan_tag(device, vlan)
 
     def _setup(self):
         WORKER_CLASS = self.factory.get_chain_worker(self.specs.openstack.encaps,

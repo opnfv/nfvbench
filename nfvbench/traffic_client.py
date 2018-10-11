@@ -328,6 +328,14 @@ class GeneratorConfig(object):
         self.devices[port_index].set_dest_macs(dest_macs)
         LOG.info('Port %d: dst MAC %s', port_index, [str(mac) for mac in dest_macs])
 
+    def get_dest_mac_map(self):
+        """Get a dict of (port,chain) tuples indexed by the dest MACs."""
+        result = {}
+        for port, dev in enumerate(self.devices):
+            for chain, mac in enumerate(dev.dest_macs):
+                result[mac] = (port, chain)
+        return result
+
     def set_vlans(self, port_index, vlans):
         """Set the list of vlans to use indexed by the chain id on given port.
 
@@ -477,16 +485,19 @@ class TrafficClient(object):
         # ensures enough traffic is coming back
         retry_count = (self.config.check_traffic_time_sec +
                        self.config.generic_poll_sec - 1) / self.config.generic_poll_sec
-        mac_addresses = set()
 
         # we expect to see packets coming from 2 unique MAC per chain
-        unique_src_mac_count = self.config.service_chain_count * 2
+        # because there can be flooding in the case of shared net
+        # we must verify that packets from the right VMs are received
+        # and not just count unique src MAC
+        mac_map = self.generator_config.get_dest_mac_map()
+        unique_src_mac_count = len(mac_map)
         for it in xrange(retry_count):
             self.gen.clear_stats()
             self.gen.start_traffic()
             self.gen.start_capture()
             LOG.info('Captured unique src mac %d/%d, capturing return packets (retry %d/%d)...',
-                     len(mac_addresses), unique_src_mac_count,
+                     unique_src_mac_count - len(mac_map), unique_src_mac_count,
                      it + 1, retry_count)
             if not self.skip_sleep():
                 time.sleep(self.config.generic_poll_sec)
@@ -496,12 +507,14 @@ class TrafficClient(object):
 
             for packet in self.gen.packet_list:
                 src_mac = packet['binary'][6:12]
-                if src_mac not in mac_addresses:
-                    LOG.info('Received packet from mac: %s',
-                             ':'.join(["%02x" % ord(x) for x in src_mac]))
-                    mac_addresses.add(src_mac)
+                src_mac = ':'.join(["%02x" % ord(x) for x in src_mac])
+                if src_mac in mac_map:
+                    port, chain = mac_map[src_mac]
+                    LOG.info('Received packet from mac: %s (chain=%d, port=%d)',
+                             src_mac, chain, port)
+                    mac_map.pop(src_mac, None)
 
-                if len(mac_addresses) == unique_src_mac_count:
+                if not mac_map:
                     LOG.info('End-to-end connectivity established')
                     return
 

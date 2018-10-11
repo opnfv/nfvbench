@@ -113,7 +113,9 @@ class AbstractTrafficGenerator(object):
     def resolve_arp(self):
         """Resolve all configured remote IP addresses.
 
-        return: True if ARP resolved successfully
+        return: None if ARP failed to resolve for all IP addresses
+                else a dict of list of dest macs indexed by port#
+                the dest macs in the list are indexed by the chain id
         """
         pass
 

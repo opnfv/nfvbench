@@ -67,9 +67,6 @@ class TRex(AbstractTrafficGenerator):
         self.port_handle = []
         self.chain_count = self.generator_config.service_chain_count
         self.rates = []
-        # A dict of list of dest macs indexed by port#
-        # the dest macs in the list are indexed by the chain id
-        self.arps = {}
         self.capture_id = None
         self.packet_list = []
 
@@ -453,7 +450,9 @@ class TRex(AbstractTrafficGenerator):
     def resolve_arp(self):
         """Resolve all configured remote IP addresses.
 
-        return: True if ARP resolved successfully
+        return: None if ARP failed to resolve for all IP addresses
+                else a dict of list of dest macs indexed by port#
+                the dest macs in the list are indexed by the chain id
         """
         self.client.set_service_mode(ports=self.port_handle)
         LOG.info('Polling ARP until successful...')
@@ -513,9 +512,8 @@ class TRex(AbstractTrafficGenerator):
 
         self.client.set_service_mode(ports=self.port_handle, enabled=False)
         if len(arps) == len(self.port_handle):
-            self.arps = arps
-            return True
-        return False
+            return arps
+        return None
 
     def __is_rate_enough(self, l2frame_size, rates, bidirectional, latency):
         """Check if rate provided by user is above requirements. Applies only if latency is True."""
@@ -567,12 +565,6 @@ class TRex(AbstractTrafficGenerator):
         stream_cfgs = [d.get_stream_configs() for d in self.generator_config.devices]
         self.rates = [utils.to_rate_str(rate) for rate in rates]
         for chain_id, (fwd_stream_cfg, rev_stream_cfg) in enumerate(zip(*stream_cfgs)):
-            if self.arps:
-                # in case of external chain with ARP, fill in the proper dest MAC
-                # based on the 2 ARP replies for each chain
-                fwd_stream_cfg['mac_dst'] = self.arps[self.port_handle[0]][chain_id]
-                rev_stream_cfg['mac_dst'] = self.arps[self.port_handle[1]][chain_id]
-
             streamblock[0].extend(self.generate_streams(self.port_handle[0],
                                                         chain_id,
                                                         fwd_stream_cfg,
@@ -613,19 +605,6 @@ class TRex(AbstractTrafficGenerator):
         return: a list of speed in Gbps indexed by the port#
         """
         return [port['speed'] for port in self.port_info]
-
-    def get_dest_macs(self):
-        """Return the dest MAC for all chains for both ports for the current traffic setup.
-
-        return: a list of MAC addresses indexed by the port# [[m00, m01...], [m10, m11...]]
-
-        If ARP are used, resolve_arp() must be called prior to calling this method.
-        """
-        # if ARP was used, return the dest MACs resolved by ARP
-        if self.arps:
-            return [self.arps[port] for port in self.port_handle]
-        # no ARP, use the dest MACs as configured in the devices
-        return [d.dest_macs for d in self.generator_config.devices]
 
     def clear_stats(self):
         """Clear all stats in the traffic gneerator."""

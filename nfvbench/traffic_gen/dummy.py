@@ -32,13 +32,7 @@ class DummyTG(AbstractTrafficGenerator):
         self.duration_sec = traffic_client.config.duration_sec
         self.intf_speed = traffic_client.generator_config.intf_speed
         self.set_response_curve()
-        # for packet capture, generate 2*scc random packets
-        # normally we should generate packets coming from the right dest macs
-        scc = traffic_client.config.service_chain_count
-        self.packet_list = [self._get_packet_capture(mac_id) for mac_id in range(scc * 2)]
-
-    def _get_packet_capture(self, mac_id):
-        return {'binary': 'SSSSSS01234' + str(mac_id)}
+        self.packet_list = None
 
     def get_version(self):
         return "0.1"
@@ -164,7 +158,7 @@ class DummyTG(AbstractTrafficGenerator):
             latencies[port].avg_usec = 50
 
     def get_macs(self):
-        return ['00.00.00.00.00.01', '00.00.00.00.00.02']
+        return ['00:00:00:00:00:01', '00:00:00:00:00:02']
 
     def get_port_speed_gbps(self):
         """Return the local port speeds.
@@ -180,7 +174,17 @@ class DummyTG(AbstractTrafficGenerator):
         pass
 
     def fetch_capture_packets(self):
-        pass
+        def _get_packet_capture(mac):
+            # convert text to binary
+            src_mac = mac.replace(':', '').decode('hex')
+            return {'binary': 'SSSSSS' + src_mac}
+
+        # for packet capture, generate 2*scc random packets
+        # normally we should generate packets coming from the right dest macs
+        self.packet_list = []
+        for dest_macs in self.traffic_client.generator_config.get_dest_macs():
+            for mac in dest_macs:
+                self.packet_list.append(_get_packet_capture(mac))
 
     def stop_traffic(self):
         pass
@@ -199,5 +203,9 @@ class DummyTG(AbstractTrafficGenerator):
 
     def resolve_arp(self):
         """Resolve ARP sucessfully."""
-        LOG.info('Dummy TG ARP OK')
-        return True
+        def get_macs(port, scc):
+            return ['00:00:00:00:%02x:%02x' % (port, chain) for chain in range(scc)]
+        scc = self.traffic_client.generator_config.service_chain_count
+        res = [get_macs(port, scc) for port in range(2)]
+        LOG.info('Dummy TG ARP: %s', str(res))
+        return res

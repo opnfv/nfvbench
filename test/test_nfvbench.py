@@ -215,7 +215,7 @@ def test_config():
         expected = fail_pair[1]
         if expected is None:
             expected = fail_pair[0]
-        assert expected in e_info.value.message
+        assert expected in str(e_info)
 
     # whitelist keys
     flavor = {'flavor': {'vcpus': 2, 'ram': 8192, 'disk': 0,

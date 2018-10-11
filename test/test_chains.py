@@ -21,6 +21,7 @@ from mock import MagicMock
 from mock import patch
 
 from nfvbench.chain_runner import ChainRunner
+from nfvbench.chaining import ChainVnfPort
 from nfvbench.compute import Compute
 import nfvbench.credentials
 from nfvbench.factory import BasicFactory
@@ -159,9 +160,18 @@ def _check_nfvbench_openstack(sc=ChainType.PVP, l2_loopback=False):
             print res
         assert res['status'] == 'OK'
 
+
+mac_seq = 0
+
+def _mock_get_mac(dummy):
+    global mac_seq
+    mac_seq += 1
+    return '01:00:00:00:00:%02x' % mac_seq
+
 @patch.object(Compute, 'get_enabled_az_host_list', _mock_get_enabled_az_host_list)
 @patch.object(Compute, 'find_image', _mock_find_image)
 @patch.object(TrafficClient, 'skip_sleep', lambda x: True)
+@patch.object(ChainVnfPort, 'get_mac', _mock_get_mac)
 @patch('nfvbench.chaining.Client')
 @patch('nfvbench.chaining.neutronclient')
 @patch('nfvbench.chaining.glanceclient')

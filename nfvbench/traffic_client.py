@@ -182,8 +182,24 @@ class Device(object):
         return self.generator_config.devices[1 - self.port]
 
     def set_dest_macs(self, dest_macs):
-        """Set the list of dest MACs indexed by the chain id."""
+        """Set the list of dest MACs indexed by the chain id.
+
+        This is only called in 2 cases:
+        - VM macs discovered using openstack API
+        - dest MACs provisioned in config file
+        """
         self.dest_macs = map(str, dest_macs)
+
+    def get_dest_macs(self):
+        """Get the list of dest macs for this device.
+
+        If set_dest_macs was never called, assumes l2-loopback and return
+        a list of peer mac (as many as chains but normally only 1 chain)
+        """
+        if self.dest_macs:
+            return self.dest_macs
+        # assume this is l2-loopback
+        return [self.get_peer_device().mac] * self.chain_count
 
     def set_vlans(self, vlans):
         """Set the list of vlans to use indexed by the chain id."""
@@ -211,16 +227,16 @@ class Device(object):
         peer = self.get_peer_device()
         self.ip_block.reset_reservation()
         peer.ip_block.reset_reservation()
+        dest_macs = self.get_dest_macs()
 
         for chain_idx in xrange(self.chain_count):
             src_ip_first, src_ip_last = self.ip_block.reserve_ip_range(cur_chain_flow_count)
             dst_ip_first, dst_ip_last = peer.ip_block.reserve_ip_range(cur_chain_flow_count)
 
-            dest_mac = self.dest_macs[chain_idx] if self.dest_macs else peer.mac
             configs.append({
                 'count': cur_chain_flow_count,
                 'mac_src': self.mac,
-                'mac_dst': dest_mac,
+                'mac_dst': dest_macs[chain_idx],
                 'ip_src_addr': src_ip_first,
                 'ip_src_addr_max': src_ip_last,
                 'ip_src_count': cur_chain_flow_count,
@@ -327,6 +343,10 @@ class GeneratorConfig(object):
                                          (dest_macs, self.config.service_chain_count))
         self.devices[port_index].set_dest_macs(dest_macs)
         LOG.info('Port %d: dst MAC %s', port_index, [str(mac) for mac in dest_macs])
+
+    def get_dest_macs(self):
+        """Return the list of dest macs indexed by port."""
+        return [dev.get_dest_macs() for dev in self.devices]
 
     def set_vlans(self, port_index, vlans):
         """Set the list of vlans to use indexed by the chain id on given port.
@@ -477,16 +497,23 @@ class TrafficClient(object):
         # ensures enough traffic is coming back
         retry_count = (self.config.check_traffic_time_sec +
                        self.config.generic_poll_sec - 1) / self.config.generic_poll_sec
-        mac_addresses = set()
 
         # we expect to see packets coming from 2 unique MAC per chain
-        unique_src_mac_count = self.config.service_chain_count * 2
+        # because there can be flooding in the case of shared net
+        # we must verify that packets from the right VMs are received
+        # and not just count unique src MAC
+        # create a dict of (port, chain) tuples indexed by dest mac
+        mac_map = {}
+        for port, dest_macs in enumerate(self.generator_config.get_dest_macs()):
+            for chain, mac in enumerate(dest_macs):
+                mac_map[mac] = (port, chain)
+        unique_src_mac_count = len(mac_map)
         for it in xrange(retry_count):
             self.gen.clear_stats()
             self.gen.start_traffic()
             self.gen.start_capture()
             LOG.info('Captured unique src mac %d/%d, capturing return packets (retry %d/%d)...',
-                     len(mac_addresses), unique_src_mac_count,
+                     unique_src_mac_count - len(mac_map), unique_src_mac_count,
                      it + 1, retry_count)
             if not self.skip_sleep():
                 time.sleep(self.config.generic_poll_sec)
@@ -496,12 +523,14 @@ class TrafficClient(object):
 
             for packet in self.gen.packet_list:
                 src_mac = packet['binary'][6:12]
-                if src_mac not in mac_addresses:
-                    LOG.info('Received packet from mac: %s',
-                             ':'.join(["%02x" % ord(x) for x in src_mac]))
-                    mac_addresses.add(src_mac)
+                src_mac = ':'.join(["%02x" % ord(x) for x in src_mac])
+                if src_mac in mac_map:
+                    port, chain = mac_map[src_mac]
+                    LOG.info('Received packet from mac: %s (chain=%d, port=%d)',
+                             src_mac, chain, port)
+                    mac_map.pop(src_mac, None)
 
-                if len(mac_addresses) == unique_src_mac_count:
+                if not mac_map:
                     LOG.info('End-to-end connectivity established')
                     return
 
@@ -509,7 +538,12 @@ class TrafficClient(object):
 
     def ensure_arp_successful(self):
         """Resolve all IP using ARP and throw an exception in case of failure."""
-        if not self.gen.resolve_arp():
+        dest_macs = self.gen.resolve_arp()
+        if dest_macs:
+            # all dest macs are discovered, saved them into the generator config
+            self.generator_config.set_dest_macs(0, dest_macs[0])
+            self.generator_config.set_dest_macs(1, dest_macs[1])
+        else:
             raise TrafficClientException('ARP cannot be resolved')
 
     def set_traffic(self, frame_size, bidirectional):

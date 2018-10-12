@@ -64,7 +64,7 @@ def _annotate_chain_stats(chain_stats, nodrop_marker='=>'):
                     drop = cur_count - prev_count
                     if drop:
                         dr = (drop * 100.0) / prev_count if prev_count else 0
-                        annotated_value = '{:,} ({:.4f}%)'.format(drop, dr)
+                        annotated_value = '{:+,} ({:+.4f}%)'.format(drop, dr)
                     else:
                         # no drop
                         # if last column we display the value

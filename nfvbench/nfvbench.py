@@ -383,6 +383,11 @@ def parse_opts_from_cli():
                         action='store',
                         help='Custom label for performance records')
 
+    parser.add_argument('--hypervisor', dest='hypervisor',
+                        action='store',
+                        metavar='<hypervisor name>',
+                        help='Where chains must run ("compute", "az:", "az:compute")')
+
     parser.add_argument('--l2-loopback', '--l2loopback', dest='l2_loopback',
                         action='store',
                         metavar='<vlan>',
@@ -520,6 +525,9 @@ def main():
             config.service_chain_count = opts.service_chain_count
         if opts.no_vswitch_access:
             config.no_vswitch_access = opts.no_vswitch_access
+        if opts.hypervisor:
+            # can be any of 'comp1', 'nova:', 'nova:comp1'
+            config.compute_nodes = opts.hypervisor
 
         # port to port loopback (direct or through switch)
         if opts.l2_loopback:

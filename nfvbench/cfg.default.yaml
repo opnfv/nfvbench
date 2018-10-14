@@ -65,11 +65,11 @@ flavor:
 
 # Name of the availability zone to use for the test VMs
 # Must be one of the zones listed by 'nova availability-zone-list'
-# If the selected zone contains only 1 compute node and PVVP inter-node flow is selected,
-# application will use intra-node PVVP flow.
-# List of compute nodes can be specified, must be in given availability zone if not empty
 # availability_zone: 'nova'
 availability_zone:
+# To force placement on a given hypervisor, set the name here
+# (if multiple names are provided, the first will be used)
+# Leave empty to let openstack pick the hypervisor
 compute_nodes:
 
 # Type of service chain to run, possible options are PVP, PVVP and EXT

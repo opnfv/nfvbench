@@ -19,9 +19,11 @@ from mock_trex import no_op
 
 from mock import MagicMock
 from mock import patch
+import pytest
 
 from nfvbench.chain_runner import ChainRunner
 from nfvbench.chaining import ChainVnfPort
+from nfvbench.chaining import InstancePlacer
 from nfvbench.compute import Compute
 import nfvbench.credentials
 from nfvbench.factory import BasicFactory
@@ -36,6 +38,7 @@ from nfvbench.summarizer import _annotate_chain_stats
 from nfvbench.traffic_client import TrafficClient
 from nfvbench.traffic_gen.traffic_base import Latency
 from nfvbench.traffic_gen.trex import TRex
+
 
 # just to get rid of the unused function warning
 no_op()
@@ -78,13 +81,9 @@ def test_chain_runner_ext_no_openstack():
     runner = ChainRunner(config, None, specs, BasicFactory())
     runner.close()
 
-def _mock_get_enabled_az_host_list(self, required_count=1):
-    return ['nova:c1', 'nova:c2']
-
 def _mock_find_image(self, image_name):
     return True
 
-@patch.object(Compute, 'get_enabled_az_host_list', _mock_get_enabled_az_host_list)
 @patch.object(Compute, 'find_image', _mock_find_image)
 @patch('nfvbench.chaining.Client')
 @patch('nfvbench.chaining.neutronclient')
@@ -112,7 +111,6 @@ def test_pvp_chain_runner():
                 config = _get_chain_config(sc, scc, shared_net)
                 _test_pvp_chain(config, cred)
 
-@patch.object(Compute, 'get_enabled_az_host_list', _mock_get_enabled_az_host_list)
 @patch.object(Compute, 'find_image', _mock_find_image)
 @patch('nfvbench.chaining.Client')
 @patch('nfvbench.chaining.neutronclient')
@@ -168,7 +166,6 @@ def _mock_get_mac(dummy):
     mac_seq += 1
     return '01:00:00:00:00:%02x' % mac_seq
 
-@patch.object(Compute, 'get_enabled_az_host_list', _mock_get_enabled_az_host_list)
 @patch.object(Compute, 'find_image', _mock_find_image)
 @patch.object(TrafficClient, 'skip_sleep', lambda x: True)
 @patch.object(ChainVnfPort, 'get_mac', _mock_get_mac)
@@ -186,7 +183,6 @@ def test_nfvbench_run(mock_cred, mock_glance, mock_neutron, mock_client):
     mock_neutron.Client.return_value.list_networks.return_value = {'networks': None}
     _check_nfvbench_openstack()
 
-@patch.object(Compute, 'get_enabled_az_host_list', _mock_get_enabled_az_host_list)
 @patch.object(Compute, 'find_image', _mock_find_image)
 @patch.object(TrafficClient, 'skip_sleep', lambda x: True)
 @patch('nfvbench.chaining.Client')
@@ -202,7 +198,6 @@ def test_nfvbench_ext_arp(mock_cred, mock_glance, mock_neutron, mock_client):
     mock_neutron.Client.return_value.list_networks.return_value = {'networks': [netw]}
     _check_nfvbench_openstack(sc=ChainType.EXT)
 
-@patch.object(Compute, 'get_enabled_az_host_list', _mock_get_enabled_az_host_list)
 @patch.object(Compute, 'find_image', _mock_find_image)
 @patch.object(TrafficClient, 'skip_sleep', lambda x: True)
 @patch('nfvbench.chaining.Client')
@@ -281,6 +276,47 @@ def test_trex_streams_stats():
     assert if_stats[0].rx == CH1_P0_RX + LCH1_P0_RX
     assert if_stats[1].tx == CH1_P1_TX + LCH1_P1_TX
     assert if_stats[1].rx == CH1_P1_RX + LCH1_P1_RX
+
+def check_placer(az, hyp, req_az, resolved=False):
+    """Combine multiple combinatoons of placer tests."""
+    placer = InstancePlacer(az, hyp)
+    assert placer.is_resolved() == resolved
+    assert placer.get_required_az() == req_az
+    assert placer.register_full_name('nova:comp1')
+    assert placer.is_resolved()
+    assert placer.get_required_az() == 'nova:comp1'
+
+def test_placer_no_user_pref():
+    """Test placement when user does not provide any preference."""
+    check_placer(None, None, '')
+
+def test_placer_user_az():
+    """Test placement when user only provides an az."""
+    check_placer('nova', None, 'nova:')
+    check_placer(None, 'nova:', 'nova:')
+    check_placer('nebula', 'nova:', 'nova:')
+
+def test_placer_user_hyp():
+    """Test placement when user provides a hypervisor."""
+    check_placer(None, 'comp1', 'comp1')
+    check_placer('nova', 'comp1', 'nova:comp1', resolved=True)
+    check_placer(None, 'nova:comp1', 'nova:comp1', resolved=True)
+    # hyp overrides az
+    check_placer('nebula', 'nova:comp1', 'nova:comp1', resolved=True)
+    # also check for cases of extra parts (more than 1 ':')
+    check_placer('nova:nebula', 'comp1', 'nova:comp1', resolved=True)
+
+
+def test_placer_negative():
+    """Run negative tests on placer."""
+    # AZ mismatch
+    with pytest.raises(Exception):
+        placer = InstancePlacer('nova', None)
+        placer.register('nebula:comp1')
+    # comp mismatch
+    with pytest.raises(Exception):
+        placer = InstancePlacer(None, 'comp1')
+        placer.register('nebula:comp2')
 
 
 # without total, with total and only 2 col

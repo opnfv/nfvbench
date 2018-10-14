@@ -72,7 +72,7 @@ class TRex(AbstractTrafficGenerator):
 
     def get_version(self):
         """Get the Trex version."""
-        return self.client.get_server_version()
+        return self.client.get_server_version() if self.client else ''
 
     def get_pg_id(self, port, chain_id):
         """Calculate the packet group IDs to use for a given port/stream type/chain_id.

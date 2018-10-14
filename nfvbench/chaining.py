@@ -399,8 +399,7 @@ class ChainVnf(object):
                     self._reuse_exception('Left network mismatch')
                 if networks[RIGHT].name not in instance.networks:
                     self._reuse_exception('Right network mismatch')
-                # Other checks not performed (yet)
-                # check if az and compute node match
+
                 self.reuse = True
                 self.instance = instance
                 LOG.info('Reusing existing instance %s on %s',
@@ -413,17 +412,13 @@ class ChainVnf(object):
         # if no reuse, actual vm creation is deferred after all ports in the chain are created
         # since we need to know the next mac in a multi-vnf chain
 
-    def get_az(self):
-        """Get the AZ associated to this VNF."""
-        return self.manager.az[0]
-
     def create_vnf(self, remote_mac_pair):
         """Create the VNF instance if it does not already exist."""
         if self.instance is None:
             port_ids = [{'port-id': vnf_port.port['id']}
                         for vnf_port in self.ports]
             vm_config = self._get_vm_config(remote_mac_pair)
-            az = self.get_az()
+            az = self.manager.placer.get_required_az()
             server = self.manager.comp.create_server(self.name,
                                                      self.manager.image_instance,
                                                      self.manager.flavor.flavor,
@@ -435,8 +430,38 @@ class ChainVnf(object):
                                                      config_drive=True,
                                                      files={NFVBENCH_CFG_VM_PATHNAME: vm_config})
             if server:
-                LOG.info('Created instance %s on %s', self.name, az)
                 self.instance = server
+                if self.manager.placer.is_resolved():
+                    LOG.info('Created instance %s on %s', self.name, az)
+                else:
+                    # the location is undetermined at this point
+                    # self.get_hypervisor_name() will return None
+                    LOG.info('Created instance %s - waiting for placement resolution...', self.name)
+                    # here we MUST wait until this instance is resolved otherwise subsequent
+                    # VNF creation can be placed in other hypervisors!
+                    config = self.manager.config
+                    max_retries = (config.check_traffic_time_sec +
+                                   config.generic_poll_sec - 1) / config.generic_poll_sec
+                    retry = 0
+                    for retry in range(max_retries):
+                        status = self.get_status()
+                        if status == 'ACTIVE':
+                            hyp_name = self.get_hypervisor_name()
+                            LOG.info('Instance %s is active and has been placed on %s',
+                                     self.name, hyp_name)
+                            self.manager.placer.register_full_name(hyp_name)
+                            break
+                        if status == 'ERROR':
+                            raise ChainException('Instance %s creation error: %s' %
+                                                 (self.name,
+                                                  self.instance.fault['message']))
+                        LOG.info('Waiting for instance %s to become active (retry %d/%d)...',
+                                 self.name, retry + 1, max_retries + 1)
+                        time.sleep(config.generic_poll_sec)
+                    else:
+                        # timing out
+                        LOG.error('Instance %s creation timed out', self.name)
+                        raise ChainException('Instance %s creation timed out' % self.name)
                 self.reuse = False
             else:
                 raise ChainException('Unable to create instance: %s' % (self.name))
@@ -514,6 +539,9 @@ class Chain(object):
                     self.instances.append(ChainVnf(self,
                                                    chain_instance_index,
                                                    self.networks))
+                # at this point new VNFs are not created yet but
+                # verify that all discovered VNFs are on the same hypervisor
+                self._check_hypervisors()
                 # now that all VNF ports are created we need to calculate the
                 # left/right remote MAC for each VNF in the chain
                 # before actually creating the VNF itself
@@ -524,6 +552,25 @@ class Chain(object):
         except Exception:
             self.delete()
             raise
+
+    def _check_hypervisors(self):
+        common_hypervisor = None
+        for instance in self.instances:
+            # get the full hypervizor name (az:compute)
+            hname = instance.get_hypervisor_name()
+            if hname:
+                if common_hypervisor:
+                    if hname != common_hypervisor:
+                        raise ChainException('Discovered instances on different hypervisors:'
+                                             ' %s and %s' % (hname, common_hypervisor))
+                else:
+                    common_hypervisor = hname
+        if common_hypervisor:
+            # check that the common hypervisor name matchs the requested hypervisor name
+            # and set the name to be used by all future instances (if any)
+            if not self.manager.placer.register_full_name(common_hypervisor):
+                raise ChainException('Discovered hypervisor placement %s is incompatible' %
+                                     common_hypervisor)
 
     def get_length(self):
         """Get the number of VNF in the chain."""
@@ -629,6 +676,84 @@ class Chain(object):
                 network.delete()
 
 
+class InstancePlacer(object):
+    """A class to manage instance placement for all VNFs in all chains.
+
+    A full az string is made of 2 parts AZ and hypervisor.
+    The placement is resolved when both parts az and hypervisor names are known.
+    """
+
+    def __init__(self, req_az, req_hyp):
+        """Create a new instance placer.
+
+        req_az: requested AZ (can be None or empty if no preference)
+        req_hyp: requested hypervisor name (can be None of empty if no preference)
+                 can be any of 'nova:', 'comp1', 'nova:comp1'
+                 if it is a list, only the first item is used (backward compatibility in config)
+
+        req_az is ignored if req_hyp has an az part
+        all other parts beyond the first 2 are ignored in req_hyp
+        """
+        # if passed a list just pick the first item
+        if req_hyp and isinstance(req_hyp, list):
+            req_hyp = req_hyp[0]
+        # only pick first part of az
+        if req_az and ':' in req_az:
+            req_az = req_az.split(':')[0]
+        if req_hyp:
+            # check if requested hypervisor string has an AZ part
+            split_hyp = req_hyp.split(':')
+            if len(split_hyp) > 1:
+                # override the AZ part and hypervisor part
+                req_az = split_hyp[0]
+                req_hyp = split_hyp[1]
+        self.requested_az = req_az if req_az else ''
+        self.requested_hyp = req_hyp if req_hyp else ''
+        # Nova can accept AZ only (e.g. 'nova:', use any hypervisor in that AZ)
+        # or hypervisor only (e.g. ':comp1')
+        # or both (e.g. 'nova:comp1')
+        if req_az:
+            self.required_az = req_az + ':' + self.requested_hyp
+        else:
+            # no ":" needed
+            self.required_az = self.requested_hyp if req_hyp else ''
+        # placement is resolved when both AZ and hypervisor names are known and set
+        self.resolved = self.requested_az != '' and self.requested_hyp != ''
+
+    def get_required_az(self):
+        """Return the required az (can be resolved or not)."""
+        return self.required_az
+
+    def register_full_name(self, discovered_az):
+        """Verify compatibility and register a discovered hypervisor full name.
+
+        discovered_az: a discovered AZ in az:hypervisor format
+        return: True if discovered_az is compatible and set
+                False if discovered_az is not compatible
+        """
+        if self.resolved:
+            return discovered_az == self.required_az
+
+        # must be in full az format
+        split_daz = discovered_az.split(':')
+        if len(split_daz) != 2:
+            return False
+        if self.requested_az and self.requested_az != split_daz[0]:
+            return False
+        if self.requested_hyp and self.requested_hyp != split_daz[1]:
+            return False
+        self.required_az = discovered_az
+        self.resolved = True
+        return True
+
+    def is_resolved(self):
+        """Check if the full AZ is resolved.
+
+        return: True if resolved
+        """
+        return self.resolved
+
+
 class ChainManager(object):
     """A class for managing all chains for a given run.
 
@@ -663,6 +788,7 @@ class ChainManager(object):
         config = self.config
         self.openstack = (chain_runner.cred is not None) and not config.l2_loopback
         self.chain_count = config.service_chain_count
+        self.az = None
         if self.openstack:
             # openstack only
             session = chain_runner.cred.get_session()
@@ -672,14 +798,9 @@ class ChainManager(object):
             self.comp = compute.Compute(self.nova_client,
                                         self.glance_client,
                                         config)
-            self.az = None
             try:
                 if config.service_chain != ChainType.EXT:
-                    # we need to find 1 hypervisor
-                    az_list = self.comp.get_enabled_az_host_list(1)
-                    if not az_list:
-                        raise ChainException('No matching hypervisor found')
-                    self.az = az_list
+                    self.placer = InstancePlacer(config.availability_zone, config.compute_nodes)
                     self._setup_image()
                     self.flavor = ChainFlavor(config.flavor_type, config.flavor, self.comp)
                     # Get list of all existing instances to check if some instances can be reused
@@ -785,6 +906,8 @@ class ChainManager(object):
             for instance in instances:
                 status = instance.get_status()
                 if status == 'ACTIVE':
+                    LOG.info('Instance %s is ACTIVE on %s',
+                             instance.name, instance.get_hypervisor_name())
                     continue
                 if status == 'ERROR':
                     raise ChainException('Instance %s creation error: %s' %

@@ -11,6 +11,8 @@
 #    WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
 #    License for the specific language governing permissions and limitations
 #    under the License.
+"""Module to interface with nova and glance."""
+
 import time
 import traceback
 
@@ -26,12 +28,16 @@ from log import LOG
 
 
 class Compute(object):
+    """Class to interface with nova and glance."""
+
     def __init__(self, nova_client, glance_client, config):
+        """Create a new compute instance to interact with nova and glance."""
         self.novaclient = nova_client
         self.glance_client = glance_client
         self.config = config
 
     def find_image(self, image_name):
+        """Find an image by name."""
         try:
             return next(self.glance_client.images.list(filters={'name': image_name}), None)
         except (novaclient.exceptions.NotFound, keystoneauth1.exceptions.http.NotFound,
@@ -78,6 +84,7 @@ class Compute(object):
         return True
 
     def delete_image(self, img_name):
+        """Delete an image by name."""
         try:
             LOG.log("Deleting image %s...", img_name)
             img = self.find_image(image_name=img_name)
@@ -93,7 +100,7 @@ class Compute(object):
     def create_server(self, vmname, image, flavor, key_name,
                       nic, sec_group, avail_zone=None, user_data=None,
                       config_drive=None, files=None):
-
+        """Create a new server."""
         if sec_group:
             security_groups = [sec_group['id']]
         else:
@@ -113,16 +120,20 @@ class Compute(object):
         return instance
 
     def poll_server(self, instance):
+        """Poll a server from its reference."""
         return self.novaclient.servers.get(instance.id)
 
     def get_server_list(self):
+        """Get the list of all servers."""
         servers_list = self.novaclient.servers.list()
         return servers_list
 
     def delete_server(self, server):
+        """Delete a server from its object reference."""
         self.novaclient.servers.delete(server)
 
     def find_flavor(self, flavor_type):
+        """Find a flavor by name."""
         try:
             flavor = self.novaclient.flavors.find(name=flavor_type)
             return flavor
@@ -130,122 +141,15 @@ class Compute(object):
             return None
 
     def create_flavor(self, name, ram, vcpus, disk, ephemeral=0):
+        """Create a flavor."""
         return self.novaclient.flavors.create(name=name, ram=ram, vcpus=vcpus, disk=disk,
                                               ephemeral=ephemeral)
 
-    def normalize_az_host(self, az, host):
-        if not az:
-            az = self.config.availability_zone
-        return az + ':' + host
-
-    def auto_fill_az(self, host_list, host):
-        """Auto fill az:host.
-
-        no az provided, if there is a host list we can auto-fill the az
-        else we use the configured az if available
-        else we return an error
-        """
-        if host_list:
-            for hyp in host_list:
-                if hyp.host == host:
-                    return self.normalize_az_host(hyp.zone, host)
-            # no match on host
-            LOG.error('Passed host name does not exist: %s', host)
-            return None
-        if self.config.availability_zone:
-            return self.normalize_az_host(None, host)
-        LOG.error('--hypervisor passed without an az and no az configured')
-        return None
-
-    def sanitize_az_host(self, host_list, az_host):
-        """Sanitize the az:host string.
-
-        host_list: list of hosts as retrieved from openstack (can be empty)
-        az_host: either a host or a az:host string
-        if a host, will check host is in the list, find the corresponding az and
-                    return az:host
-        if az:host is passed will check the host is in the list and az matches
-        if host_list is empty, will return the configured az if there is no
-                    az passed
-        """
-        if ':' in az_host:
-            # no host_list, return as is (no check)
-            if not host_list:
-                return az_host
-            # if there is a host_list, extract and verify the az and host
-            az_host_list = az_host.split(':')
-            zone = az_host_list[0]
-            host = az_host_list[1]
-            for hyp in host_list:
-                if hyp.host == host:
-                    if hyp.zone == zone:
-                        # matches
-                        return az_host
-                        # else continue - another zone with same host name?
-            # no match
-            LOG.error('No match for availability zone and host %s', az_host)
-            return None
-        else:
-            return self.auto_fill_az(host_list, az_host)
-
-    #
-    #   Return a list of 0, 1 or 2 az:host
-    #
-    #   The list is computed as follows:
-    #   The list of all hosts is retrieved first from openstack
-    #        if this fails, checks and az auto-fill are disabled
-    #
-    #   If the user provides a configured az name (config.availability_zone)
-    #       up to the first 2 hosts from the list that match the az are returned
-    #
-    #   If the user did not configure an az name
-    #       up to the first 2 hosts from the list are returned
-    #   Possible return values:
-    #   [ az ]
-    #   [ az:hyp ]
-    #   [ az1:hyp1, az2:hyp2 ]
-    #   []  if an error occurred (error message printed to console)
-    #
-    def get_enabled_az_host_list(self, required_count=1):
-        """Check which hypervisors are enabled and on which compute nodes they are running.
-
-        Pick up to the required count of hosts (can be less or zero)
-
-        :param required_count: count of compute-nodes to return
-        :return: list of enabled available compute nodes
-        """
-        host_list = []
-        hypervisor_list = []
-
-        try:
-            hypervisor_list = self.novaclient.hypervisors.list()
-            host_list = self.novaclient.services.list()
-        except novaclient.exceptions.Forbidden:
-            LOG.warning('Operation Forbidden: could not retrieve list of hypervisors'
-                        ' (likely no permission)')
-
-        hypervisor_list = [h for h in hypervisor_list if h.status == 'enabled' and h.state == 'up']
-        if self.config.availability_zone:
-            host_list = [h for h in host_list if h.zone == self.config.availability_zone]
-
-        if self.config.compute_nodes:
-            host_list = [h for h in host_list if h.host in self.config.compute_nodes]
-
-        hosts = [h.hypervisor_hostname for h in hypervisor_list]
-        host_list = [h for h in host_list if h.host in hosts]
-
-        avail_list = []
-        for host in host_list:
-            candidate = self.normalize_az_host(host.zone, host.host)
-            if candidate:
-                avail_list.append(candidate)
-                if len(avail_list) == required_count:
-                    return avail_list
-
-        return avail_list
-
     def get_hypervisor(self, hyper_name):
-        # can raise novaclient.exceptions.NotFound
+        """Get the hypervisor from its name.
+
+        Can raise novaclient.exceptions.NotFound
+        """
         # first get the id from name
         hyper = self.novaclient.hypervisors.search(hyper_name)[0]
         # get full hypervisor object

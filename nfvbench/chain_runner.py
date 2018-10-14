@@ -147,9 +147,11 @@ class ChainRunner(object):
 
         return: the results of the benchmark as a dict
         """
-        LOG.info('Starting %s chain...', self.chain_name)
-
         results = {}
+        if self.config.no_traffic:
+            return results
+
+        LOG.info('Starting %dx%s benchmark...', self.config.service_chain_count, self.chain_name)
         self.__setup_traffic()
         # now that the dest MAC for all VNFs is known in all cases, it is time to create
         # workers as they might be needed to extract stats prior to sending traffic

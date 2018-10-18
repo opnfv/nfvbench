@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5a682502_e4688df7",
+        "filename": "tox.ini",
+        "patchSetId": 1
+      },
+      "lineNbr": 28,
+      "author": {
+        "id": 5807
+      },
+      "writtenOn": "2018-10-18T20:58:11Z",
+      "side": 1,
+      "message": "you might need to remove these 2 lines to get rid of the error",
+      "revId": "0268c92c09977b8eb98952f4361ccf14c5f95689",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": false
+    }
+  ]
+}

@@ -298,7 +298,7 @@ def test_placer_user_az():
 
 def test_placer_user_hyp():
     """Test placement when user provides a hypervisor."""
-    check_placer(None, 'comp1', 'comp1')
+    check_placer(None, 'comp1', ':comp1')
     check_placer('nova', 'comp1', 'nova:comp1', resolved=True)
     check_placer(None, 'nova:comp1', 'nova:comp1', resolved=True)
     # hyp overrides az

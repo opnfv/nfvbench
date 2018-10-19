@@ -715,8 +715,8 @@ class InstancePlacer(object):
         if req_az:
             self.required_az = req_az + ':' + self.requested_hyp
         else:
-            # no ":" needed
-            self.required_az = self.requested_hyp if req_hyp else ''
+            # need to insert a ':' so nova knows this is the hypervisor name
+            self.required_az = ':' + self.requested_hyp if req_hyp else ''
         # placement is resolved when both AZ and hypervisor names are known and set
         self.resolved = self.requested_az != '' and self.requested_hyp != ''
 

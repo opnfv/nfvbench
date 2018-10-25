@@ -10,9 +10,8 @@ nfvbench.egg-info
 nfvbenchvm/dib/dib-venv
 nfvbenchvm/dib/nfvbenchvm_centos-*.d/
 *.qcow2
-docs/_build
-docs/conf.py
 docs/_static
 build/
 AUTHORS
 ChangeLog
+docs/_build/*

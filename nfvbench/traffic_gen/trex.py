@@ -11,6 +11,7 @@
 #    WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
 #    License for the specific language governing permissions and limitations
 #    under the License.
+"""Driver module for TRex traffic generator."""
 
 import os
 import random
@@ -19,7 +20,6 @@ import traceback
 
 from itertools import count
 from nfvbench.log import LOG
-from nfvbench.specs import ChainType
 from nfvbench.traffic_server import TRexTrafficServer
 from nfvbench.utils import cast_integer
 from nfvbench.utils import timeout
@@ -61,6 +61,7 @@ class TRex(AbstractTrafficGenerator):
     LATENCY_PG_ID_MASK = 0x0100
 
     def __init__(self, traffic_client):
+        """Trex driver."""
         AbstractTrafficGenerator.__init__(self, traffic_client)
         self.client = None
         self.id = count()
@@ -417,32 +418,6 @@ class TRex(AbstractTrafficGenerator):
                                             (self.port_info[0]['speed'],
                                              self.port_info[1]['speed']))
 
-    def set_mode(self):
-        if self.config.service_chain == ChainType.EXT and not self.config.no_arp:
-            self.__set_l3_mode()
-        else:
-            self.__set_l2_mode()
-
-    def __set_l3_mode(self):
-        self.client.set_service_mode(ports=self.port_handle, enabled=True)
-        for port, device in zip(self.port_handle, self.generator_config.devices):
-            try:
-                self.client.set_l3_mode(port=port,
-                                        src_ipv4=device.tg_gateway_ip,
-                                        dst_ipv4=device.dst.gateway_ip,
-                                        vlan=device.vlan_tag if device.vlan_tagging else None)
-            except STLError:
-                # TRex tries to resolve ARP already, doesn't have to be successful yet
-                continue
-        self.client.set_service_mode(ports=self.port_handle, enabled=False)
-
-    def __set_l2_mode(self):
-        self.client.set_service_mode(ports=self.port_handle, enabled=True)
-        for port, device in zip(self.port_handle, self.generator_config.devices):
-            for cfg in device.get_stream_configs():
-                self.client.set_l2_mode(port=port, dst_mac=cfg['mac_dst'])
-        self.client.set_service_mode(ports=self.port_handle, enabled=False)
-
     def __start_server(self):
         server = TRexTrafficServer()
         server.run_server(self.generator_config)
@@ -470,8 +445,9 @@ class TRex(AbstractTrafficGenerator):
                 STLServiceARP(ctx,
                               src_ip=cfg['ip_src_tg_gw'],
                               dst_ip=cfg['mac_discovery_gw'],
-                              vlan=device.vlan_tag if device.vlan_tagging else None)
-                for cfg in stream_configs()
+                              # will be None if no vlan tagging
+                              vlan=cfg['vlan_tag'])
+                for cfg in stream_configs
             ]
 
             for attempt in range(self.config.generic_retry_count):
@@ -485,11 +461,12 @@ class TRex(AbstractTrafficGenerator):
                 for chain_id, mac in enumerate(dst_macs):
                     if not mac:
                         arp_record = arps[chain_id].get_record()
-                        if arp_record.dest_mac:
+                        if arp_record.dst_mac:
                             dst_macs[chain_id] = arp_record.dst_mac
                             dst_macs_count += 1
-                            LOG.info('   ARP: port=%d chain=%d IP=%s -> MAC=%s',
+                            LOG.info('   ARP: port=%d chain=%d src IP=%s dst IP=%s -> MAC=%s',
                                      port, chain_id,
+                                     arp_record.src_ip,
                                      arp_record.dst_ip, arp_record.dst_mac)
                         else:
                             unresolved.append(arp_record.dst_ip)

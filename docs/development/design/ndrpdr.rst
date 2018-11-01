@@ -79,5 +79,5 @@ consideration:
 - actual Tx rate is always <= requested Tx rate
 - the measured drop rate should always be relative to the actual Tx rate
 - if the actual Tx rate is < requested Tx rate and the measured drop rate is already within threshold
- (<NDR/PDR threshold) then the binary search must stop with proper warning because the actual NDR/PDR
- might probably be higher than the reported values
+  (<NDR/PDR threshold) then the binary search must stop with proper warning because the actual NDR/PDR
+  might probably be higher than the reported values

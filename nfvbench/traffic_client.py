@@ -463,7 +463,6 @@ class TrafficClient(object):
 
     def setup(self):
         """Set up the traffic client."""
-        self.gen.set_mode()
         self.gen.clear_stats()
 
     def get_version(self):

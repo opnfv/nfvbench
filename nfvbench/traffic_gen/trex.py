@@ -431,7 +431,7 @@ class TRex(AbstractTrafficGenerator):
         """
         self.client.set_service_mode(ports=self.port_handle)
         LOG.info('Polling ARP until successful...')
-        arps = {}
+        arp_dest_macs = {}
         for port, device in zip(self.port_handle, self.generator_config.devices):
             # there should be 1 stream config per chain
             stream_configs = device.get_stream_configs()
@@ -471,7 +471,7 @@ class TRex(AbstractTrafficGenerator):
                         else:
                             unresolved.append(arp_record.dst_ip)
                 if dst_macs_count == chain_count:
-                    arps[port] = dst_macs
+                    arp_dest_macs[port] = dst_macs
                     LOG.info('ARP resolved successfully for port %s', port)
                     break
                 else:
@@ -488,8 +488,8 @@ class TRex(AbstractTrafficGenerator):
                 break
 
         self.client.set_service_mode(ports=self.port_handle, enabled=False)
-        if len(arps) == len(self.port_handle):
-            return arps
+        if len(arp_dest_macs) == len(self.port_handle):
+            return arp_dest_macs
         return None
 
     def __is_rate_enough(self, l2frame_size, rates, bidirectional, latency):

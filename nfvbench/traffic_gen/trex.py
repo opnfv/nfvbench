@@ -197,6 +197,12 @@ class TRex(AbstractTrafficGenerator):
 
         If there are latency streams, those same counters need to be added in the same way
         """
+        def get_latency(lval):
+            try:
+                return int(round(lval))
+            except ValueError:
+                return 0
+
         for ifs in if_stats:
             ifs.tx = ifs.rx = 0
         for port in range(2):
@@ -211,9 +217,9 @@ class TRex(AbstractTrafficGenerator):
             try:
                 lat = trex_stats['latency'][lat_pg_id]['latency']
                 # dropped_pkts += lat['err_cntrs']['dropped']
-                latencies[port].max_usec = int(round(lat['total_max']))
-                latencies[port].min_usec = int(round(lat['total_min']))
-                latencies[port].avg_usec = int(round(lat['average']))
+                latencies[port].max_usec = get_latency(lat['total_max'])
+                latencies[port].min_usec = get_latency(lat['total_min'])
+                latencies[port].avg_usec = get_latency(lat['average'])
             except KeyError:
                 pass
 

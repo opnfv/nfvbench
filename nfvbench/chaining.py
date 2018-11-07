@@ -1073,7 +1073,7 @@ class ChainManager(object):
                 return self.chains[0].get_host_ips()
             # in the case of EXT, the compute node must be retrieved from the port
             # associated to any of the dest MACs
-            dst_macs = self.chain_runner.traffic_client.gen.get_dest_macs()
+            dst_macs = self.generator_config.get_dest_macs()
             # dest MAC on port 0, chain 0
             dst_mac = dst_macs[0][0]
             host_ip = self.get_host_ip_from_mac(dst_mac)

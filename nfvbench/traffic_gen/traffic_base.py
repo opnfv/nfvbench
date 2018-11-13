@@ -18,6 +18,7 @@ import sys
 from nfvbench.log import LOG
 import traffic_utils
 
+
 class Latency(object):
     """A class to hold latency data."""
 
@@ -50,14 +51,11 @@ class TrafficGeneratorException(Exception):
 
 
 class AbstractTrafficGenerator(object):
+
     def __init__(self, traffic_client):
         self.traffic_client = traffic_client
         self.generator_config = traffic_client.generator_config
         self.config = traffic_client.config
-        self.imix_l2_sizes = [64, 594, 1518]
-        self.imix_ratios = [7, 4, 1]
-        self.imix_avg_l2_size = 0
-        self.adjust_imix_min_size(64)
 
     @abc.abstractmethod
     def get_version(self):
@@ -134,11 +132,3 @@ class AbstractTrafficGenerator(object):
         return: a list of speed in Gbps indexed by the port#
         """
         pass
-
-    def adjust_imix_min_size(self, min_size):
-        # assume the min size is always the first entry
-        self.imix_l2_sizes[0] = min_size
-        self.imix_avg_l2_size = sum(
-            [1.0 * imix[0] * imix[1] for imix in zip(self.imix_l2_sizes, self.imix_ratios)]) / sum(
-                self.imix_ratios)
-        traffic_utils.imix_avg_l2_size = self.imix_avg_l2_size

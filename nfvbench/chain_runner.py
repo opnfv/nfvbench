@@ -90,13 +90,13 @@ class ChainRunner(object):
                 self.traffic_client.ensure_arp_successful()
             self.traffic_client.ensure_end_to_end()
 
-    def __get_result_per_frame_size(self, frame_size, actual_frame_size, bidirectional):
+    def __get_result_per_frame_size(self, frame_size, bidirectional):
         traffic_result = {
             frame_size: {}
         }
         result = {}
         if not self.config.no_traffic:
-            self.traffic_client.set_traffic(actual_frame_size, bidirectional)
+            self.traffic_client.set_traffic(frame_size, bidirectional)
 
             if self.config.single_run:
                 result = self.stats_manager.run_fixed_rate()
@@ -105,9 +105,6 @@ class ChainRunner(object):
 
                 for dr in ['pdr', 'ndr']:
                     if dr in results:
-                        if frame_size != actual_frame_size:
-                            results[dr]['l2frame_size'] = frame_size
-                            results[dr]['actual_l2frame_size'] = actual_frame_size
                         traffic_result[frame_size][dr] = results[dr]
                         if 'warning' in results[dr]['stats'] and results[dr]['stats']['warning']:
                             traffic_result['warning'] = results[dr]['stats']['warning']
@@ -117,8 +114,6 @@ class ChainRunner(object):
                 result['run_config'] = self.traffic_client.get_run_config(result)
                 required = result['run_config']['direction-total']['orig']['rate_pps']
                 actual = result['stats']['total_tx_rate']
-                if frame_size != actual_frame_size:
-                    result['actual_l2frame_size'] = actual_frame_size
                 warning = self.traffic_client.compare_tx_rates(required, actual)
                 if warning is not None:
                     result['run_config']['warning'] = warning
@@ -128,9 +123,8 @@ class ChainRunner(object):
 
     def __get_chain_result(self):
         result = OrderedDict()
-        for fs, actual_fs in zip(self.config.frame_sizes, self.config.actual_frame_sizes):
+        for fs in self.config.frame_sizes:
             result.update(self.__get_result_per_frame_size(fs,
-                                                           actual_fs,
                                                            self.config.traffic.bidirectional))
         chain_result = {
             'flow_count': self.config.flow_count,

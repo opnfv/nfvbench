@@ -73,9 +73,9 @@ class StatsManager(object):
 
     def _update_interface_stats(self, diff=False):
         """Update interface stats for both the traffic generator and the worker."""
-        self.traffic_client.update_interface_stats(diff=True)
+        self.traffic_client.update_interface_stats(diff)
         if self.worker:
-            self.worker.update_interface_stats(diff=True)
+            self.worker.update_interface_stats(diff)
 
     def run_fixed_rate(self):
         """Run a fixed rate and analyze results."""

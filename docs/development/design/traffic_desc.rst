@@ -23,8 +23,7 @@ The code to create the UDP packet is located in TRex.create_pkt() (nfvbench/traf
 NFVbench always generates UDP packets (even when doing L2 forwarding).
 The final size of the frame containing each UDP packet will be based on the requested L2 frame size.
 When taking into account the minimum payload size requirements from the traffic generator for
-the latency streams, the minimum L2 frame size is 64 byte (no vlan tagging) or
-68 bytes (with vlan tagging).
+the latency streams, the minimum L2 frame size is 64 byte.
 
 Flows Specification
 -------------------

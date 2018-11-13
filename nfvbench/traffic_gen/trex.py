@@ -27,6 +27,9 @@ from nfvbench.utils import TimeoutError
 from traffic_base import AbstractTrafficGenerator
 from traffic_base import TrafficGeneratorException
 import traffic_utils as utils
+from traffic_utils import IMIX_AVG_L2_FRAME_SIZE
+from traffic_utils import IMIX_L2_SIZES
+from traffic_utils import IMIX_RATIOS
 
 # pylint: disable=import-error
 from trex_stl_lib.api import CTRexVmInsFixHwCs
@@ -245,15 +248,17 @@ class TRex(AbstractTrafficGenerator):
         results['avg_delay_usec'] = int(average / self.chain_count)
 
     def _create_pkt(self, stream_cfg, l2frame_size):
+        """Create a packet of given size.
+
+        l2frame_size: size of the L2 frame in bytes (including the 32-bit FCS)
+        """
+        # Trex will add the FCS field, so we need to remove 4 bytes from the l2 frame size
+        frame_size = int(l2frame_size) - 4
+
         pkt_base = Ether(src=stream_cfg['mac_src'], dst=stream_cfg['mac_dst'])
         if stream_cfg['vlan_tag'] is not None:
-            # 50 = 14 (Ethernet II) + 4 (Vlan tag) + 4 (CRC Checksum) + 20 (IPv4) + 8 (UDP)
             pkt_base /= Dot1Q(vlan=stream_cfg['vlan_tag'])
-            l2payload_size = int(l2frame_size) - 50
-        else:
-            # 46 = 14 (Ethernet II) + 4 (CRC Checksum) + 20 (IPv4) + 8 (UDP)
-            l2payload_size = int(l2frame_size) - 46
-        payload = 'x' * l2payload_size
+
         udp_args = {}
         if stream_cfg['udp_src_port']:
             udp_args['sport'] = int(stream_cfg['udp_src_port'])
@@ -301,8 +306,9 @@ class TRex(AbstractTrafficGenerator):
                                l4_offset="UDP",
                                l4_type=CTRexVmInsFixHwCs.L4_TYPE_UDP)
         ]
+        pad = max(0, frame_size - len(pkt_base)) * 'x'
 
-        return STLPktBuilder(pkt=pkt_base / payload, vm=STLScVmRaw(vm_param))
+        return STLPktBuilder(pkt=pkt_base / pad, vm=STLScVmRaw(vm_param))
 
     def generate_streams(self, port, chain_id, stream_cfg, l2frame, latency=True):
         """Create a list of streams corresponding to a given chain and stream config.
@@ -310,15 +316,13 @@ class TRex(AbstractTrafficGenerator):
         port: port where the streams originate (0 or 1)
         chain_id: the chain to which the streams are associated to
         stream_cfg: stream configuration
-        l2frame: L2 frame size
+        l2frame: L2 frame size (including 4-byte FCS) or 'IMIX'
         latency: if True also create a latency stream
         """
         streams = []
         pg_id, lat_pg_id = self.get_pg_id(port, chain_id)
         if l2frame == 'IMIX':
-            min_size = 64 if stream_cfg['vlan_tag'] is None else 68
-            self.adjust_imix_min_size(min_size)
-            for ratio, l2_frame_size in zip(self.imix_ratios, self.imix_l2_sizes):
+            for ratio, l2_frame_size in zip(IMIX_RATIOS, IMIX_L2_SIZES):
                 pkt = self._create_pkt(stream_cfg, l2_frame_size)
                 streams.append(STLStream(packet=pkt,
                                          flow_stats=STLFlowStats(pg_id=pg_id),
@@ -326,13 +330,20 @@ class TRex(AbstractTrafficGenerator):
 
             if latency:
                 # for IMIX, the latency packets have the average IMIX packet size
-                pkt = self._create_pkt(stream_cfg, self.imix_avg_l2_size)
+                pkt = self._create_pkt(stream_cfg, IMIX_AVG_L2_FRAME_SIZE)
 
         else:
-            pkt = self._create_pkt(stream_cfg, l2frame)
+            l2frame_size = int(l2frame)
+            pkt = self._create_pkt(stream_cfg, l2frame_size)
             streams.append(STLStream(packet=pkt,
                                      flow_stats=STLFlowStats(pg_id=pg_id),
                                      mode=STLTXCont()))
+            # for the latency stream, the minimum payload is 16 bytes even in case of vlan tagging
+            # without vlan, the min l2 frame size is 64
+            # with vlan it is 68
+            # This only applies to the latency stream
+            if latency and stream_cfg['vlan_tag'] and l2frame_size < 68:
+                pkt = self._create_pkt(stream_cfg, 68)
 
         if latency:
             streams.append(STLStream(packet=pkt,

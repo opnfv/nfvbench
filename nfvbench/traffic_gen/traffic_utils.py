@@ -16,13 +16,18 @@
 import bitmath
 from nfvbench.utils import multiplier_map
 
-imix_avg_l2_size = None
+# IMIX frame size including the 4-byte FCS field
+IMIX_L2_SIZES = [64, 594, 1518]
+IMIX_RATIOS = [7, 4, 1]
+# weighted average l2 frame size includng the 4-byte FCS
+IMIX_AVG_L2_FRAME_SIZE = sum(
+    [1.0 * imix[0] * imix[1] for imix in zip(IMIX_L2_SIZES, IMIX_RATIOS)]) / sum(IMIX_RATIOS)
 
 
 def convert_rates(l2frame_size, rate, intf_speed):
     """Convert a given rate unit into the other rate units.
 
-    l2frame_size: size of the L2 frame in bytes or 'IMIX'
+    l2frame_size: size of the L2 frame in bytes (includes 32-bit FCS) or 'IMIX'
     rate: a dict that has at least one of the following key:
           'rate_pps', 'rate_bps', 'rate_percent'
           with the corresponding input value
@@ -59,8 +64,13 @@ def convert_rates(l2frame_size, rate, intf_speed):
 
 
 def get_average_packet_size(l2frame_size):
+    """Retrieve the average L2 frame size
+
+    l2frame_size: an L2 frame size in bytes (including FCS) or 'IMIX'
+    return: average l2 frame size inlcuding the 32-bit FCS
+    """
     if l2frame_size.upper() == 'IMIX':
-        return imix_avg_l2_size
+        return IMIX_AVG_L2_FRAME_SIZE
     return float(l2frame_size)
 
 

@@ -15,9 +15,11 @@ Introduction
 
 NFVbench can be decomposed in the following components:
 - Configuration
-- Staging
-- Traffic generation
-- Traffic generator results analysis
+- Orchestration:
+
+  - Staging
+  - Traffic generation
+  - Results analysis
 
 Configuration
 -------------
@@ -34,7 +36,7 @@ User configuration can come from:
 - custom platform pluging
 
 The precedence order for configuration is (from highest precedence to lowest precedence)
-- CLI confguration or REST configuration
+- CLI configuration or REST configuration
 - custom platform plugin
 - default configuration
 
@@ -42,6 +44,11 @@ The custom platform plugin is an optional python class that can be used to overr
 with default platform options which can be either hardcoded or calculated at runtime from platform specific sources
 (such as platform deployment configuration files).
 A custom platform plugin class is a child of the parent class nfvbench.config_plugin.ConfigPlugin.
+
+Orchestration
+-------------
+Once the configuration is settled, benchmark orchestration is managed by the ChainRunner class (nfvbench.chain_runner.ChainRunner).
+The chain runner will take care of orchestrating the staging, traffic generation and results analysis.
 
 
 Staging
@@ -57,7 +64,7 @@ Traffic Generation
 The traffic generation component is in charge of contrilling the TRex traffic generator using its python API.
 It includes tasks such as:
 - traffic check end to end to make sure the packet path is clear in both directions before starting a benchmark
-- programming the Trex traffic flows based on requested parameters
+- programming the TRex traffic flows based on requested parameters
 - fixed rate control
 - NDR/PDR binary search
 

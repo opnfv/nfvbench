@@ -10,11 +10,10 @@ The general packet path model followed by NFVbench requires injecting traffic in
 number of service chains, where each service chain is identified by 2 edge networks (left and right).
 In the current multi-chaining model:
 
-- all service chains share the same left and right edge networks
-- each port associated to the traffic generator is dedicated to send traffic to one edge network
+- all service chains can either share the same left and right edge networks or can have their own edge networks
+- each port associated to the traffic generator is dedicated to send traffic to one side of the edge networks
 
-In an OpenStack deployment, this corresponds to all chains sharing the same 2 neutron networks.
-If VLAN encapsulation is used, all traffic sent to a port will have the same VLAN id.
+If VLAN encapsulation is used, all traffic sent to a port will either have the same VLAN id (shared networks) or distinct VLAN ids (dedicated egde networks)
 
 Basic Packet Description
 ------------------------

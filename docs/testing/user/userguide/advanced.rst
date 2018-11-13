@@ -201,44 +201,7 @@ For example to run NFVbench with 3 PVP chains:
 
 It is not necessary to specify the service chain type (-sc) because PVP is set as default. The PVP service chains will have 3 VMs in 3 chains with this configuration.
 If ``-sc PVVP`` is specified instead, there would be 6 VMs in 3 chains as this service chain has 2 VMs per chain.
-Both **single run** or **NDR/PDR** can be run as multichain. Running multichain is a scenario closer to a real life situation than runs with a single chain.
-
-
-External Chain
---------------
-
-NFVbench can measure the performance of 1 or more L3 service chains that are setup externally. Instead of being setup by NFVbench,
-the complete environment (VMs and networks) has to be setup prior to running NFVbench.
-
-Each external chain is made of 1 or more VNFs and has exactly 2 end network interfaces (left and right network interfaces) that are connected to 2 neutron networks (left and right networks).
-The internal composition of a multi-VNF service chain can be arbitrary (usually linear) as far as NFVbench is concerned,
-the only requirement is that the service chain can route L3 packets properly between the left and right networks.
-
-To run NFVbench on such external service chains:
-
-- explicitly tell NFVbench to use external service chain by adding ``-sc EXT`` or ``--service-chain EXT`` to NFVbench CLI options
-- specify the number of external chains using the ``-scc`` option (defaults to 1 chain)
-- specify the 2 end point networks of your environment in ``external_networks`` inside the config file.
-    - The two networks specified there have to exist in Neutron and will be used as the end point networks by NFVbench ('napa' and 'marin' in the diagram below)
-- specify the router gateway IPs for the external service chains (1.1.0.2 and 2.2.0.2)
-- specify the traffic generator gateway IPs for the external service chains (1.1.0.102 and 2.2.0.102 in diagram below)
-- specify the packet source and destination IPs for the virtual devices that are simulated (10.0.0.0/8 and 20.0.0.0/8)
-
-
-.. image:: images/extchain-config.png
-
-L3 routing must be enabled in the VNF and configured to:
-
-- reply to ARP requests to its public IP addresses on both left and right networks
-- route packets from each set of remote devices toward the appropriate dest gateway IP in the traffic generator using 2 static routes (as illustrated in the diagram)
-
-Upon start, NFVbench will:
-- first retrieve the properties of the left and right networks using Neutron APIs,
-- extract the underlying network ID (typically VLAN segmentation ID),
-- generate packets with the proper VLAN ID and measure traffic.
-
-Note that in the case of multiple chains, all chains end interfaces must be connected to the same two left and right networks.
-The traffic will be load balanced across the corresponding gateway IP of these external service chains.
+Both **single run** or **NDR/PDR** can be run as multichain. Runnin multichain is a scenario closer to a real life situation than runs with a single chain.
 
 
 Multiflow

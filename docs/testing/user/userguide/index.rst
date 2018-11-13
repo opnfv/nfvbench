@@ -24,10 +24,8 @@ Table of Content
    installation
    examples
    advanced
+   extchains
    fluentd
    sriov
    server
    faq
-
-
-

@@ -13,4 +13,4 @@ These git tags are applied indepently of the OPNFV release tags which are applie
 
 In general it is recommeneded to always have a project git version tag associated to any OPNFV release tag content obtained from a sync from master.
 
-NFVbench Docker containers will be versioned based on the OPNF release tags or based on NFVbench project tags.
+NFVbench Docker containers will be versioned based on the NFVbench project tags.

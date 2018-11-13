@@ -113,13 +113,9 @@ PVVP Packet Path
 ^^^^^^^^^^^^^^^^
 
 This packet path represents a single service chain with 2 loopback VNFs in sequence and 3 Neutron networks.
-The 2 VNFs can run on the same compute node (PVVP intra-node):
+The 2 VNFs will only run on the same compute node (PVVP intra-node):
 
 .. image:: images/nfvbench-pvvp.png
-
-or on different compute nodes (PVVP inter-node) based on a configuration option:
-
-.. image:: images/nfvbench-pvvp2.png
 
 
 Multi-Chaining (N*PVP or N*PVVP)
@@ -135,8 +131,9 @@ Example of multi-chaining with 2 concurrent PVP service chains:
 
 This innovative feature will allow to measure easily the performance of a fully loaded compute node running multiple service chains.
 
-Multi-chaining is currently limited to 1 compute node (PVP or PVVP intra-node) or 2 compute nodes (for PVVP inter-node).
-The 2 edge interfaces for all service chains will share the same 2 networks.
+Multi-chaining is currently limited to 1 compute node (VMs run on the same compute node).
+The 2 edge interfaces for all service chains can either share the same 2 networks or can use
+dedicated networks (based on a configuration option).
 The total traffic will be split equally across all chains.
 
 
@@ -195,4 +192,4 @@ NFVbench is agnostic of the virtual switch implementation and has been tested wi
 Limitations
 ***********
 NFVbench only supports VLAN with OpenStack.
-NFVbench does not support VxLAN overlays.
+VxLAN overlays is planned for a coming release.

@@ -7,20 +7,21 @@ RELEASE NOTES
 
 Release 2.0
 ===========
+NFVbench will now follow its own project release numbering (x.y.z) which is independent of the OPNFV release numbering (opnfv-x.y.z)
+
 Major release highlights:
 
-- Dedicated chain networks
-- VxLAN support with VTEP in the traffic generator
+- Dedicated edge networks for each chain
 - Enhanced chain analysis
 - Code refactoring and enhanced unit testing
 - Miscellaneous enhancement
 
-Dedicated chain networks
-------------------------
-NFVbench 1.x only supported shared networks across chains.
-For example, 20xPVP would create only 2 networks (left and right) shared by all chains.
-With NFVbench 2.0, chain networks will become dedicated (unshared) by default with an option in
-the nfvbench configuration to shared them. A 20xPVP run will create 2x20 networks instead.
+Dedicated edge networks for each chain
+--------------------------------------
+NFVbench 1.x only supported shared edge networks for all chains.
+For example, 20xPVP would create only 2 edge networks (left and right) shared by all chains.
+With NFVbench 2.0, chain networks are dedicated (unshared) by default with an option in
+the nfvbench configuration to share them. A 20xPVP run will create 2x20 networks instead.
 
 Enhanced chain analysis
 -----------------------

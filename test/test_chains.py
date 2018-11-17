@@ -78,8 +78,28 @@ def test_chain_runner_ext_no_openstack():
     config.vlans = [100, 200]
     config['traffic_generator']['mac_addrs_left'] = ['00:00:00:00:00:00']
     config['traffic_generator']['mac_addrs_right'] = ['00:00:00:00:01:00']
-    runner = ChainRunner(config, None, specs, BasicFactory())
-    runner.close()
+
+    for shared_net in [True, False]:
+        for no_arp in [False, True]:
+            for vlan_tag in [False, True]:
+                for scc in [1, 2]:
+                    config = _get_chain_config(ChainType.EXT, scc, shared_net)
+                    config.no_arp = no_arp
+                    if no_arp:
+                        # If EXT and no arp, the config must provide mac (1 pair per chain)
+                        config['traffic_generator']['mac_addrs_left'] = ['00:00:00:00:00:00'] * scc
+                        config['traffic_generator']['mac_addrs_right'] = ['00:00:00:00:01:00'] * scc
+                    config['vlan_tagging'] = vlan_tag
+                    if vlan_tag:
+                        # these are the 2 valid forms of vlan ranges
+                        if scc == 1:
+                            config.vlans = [100, 200]
+                        else:
+                            config.vlans = [[port * 100 + index for index in range(scc)]
+                                            for port in range(2)]
+                    runner = ChainRunner(config, None, specs, BasicFactory())
+                    runner.close()
+
 
 def _mock_find_image(self, image_name):
     return True
@@ -129,7 +149,11 @@ def _test_ext_chain(config, cred, mock_glance, mock_neutron, mock_client):
     runner.close()
 
 def test_ext_chain_runner():
-    """Test openstack+EXT chain runner."""
+    """Test openstack+EXT chain runner.
+
+    Test 8 combinations of configs:
+    shared/not shared net x arp/no_arp x scc 1 or 2
+    """
     cred = MagicMock(spec=nfvbench.credentials.Credentials)
     for shared_net in [True, False]:
         for no_arp in [False, True]:

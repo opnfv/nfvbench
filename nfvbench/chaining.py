@@ -823,16 +823,17 @@ class ChainManager(object):
                 raise
         else:
             # no openstack, no need to create chains
-            # make sure there at least as many entries as chains in each left/right list
-            if len(config.vlans) != 2:
-                raise ChainException('The config vlans property must be a list '
-                                     'with 2 lists of VLAN IDs')
-            if not config.l2_loopback:
-                self._get_dest_macs_from_config()
 
-            re_vlan = "[0-9]*$"
-            self.vlans = [self._check_list('vlans[0]', config.vlans[0], re_vlan),
-                          self._check_list('vlans[1]', config.vlans[1], re_vlan)]
+            if not config.l2_loopback and config.no_arp:
+                self._get_dest_macs_from_config()
+            if config.vlan_tagging:
+                # make sure there at least as many entries as chains in each left/right list
+                if len(config.vlans) != 2:
+                    raise ChainException('The config vlans property must be a list '
+                                         'with 2 lists of VLAN IDs')
+                re_vlan = "[0-9]*$"
+                self.vlans = [self._check_list('vlans[0]', config.vlans[0], re_vlan),
+                              self._check_list('vlans[1]', config.vlans[1], re_vlan)]
 
     def _get_dest_macs_from_config(self):
         re_mac = "[0-9a-fA-F]{2}([-:])[0-9a-fA-F]{2}(\\1[0-9a-fA-F]{2}){4}$"
@@ -847,7 +848,8 @@ class ChainManager(object):
         if isinstance(ll, (int, str)):
             ll = [ll]
         if not ll or len(ll) < self.chain_count:
-            raise ChainException('%s=%s must be a list with 1 element per chain' % (list_name, ll))
+            raise ChainException('%s=%s must be a list with %d elements per chain' %
+                                 (list_name, ll, self.chain_count))
         for item in ll:
             if not re.match(pattern, str(item)):
                 raise ChainException("Invalid format '{item}' specified in {fname}"

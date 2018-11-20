@@ -890,7 +890,7 @@ class ChainManager(object):
                     # Make sure all instances are active before proceeding
                     self._ensure_instances_active()
                 # network API call do not show VLANS ID if not admin read from config
-                if not self.is_admin:
+                if not self.is_admin and config.vlan_tagging:
                     self._get_config_vlans()
             except Exception:
                 self.delete()

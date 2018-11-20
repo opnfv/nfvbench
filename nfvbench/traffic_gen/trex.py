@@ -413,7 +413,8 @@ class TRex(AbstractTrafficGenerator):
         LOG.info("Connecting to TRex (%s)...", server_ip)
 
         # Connect to TRex server
-        self.client = STLClient(server=server_ip)
+        self.client = STLClient(server=server_ip, sync_port=self.generator_config.zmq_rpc_port,
+                                async_port=self.generator_config.zmq_pub_port)
         try:
             self.__connect(self.client)
         except (TimeoutError, STLError) as e:

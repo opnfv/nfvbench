@@ -214,6 +214,12 @@ traffic_generator:
     #                  software mode, therefore the performance of TRex will be significantly
     #                  lower. ONLY applies to trex-local.
     #                  Recommended to leave the default value (false)
+    # `limit_memory`: Specify the memory reserved for running the TRex traffic generator.
+    #          ONLY applies to trex-local.
+    # `zmq_pub_port`: Specify the ZMQ pub port number for the TRex traffic generator instance (default value is 4500).
+    #          ONLY applies to trex-local.
+    # `zmq_rpc_port`: Specify the ZMQ rpc port for the TRex traffic generator instance (default value is 4501).
+    #          ONLY applies to trex-local.
     # `interfaces`: Configuration of traffic generator interfaces.
     # `interfaces.port`: The port of the traffic generator to be used (leave as 0 and 1 resp.)
     # `interfaces.switch_port`: Leave empty (deprecated)
@@ -227,12 +233,24 @@ traffic_generator:
     #               Do not use unless you want to override the speed discovered by the
     #               traffic generator. Expected format: 10Gbps
     #
+    # `platform`: Optional. Used to tune the performance and allocate the cores to the right NUMA.
+    # `platform.master_thread_id`: Hardware thread_id for control thread.
+    # `platform.latency_thread_id`: Hardware thread_id for RX thread.
+    # `platform.dual_if`: Section defines info for interface pairs (according to the order in “interfaces” list).
+    #                     Each section, starting with “- socket” defines info for different interface pair.
+    # `platform.dual_if.socket`: The NUMA node from which memory will be allocated for use by the interface pair.
+    # `platform.dual_if.threads`: Hardware threads to be used for sending packets for the interface pair.
+    #                     Threads are pinned to cores, so specifying threads actually determines the hardware cores.
+    #
     generator_profile:
         - name: trex-local
           tool: TRex
           ip: 127.0.0.1
           cores: 4
           software_mode: false
+          limit_memory: 1024
+          zmq_pub_port: 4500
+          zmq_rpc_port: 4501
           interfaces:
             - port: 0
               pci:
@@ -241,6 +259,12 @@ traffic_generator:
               pci:
               switch_port:
           intf_speed:
+          platform:
+            master_thread_id:
+            latency_thread_id:
+            dual_if:
+              - socket:
+                threads:
 
 # Simpler override for trex core count and mbuf multilier factor
 # if empty defaults to the one specified in generator_profile.cores

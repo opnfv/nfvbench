@@ -340,11 +340,16 @@ class GeneratorConfig(object):
         else:
             # interface speed is discovered/provided by the traffic generator
             self.intf_speed = 0
+        self.name = gen_config.name
+        self.zmq_pub_port = gen_config.get('zmq_pub_port', 4500)
+        self.zmq_rpc_port = gen_config.get('zmq_rpc_port', 4501)
+        self.limit_memory = gen_config.get('limit_memory', 1024)
         self.software_mode = gen_config.get('software_mode', False)
         self.interfaces = gen_config.interfaces
         if self.interfaces[0].port != 0 or self.interfaces[1].port != 1:
             raise TrafficClientException('Invalid port order/id in generator_profile.interfaces')
-
+        if hasattr(gen_config, 'platform'):
+            self.platform = gen_config.platform
         self.service_chain = config.service_chain
         self.service_chain_count = config.service_chain_count
         self.flow_count = config.flow_count

@@ -18,6 +18,7 @@ NFVbench supports the following main measurement capabilities:
 - built-in loopback VNFs based on fast L2 or L3 forwarders running in VMs
 - configurable number of flows and service chains
 - configurable traffic direction (single or bi-directional)
+- can support optional VLAN tagging (dot1q) or VxLAN overlays
 
 
 NDR is the highest throughput achieved without dropping packets.
@@ -191,5 +192,4 @@ NFVbench is agnostic of the virtual switch implementation and has been tested wi
 
 Limitations
 ***********
-NFVbench only supports VLAN with OpenStack.
-VxLAN overlays is planned for a coming release.
+VxLAN: latency measurement and per chain stats is not available in the first VxLAN release

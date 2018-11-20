@@ -288,6 +288,16 @@ class ChainNetwork(object):
             raise ChainException('Trying to retrieve VLAN id for non VLAN network')
         return self.network['provider:segmentation_id']
 
+    def get_vxlan(self):
+        """
+        Extract VNI for this network.
+
+        :return: VNI ID for this network
+        """
+        if self.network['provider:network_type'] != 'vxlan':
+            raise ChainException('Trying to retrieve VNI for non VXLAN network')
+        return self.network['provider:segmentation_id']
+
     def delete(self):
         """Delete this network."""
         if not self.reuse and self.network:
@@ -631,6 +641,20 @@ class Chain(object):
             port_index = -1
         return self.networks[port_index].get_vlan()
 
+    def get_vxlan(self, port_index):
+        """Get the VXLAN id on a given port.
+
+        port_index: left port is 0, right port is 1
+        return: the vxlan_id or None if there is no vxlan
+        """
+        # for port 1 we need to return the VLAN of the last network in the chain
+        # The networks array contains 2 networks for PVP [left, right]
+        # and 3 networks in the case of PVVP [left.middle,right]
+        if port_index:
+            # this will pick the last item in array
+            port_index = -1
+        return self.networks[port_index].get_vxlan()
+
     def get_dest_mac(self, port_index):
         """Get the dest MAC on a given port.
 
@@ -834,6 +858,12 @@ class ChainManager(object):
                 re_vlan = "[0-9]*$"
                 self.vlans = [self._check_list('vlans[0]', config.vlans[0], re_vlan),
                               self._check_list('vlans[1]', config.vlans[1], re_vlan)]
+            if config.vxlan:
+                # make sure there are 2 entries
+                if len(config.vnis) != 2:
+                    raise ChainException('The config vnis property must be a list with 2 VNIs')
+                self.vnis = [self._check_list('vnis[0]', config.vnis[0], re_vlan),
+                             self._check_list('vnis[1]', config.vnis[1], re_vlan)]
 
     def _get_dest_macs_from_config(self):
         re_mac = "[0-9a-fA-F]{2}([-:])[0-9a-fA-F]{2}(\\1[0-9a-fA-F]{2}){4}$"
@@ -930,6 +960,39 @@ class ChainManager(object):
         if initial_instance_count:
             LOG.info('All instances are active')
 
+    def _get_vxlan_net_cfg(self, chain_id):
+        int_nets = self.config.internal_networks
+        net_left = int_nets.left
+        net_right = int_nets.right
+        vnis = self.generator_config.vnis
+        chain_id += 1
+        seg_id_left = vnis[0]
+        if self.config.service_chain == ChainType.PVP:
+            if chain_id > 1:
+                seg_id_left = ((chain_id - 1) * 2) + seg_id_left
+            seg_id_right = seg_id_left + 1
+            if (seg_id_left and seg_id_right) > vnis[1]:
+                raise Exception('Segmentation ID is more than allowed '
+                                'value: {}'.format(vnis[1]))
+            net_left['segmentation_id'] = seg_id_left
+            net_right['segmentation_id'] = seg_id_right
+            net_cfg = [net_left, net_right]
+        else:
+            # PVVP
+            net_middle = int_nets.middle
+            if chain_id > 1:
+                seg_id_left = ((chain_id - 1) * 3) + seg_id_left
+            seg_id_middle = seg_id_left + 1
+            seg_id_right = seg_id_left + 2
+            if (seg_id_left and seg_id_right and seg_id_middle) > vnis[1]:
+                raise Exception('Segmentation ID is more than allowed '
+                                'value: {}'.format(vnis[1]))
+            net_left['segmentation_id'] = seg_id_left
+            net_middle['segmentation_id'] = seg_id_middle
+            net_right['segmentation_id'] = seg_id_right
+            net_cfg = [net_left, net_middle, net_right]
+        return net_cfg
+
     def get_networks(self, chain_id=None):
         """Get the networks for given EXT, PVP or PVVP chain.
 
@@ -952,10 +1015,15 @@ class ChainManager(object):
         else:
             lookup_only = False
             int_nets = self.config.internal_networks
-            if self.config.service_chain == ChainType.PVP:
-                net_cfg = [int_nets.left, int_nets.right]
+            network_type = set([int_nets[net].get('network_type') for net in int_nets])
+            if self.config.vxlan and 'vxlan' in network_type:
+                net_cfg = self._get_vxlan_net_cfg()
             else:
-                net_cfg = [int_nets.left, int_nets.middle, int_nets.right]
+                # VLAN
+                if self.config.service_chain == ChainType.PVP:
+                    net_cfg = [int_nets.left, int_nets.right]
+                else:
+                    net_cfg = [int_nets.left, int_nets.middle, int_nets.right]
         networks = []
         try:
             for cfg in net_cfg:
@@ -1047,6 +1115,18 @@ class ChainManager(object):
                     for chain_index in range(self.chain_count)]
         # no openstack
         return self.vlans[port_index]
+
+    def get_chain_vxlans(self, port_index):
+        """Get the list of per chain VNIs id on a given port.
+
+        port_index: left port is 0, right port is 1
+        return: a VNIs ID list indexed by the chain index or None if no vlan tagging
+        """
+        if self.chains:
+            return [self.chains[chain_index].get_vxlan(port_index)
+                    for chain_index in range(self.chain_count)]
+        # no openstack
+        return self.vnis[port_index]
 
     def get_dest_macs(self, port_index):
         """Get the list of per chain dest MACs on a given port.

@@ -66,6 +66,16 @@ class NFVBench(object):
         self.specs.set_openstack_spec(openstack_spec)
         self.vni_ports = []
         sys.stdout.flush()
+        self.check_options()
+
+    def check_options(self):
+        if self.base_config.vxlan:
+            if self.base_config.vlan_tagging:
+                raise Exception(
+                    'Inner VLAN tagging is not currently supported for VXLAN')
+            vtep_vlan = self.base_config.traffic_generator.get('vtep_vlan')
+            if vtep_vlan is None:
+                LOG.warning('Warning: VXLAN mode enabled, but VTEP vlan is not defined')
 
     def set_notifier(self, notifier):
         self.notifier = notifier
@@ -216,7 +226,7 @@ class NFVBench(object):
         self.config_plugin.validate_config(config, self.specs.openstack)
 
 
-def parse_opts_from_cli():
+def _parse_opts_from_cli():
     parser = argparse.ArgumentParser()
 
     parser.add_argument('--status', dest='status',
@@ -280,7 +290,7 @@ def parse_opts_from_cli():
     parser.add_argument('--inter-node', dest='inter_node',
                         default=None,
                         action='store_true',
-                        help='run VMs in different compute nodes (PVVP only)')
+                        help='(deprecated)')
 
     parser.add_argument('--sriov', dest='sriov',
                         default=None,
@@ -317,6 +327,11 @@ def parse_opts_from_cli():
                         default=None,
                         action='store_true',
                         help='Skip vswitch configuration and retrieving of stats')
+
+    parser.add_argument('--vxlan', dest='vxlan',
+                        default=None,
+                        action='store_true',
+                        help='Enable VxLan encapsulation')
 
     parser.add_argument('--no-cleanup', dest='no_cleanup',
                         default=None,
@@ -469,7 +484,7 @@ def main():
         config_plugin = factory.get_config_plugin_class()(config)
         config = config_plugin.get_config()
 
-        opts, unknown_opts = parse_opts_from_cli()
+        opts, unknown_opts = _parse_opts_from_cli()
         log.set_level(debug=opts.debug)
 
         if opts.version:

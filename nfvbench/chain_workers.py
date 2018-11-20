@@ -29,6 +29,9 @@ class BasicWorker(object):
     def get_version(self):
         return {}
 
+    def config_interfaces(self):
+        return {}
+
     def close(self):
         pass
 

@@ -144,17 +144,26 @@ class Device(object):
     identified as port 0 or port 1.
     """
 
-    def __init__(self, port, generator_config, vtep_vlan=None):
+    def __init__(self, port, generator_config):
         """Create a new device for a given port."""
         self.generator_config = generator_config
         self.chain_count = generator_config.service_chain_count
         self.flow_count = generator_config.flow_count / 2
         self.port = port
         self.switch_port = generator_config.interfaces[port].get('switch_port', None)
-        self.vtep_vlan = vtep_vlan
+        self.vtep_vlan = None
+        self.vtep_src_mac = None
+        self.vxlan = False
         self.pci = generator_config.interfaces[port].pci
         self.mac = None
         self.dest_macs = None
+        self.vtep_dst_mac = None
+        self.vtep_dst_ip = None
+        if generator_config.vteps is None:
+            self.vtep_src_ip = None
+        else:
+            self.vtep_src_ip = generator_config.vteps[port]
+        self.vnis = None
         self.vlans = None
         self.ip_addrs = generator_config.ip_addrs[port]
         subnet = IPNetwork(self.ip_addrs)
@@ -181,6 +190,15 @@ class Device(object):
         """Get the peer device (device 0 -> device 1, or device 1 -> device 0)."""
         return self.generator_config.devices[1 - self.port]
 
+    def set_vtep_dst_mac(self, dest_macs):
+        """Set the list of dest MACs indexed by the chain id.
+
+        This is only called in 2 cases:
+        - VM macs discovered using openstack API
+        - dest MACs provisioned in config file
+        """
+        self.vtep_dst_mac = map(str, dest_macs)
+
     def set_dest_macs(self, dest_macs):
         """Set the list of dest MACs indexed by the chain id.
 
@@ -205,6 +223,23 @@ class Device(object):
         """Set the list of vlans to use indexed by the chain id."""
         self.vlans = vlans
         LOG.info("Port %d: VLANs %s", self.port, self.vlans)
+
+    def set_vtep_vlan(self, vlan):
+        """Set the vtep vlan to use indexed by specific port."""
+        self.vtep_vlan = vlan
+        self.vxlan = True
+        self.vlan_tagging = None
+        LOG.info("Port %d: VTEP VLANs %s", self.port, self.vtep_vlan)
+
+    def set_vxlan_endpoints(self, src_ip, dst_ip):
+        self.vtep_dst_ip = dst_ip
+        self.vtep_src_ip = src_ip
+        LOG.info("Port %d: src_vtep %s, dst_vtep %s", self.port,
+                 self.vtep_src_ip, self.vtep_dst_ip)
+
+    def set_vxlans(self, vnis):
+        self.vnis = vnis
+        LOG.info("Port %d: VNIs %s", self.port, self.vnis)
 
     def get_gw_ip(self, chain_index):
         """Retrieve the IP address assigned for the gateway of a given chain."""
@@ -249,7 +284,14 @@ class Device(object):
                 'mac_discovery_gw': self.get_gw_ip(chain_idx),
                 'ip_src_tg_gw': self.tg_gw_ip_block.get_ip(chain_idx),
                 'ip_dst_tg_gw': peer.tg_gw_ip_block.get_ip(chain_idx),
-                'vlan_tag': self.vlans[chain_idx] if self.vlans else None
+                'vlan_tag': self.vlans[chain_idx] if self.vlans else None,
+                'vxlan': self.vxlan,
+                'vtep_vlan': self.vtep_vlan if self.vtep_vlan else None,
+                'vtep_src_mac': self.mac if self.vxlan is True else None,
+                'vtep_dst_mac': self.vtep_dst_mac if self.vxlan is True else None,
+                'vtep_dst_ip': self.vtep_dst_ip if self.vxlan is True else None,
+                'vtep_src_ip': self.vtep_src_ip if self.vxlan is True else None,
+                'net_vni': self.vnis[chain_idx] if self.vxlan is True else None
             })
             # after first chain, fall back to the flow count for all other chains
             cur_chain_flow_count = flows_per_chain
@@ -312,6 +354,8 @@ class GeneratorConfig(object):
         self.gateway_ips = gen_config.gateway_ip_addrs
         self.udp_src_port = gen_config.udp_src_port
         self.udp_dst_port = gen_config.udp_dst_port
+        self.vteps = gen_config.get('vteps')
+        self.vnis = gen_config.get('vnis')
         self.devices = [Device(port, self) for port in [0, 1]]
         # This should normally always be [0, 1]
         self.ports = [device.port for device in self.devices]
@@ -344,6 +388,18 @@ class GeneratorConfig(object):
         self.devices[port_index].set_dest_macs(dest_macs)
         LOG.info('Port %d: dst MAC %s', port_index, [str(mac) for mac in dest_macs])
 
+    def set_vtep_dest_macs(self, port_index, dest_macs):
+        """Set the list of dest MACs indexed by the chain id on given port.
+
+        port_index: the port for which dest macs must be set
+        dest_macs: a list of dest MACs indexed by chain id
+        """
+        if len(dest_macs) != self.config.service_chain_count:
+            raise TrafficClientException('Dest MAC list %s must have %d entries' %
+                                         (dest_macs, self.config.service_chain_count))
+        self.devices[port_index].set_vtep_dst_mac(dest_macs)
+        LOG.info('Port %d: vtep dst MAC %s', port_index, set([str(mac) for mac in dest_macs]))
+
     def get_dest_macs(self):
         """Return the list of dest macs indexed by port."""
         return [dev.get_dest_macs() for dev in self.devices]
@@ -358,6 +414,26 @@ class GeneratorConfig(object):
             raise TrafficClientException('VLAN list %s must have %d entries' %
                                          (vlans, self.config.service_chain_count))
         self.devices[port_index].set_vlans(vlans)
+
+    def set_vxlans(self, port_index, vxlans):
+        """Set the list of vxlans (VNIs) to use indexed by the chain id on given port.
+
+        port_index: the port for which VXLANs must be set
+        VXLANs: a  list of VNIs lists indexed by chain id
+        """
+        if len(vxlans) != self.config.service_chain_count:
+            raise TrafficClientException('VXLAN list %s must have %d entries' %
+                                         (vxlans, self.config.service_chain_count))
+        self.devices[port_index].set_vxlans(vxlans)
+
+    def set_vtep_vlan(self, port_index, vlan):
+        """Set the vtep vlan to use indexed by the chain id on given port.
+        port_index: the port for which VLAN must be set
+        """
+        self.devices[port_index].set_vtep_vlan(vlan)
+
+    def set_vxlan_endpoints(self, port_index, src_ip, dst_ip):
+        self.devices[port_index].set_vxlan_endpoints(src_ip, dst_ip)
 
     @staticmethod
     def __match_generator_profile(traffic_generator, generator_profile):
@@ -507,6 +583,12 @@ class TrafficClient(object):
             for chain, mac in enumerate(dest_macs):
                 mac_map[mac] = (port, chain)
         unique_src_mac_count = len(mac_map)
+        if self.config.vxlan and self.config.traffic_generator.vtep_vlan:
+            get_mac_id = lambda packet: packet['binary'][60:66]
+        elif self.config.vxlan:
+            get_mac_id = lambda packet: packet['binary'][56:62]
+        else:
+            get_mac_id = lambda packet: packet['binary'][6:12]
         for it in xrange(retry_count):
             self.gen.clear_stats()
             self.gen.start_traffic()
@@ -521,8 +603,8 @@ class TrafficClient(object):
             self.gen.stop_capture()
 
             for packet in self.gen.packet_list:
-                src_mac = packet['binary'][6:12]
-                src_mac = ':'.join(["%02x" % ord(x) for x in src_mac])
+                mac_id = get_mac_id(packet)
+                src_mac = ':'.join(["%02x" % ord(x) for x in mac_id])
                 if src_mac in mac_map:
                     port, chain = mac_map[src_mac]
                     LOG.info('Received packet from mac: %s (chain=%d, port=%d)',
@@ -540,8 +622,12 @@ class TrafficClient(object):
         dest_macs = self.gen.resolve_arp()
         if dest_macs:
             # all dest macs are discovered, saved them into the generator config
-            self.generator_config.set_dest_macs(0, dest_macs[0])
-            self.generator_config.set_dest_macs(1, dest_macs[1])
+            if self.config.vxlan:
+                self.generator_config.set_vtep_dest_macs(0, dest_macs[0])
+                self.generator_config.set_vtep_dest_macs(1, dest_macs[1])
+            else:
+                self.generator_config.set_dest_macs(0, dest_macs[0])
+                self.generator_config.set_dest_macs(1, dest_macs[1])
         else:
             raise TrafficClientException('ARP cannot be resolved')
 

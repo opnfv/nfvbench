@@ -152,6 +152,23 @@ traffic_generator:
     udp_src_port:
     udp_dst_port:
 
+    # VxLAN only: optionally specify what VLAN tag to use for the VxLAN overlay
+    # This is used if the vxlan tunnels are running on a specific VLAN.
+    # Leave empty if there is no VLAN tagging required, or specify the VLAN id to use
+    # for all VxLAN tunneled traffic
+    vtep_vlan:
+    # VxLAN only: VNI range for VXLAN encapsulation [start_vni, end_vni]   [5000, 6000]
+    # VNI can have a value from range 5000-16777216
+    # For PVP, VNIs are allocated consecutively - 2 per each chain
+    # Chain 1: 5000, 5001; Chain 2: 5002, 5003; Chain X: 5000+x, 5000+x+1
+    # For PVVP scenario VNIs allocated consecutively - 3 per each chain
+    # Chain 1: 5000, 5001, 5002; Chain 2: 5003, 5004, 5005; Chain X: 5000+x, 5000+x+1, 5000+x+1
+    vnis:
+    # VxLAN only: local/source vteps IP addresses for port 0 and 1 ['10.1.1.230', '10.1.1.231']
+    src_vteps:
+    # VxLAN only: remote IP address of the remote VTEPs that terminate all tunnels originating from local VTEPs
+    dst_vtep:
+
     # L2 ADDRESSING OF UDP PACKETS
     # Lists of dest MAC addresses to use on each traffic generator port (one dest MAC per chain)
     # Leave empty for PVP, PVVP, EXT with ARP
@@ -304,11 +321,17 @@ external_networks:
     left: 'ext-lnet'
     right: 'ext-rnet'
 
+# Use 'true' to enable VXLAN encapsulation support and sent by the traffic generator
+# When this option enabled internal networks 'network type' parameter value should be 'vxlan'
+vxlan: false
+
 # Use 'true' to enable VLAN tagging of packets generated and sent by the traffic generator
 # Leave empty or set to false if you do not want the traffic generator to insert the VLAN tag (this is
 # needed for example if VLAN tagging is enabled on switch (access mode) or if you want to hook
 # directly to a NIC).
 # By default is set to true (which is the nominal use case with TOR and trunk mode to Trex ports)
+# If VxLAN is enabled, this option should be set to false (vlan tagging for encapsulated packets
+# is not supported). Use the vtep_vlan option to enable vlan tagging for the VxLAN overlay network.
 vlan_tagging: true
 
 # Used only in the case of EXT chain and no openstack to specify the VLAN IDs to use.

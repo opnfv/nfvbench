@@ -319,6 +319,7 @@ def _get_dummy_tg_config(chain_type, rate, scc=1, fc=10, step_ip='0.0.0.1',
 
 def _get_traffic_client():
     config = _get_dummy_tg_config('PVP', 'ndr_pdr')
+    config['vxlan'] = False
     config['ndr_run'] = True
     config['pdr_run'] = True
     config['generator_profile'] = 'dummy'

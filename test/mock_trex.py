@@ -55,6 +55,11 @@ except ImportError:
     api_mod.STLVmFlowVarRepetableRandom = STLDummy
     api_mod.STLVmWrFlowVar = STLDummy
     api_mod.UDP = STLDummy
+    api_mod.bind_layers = STLDummy
+    api_mod.FlagsField = STLDummy
+    api_mod.Packet = STLDummy
+    api_mod.ThreeBytesField = STLDummy
+    api_mod.XByteField = STLDummy
 
     services_mod = ModuleType('trex_stl_lib.services')
     stl_lib_mod.services = services_mod

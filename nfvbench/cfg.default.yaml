@@ -151,7 +151,19 @@ traffic_generator:
     # `udp_dst_port`: the destination port for sending UDP traffic, default is picked by TRex (53)
     udp_src_port:
     udp_dst_port:
-
+    # Generates VLAN tag where VXLAN VTEPs resided, optional parameter
+    vtep_vlan:
+    # VNIs range for VXLAN encapsulation [start_vni, end_vni]   [5000, 6000]
+    # VNI can have a value from range 5000-16777216
+    # For PVP scenario VNIs allocated consequently - 2 per each chain
+    # Chain 1: 5000, 5001; Chain 2: 5002, 5003; Chain X: 5000+x, 5000+x+1
+    # For PVVP scenario VNIs allocated consequently - 3 per each chain
+    # Chain 1: 5000, 5001, 5002; Chain 2: 5003, 5004, 5005; Chain X: 5000+x, 5000+x+1, 5000+x+1
+    vnis:
+    # Source vteps addresses for port 0 and 1, required when VXLAN mode is enabled ['10.1.1.230', '10.1.1.231']
+    src_vteps:
+    # IP address of the remote VTEPs that terminate all tunnels originating from local VTEPs
+    dst_vtep:
     # L2 ADDRESSING OF UDP PACKETS
     # Lists of dest MAC addresses to use on each traffic generator port (one dest MAC per chain)
     # Leave empty for PVP, PVVP, EXT with ARP
@@ -303,6 +315,10 @@ use_sriov_middle_net: false
 external_networks:
     left: 'ext-lnet'
     right: 'ext-rnet'
+
+# Use 'true' to enable VXLAN encapsulation support and sent by the traffic generator
+# When this option enabled internal networks 'network type' parameter value should be 'vxlan'
+vxlan: false
 
 # Use 'true' to enable VLAN tagging of packets generated and sent by the traffic generator
 # Leave empty or set to false if you do not want the traffic generator to insert the VLAN tag (this is

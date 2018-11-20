@@ -13,6 +13,7 @@
 #    under the License.
 """Driver module for TRex traffic generator."""
 
+import math
 import os
 import random
 import time
@@ -32,10 +33,13 @@ from traffic_utils import IMIX_L2_SIZES
 from traffic_utils import IMIX_RATIOS
 
 # pylint: disable=import-error
+from trex_stl_lib.api import bind_layers
 from trex_stl_lib.api import CTRexVmInsFixHwCs
 from trex_stl_lib.api import Dot1Q
 from trex_stl_lib.api import Ether
+from trex_stl_lib.api import FlagsField
 from trex_stl_lib.api import IP
+from trex_stl_lib.api import Packet
 from trex_stl_lib.api import STLClient
 from trex_stl_lib.api import STLError
 from trex_stl_lib.api import STLFlowLatencyStats
@@ -48,12 +52,26 @@ from trex_stl_lib.api import STLVmFixChecksumHw
 from trex_stl_lib.api import STLVmFlowVar
 from trex_stl_lib.api import STLVmFlowVarRepetableRandom
 from trex_stl_lib.api import STLVmWrFlowVar
+from trex_stl_lib.api import ThreeBytesField
 from trex_stl_lib.api import UDP
+from trex_stl_lib.api import XByteField
 from trex_stl_lib.services.trex_stl_service_arp import STLServiceARP
 
 
 # pylint: enable=import-error
 
+class VXLAN(Packet):
+    """VxLAN class."""
+
+    _VXLAN_FLAGS = ['R' * 27] + ['I'] + ['R' * 5]
+    name = "VXLAN"
+    fields_desc = [FlagsField("flags", 0x08000000, 32, _VXLAN_FLAGS),
+                   ThreeBytesField("vni", 0),
+                   XByteField("reserved", 0x00)]
+
+    def mysummary(self):
+        """Summary."""
+        return self.sprintf("VXLAN (vni=%VXLAN.vni%)")
 
 class TRex(AbstractTrafficGenerator):
     """TRex traffic generator driver."""
@@ -221,8 +239,12 @@ class TRex(AbstractTrafficGenerator):
                 lat = trex_stats['latency'][lat_pg_id]['latency']
                 # dropped_pkts += lat['err_cntrs']['dropped']
                 latencies[port].max_usec = get_latency(lat['total_max'])
-                latencies[port].min_usec = get_latency(lat['total_min'])
-                latencies[port].avg_usec = get_latency(lat['average'])
+                if math.isnan(lat['total_min']):
+                    latencies[port].min_usec = 0
+                    latencies[port].avg_usec = 0
+                else:
+                    latencies[port].min_usec = get_latency(lat['total_min'])
+                    latencies[port].avg_usec = get_latency(lat['average'])
             except KeyError:
                 pass
 
@@ -247,6 +269,10 @@ class TRex(AbstractTrafficGenerator):
         results['max_delay_usec'] = total_max
         results['avg_delay_usec'] = int(average / self.chain_count)
 
+    def _bind_vxlan(self):
+        bind_layers(UDP, VXLAN, dport=4789)
+        bind_layers(VXLAN, Ether)
+
     def _create_pkt(self, stream_cfg, l2frame_size):
         """Create a packet of given size.
 
@@ -255,7 +281,20 @@ class TRex(AbstractTrafficGenerator):
         # Trex will add the FCS field, so we need to remove 4 bytes from the l2 frame size
         frame_size = int(l2frame_size) - 4
 
-        pkt_base = Ether(src=stream_cfg['mac_src'], dst=stream_cfg['mac_dst'])
+        if stream_cfg['vxlan'] is True:
+            self._bind_vxlan()
+            encap_level = '1'
+            pkt_base = Ether(src=stream_cfg['vtep_src_mac'], dst=stream_cfg['vtep_dst_mac'])
+            if stream_cfg['vtep_vlan'] is not None:
+                pkt_base /= Dot1Q(vlan=stream_cfg['vtep_vlan'])
+            pkt_base /= IP(src=stream_cfg['vtep_src_ip'], dst=stream_cfg['vtep_dst_ip'])
+            pkt_base /= UDP(sport=random.randint(1337, 32767), dport=4789)
+            pkt_base /= VXLAN(vni=stream_cfg['net_vni'])
+            pkt_base /= Ether(src=stream_cfg['mac_src'], dst=stream_cfg['mac_dst'])
+        else:
+            encap_level = '0'
+            pkt_base = Ether(src=stream_cfg['mac_src'], dst=stream_cfg['mac_dst'])
+
         if stream_cfg['vlan_tag'] is not None:
             pkt_base /= Dot1Q(vlan=stream_cfg['vlan_tag'])
 
@@ -299,11 +338,11 @@ class TRex(AbstractTrafficGenerator):
 
         vm_param = [
             src_fv,
-            STLVmWrFlowVar(fv_name="ip_src", pkt_offset="IP.src"),
+            STLVmWrFlowVar(fv_name="ip_src", pkt_offset="IP:{}.src".format(encap_level)),
             dst_fv,
-            STLVmWrFlowVar(fv_name="ip_dst", pkt_offset="IP.dst"),
-            STLVmFixChecksumHw(l3_offset="IP",
-                               l4_offset="UDP",
+            STLVmWrFlowVar(fv_name="ip_dst", pkt_offset="IP:{}.dst".format(encap_level)),
+            STLVmFixChecksumHw(l3_offset="IP:{}".format(encap_level),
+                               l4_offset="UDP:{}".format(encap_level),
                                l4_type=CTRexVmInsFixHwCs.L4_TYPE_UDP)
         ]
         pad = max(0, frame_size - len(pkt_base)) * 'x'
@@ -458,14 +497,23 @@ class TRex(AbstractTrafficGenerator):
             dst_macs = [None] * chain_count
             dst_macs_count = 0
             # the index in the list is the chain id
-            arps = [
-                STLServiceARP(ctx,
-                              src_ip=cfg['ip_src_tg_gw'],
-                              dst_ip=cfg['mac_discovery_gw'],
-                              # will be None if no vlan tagging
-                              vlan=cfg['vlan_tag'])
-                for cfg in stream_configs
-            ]
+            if self.config.vxlan:
+                arps = [
+                    STLServiceARP(ctx,
+                                  src_ip=device.vtep_src_ip,
+                                  dst_ip=device.vtep_dst_ip,
+                                  vlan=device.vtep_vlan)
+                    for cfg in stream_configs
+                ]
+            else:
+                arps = [
+                    STLServiceARP(ctx,
+                                  src_ip=cfg['ip_src_tg_gw'],
+                                  dst_ip=cfg['mac_discovery_gw'],
+                                  # will be None if no vlan tagging
+                                  vlan=cfg['vlan_tag'])
+                    for cfg in stream_configs
+                ]
 
             for attempt in range(self.config.generic_retry_count):
                 try:

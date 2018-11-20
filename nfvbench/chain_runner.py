@@ -79,6 +79,24 @@ class ChainRunner(object):
             gen_config.set_dest_macs(0, self.chain_manager.get_dest_macs(0))
             gen_config.set_dest_macs(1, self.chain_manager.get_dest_macs(1))
 
+        if config.vxlan:
+            # VXLAN is discovered from the networks
+            vtep_vlan = gen_config.gen_config.vtep_vlan
+            src_vteps = gen_config.gen_config.src_vteps
+            dst_vtep = gen_config.gen_config.dst_vtep
+            int_nets = self.config.internal_networks
+            network_type = set(
+                [int_nets[net].get('network_type') for net in int_nets])
+            if 'vxlan' in network_type:
+                gen_config.set_vxlans(0, self.chain_manager.get_chain_vxlans(0))
+                gen_config.set_vxlans(1, self.chain_manager.get_chain_vxlans(1))
+            gen_config.set_vtep_vlan(0, vtep_vlan)
+            gen_config.set_vtep_vlan(1, vtep_vlan)
+            # Configuring source an remote VTEPs on TREx interfaces
+            gen_config.set_vxlan_endpoints(0, src_vteps[0], dst_vtep)
+            gen_config.set_vxlan_endpoints(1, src_vteps[1], dst_vtep)
+            self.config['vxlan_gen_config'] = gen_config
+
         # get an instance of the stats manager
         self.stats_manager = StatsManager(self)
         LOG.info('ChainRunner initialized')
@@ -86,7 +104,9 @@ class ChainRunner(object):
     def __setup_traffic(self):
         self.traffic_client.setup()
         if not self.config.no_traffic:
-            if self.config.service_chain == ChainType.EXT and not self.config.no_arp:
+            # ARP is needed for EXT chain or VxLAN overlay unless disabled explicitly
+            if (self.config.service_chain == ChainType.EXT or self.config.vxlan) and \
+               not self.config.no_arp:
                 self.traffic_client.ensure_arp_successful()
             self.traffic_client.ensure_end_to_end()
 
@@ -146,10 +166,12 @@ class ChainRunner(object):
             return results
 
         LOG.info('Starting %dx%s benchmark...', self.config.service_chain_count, self.chain_name)
-        self.__setup_traffic()
-        # now that the dest MAC for all VNFs is known in all cases, it is time to create
-        # workers as they might be needed to extract stats prior to sending traffic
         self.stats_manager.create_worker()
+        if self.config.vxlan:
+            # Configure vxlan tunnels
+            self.stats_manager.worker.config_interfaces()
+
+        self.__setup_traffic()
 
         results[self.chain_name] = {'result': self.__get_chain_result()}
 

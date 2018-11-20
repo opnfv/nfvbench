@@ -43,8 +43,9 @@ class TRexTrafficServer(TrafficServer):
         """
         cfg = self.__save_config(generator_config, filename)
         cores = generator_config.cores
+        vtep_vlan = generator_config.gen_config.get('vtep_vlan')
         sw_mode = "--software" if generator_config.software_mode else ""
-        vlan_opt = "--vlan" if generator_config.vlan_tagging else ""
+        vlan_opt = "--vlan" if (generator_config.vlan_tagging or vtep_vlan) else ""
         subprocess.Popen(['nohup', '/bin/bash', '-c',
                           './t-rex-64 -i -c {} --iom 0 --no-scapy-server --close-at-end {} '
                           '{} --cfg {} &> /tmp/trex.log & disown'.format(cores, sw_mode,

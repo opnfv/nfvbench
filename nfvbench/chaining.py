@@ -1017,7 +1017,7 @@ class ChainManager(object):
             int_nets = self.config.internal_networks
             network_type = set([int_nets[net].get('network_type') for net in int_nets])
             if self.config.vxlan and 'vxlan' in network_type:
-                net_cfg = self._get_vxlan_net_cfg()
+                net_cfg = self._get_vxlan_net_cfg(chain_id)
             else:
                 # VLAN
                 if self.config.service_chain == ChainType.PVP:

@@ -229,7 +229,7 @@ traffic_generator:
         - name: trex-local
           tool: TRex
           ip: 127.0.0.1
-          cores: 3
+          cores: 4
           software_mode: false
           interfaces:
             - port: 0
@@ -239,6 +239,13 @@ traffic_generator:
               pci:
               switch_port:
           intf_speed:
+
+# Simpler override for trex core count and mbuf multilier factor
+# if empty defaults to the one specified in generator_profile.cores
+cores:
+
+# mbuffer ratio to use for TRex (see TRex documentation for more details)
+mbuf_factor: 0.2
 
 # -----------------------------------------------------------------------------
 # These variables are not likely to be changed

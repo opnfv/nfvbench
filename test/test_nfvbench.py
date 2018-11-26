@@ -314,7 +314,9 @@ def _get_dummy_tg_config(chain_type, rate, scc=1, fc=10, step_ip='0.0.0.1',
         'check_traffic_time_sec': 200,
         'generic_poll_sec': 2,
         'measurement': {'NDR': 0.001, 'PDR': 0.1, 'load_epsilon': 0.1},
-        'l2_loopback': False
+        'l2_loopback': False,
+        'cores': None,
+        'mbuf_factor': None
     })
 
 def _get_traffic_client():

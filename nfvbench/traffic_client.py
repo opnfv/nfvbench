@@ -328,7 +328,12 @@ class GeneratorConfig(object):
         # copy over fields from the dict
         self.tool = gen_config.tool
         self.ip = gen_config.ip
-        self.cores = gen_config.get('cores', 1)
+        # overrides on config.cores and config.mbuf_factor
+        if config.cores:
+            self.cores = config.cores
+        else:
+            self.cores = gen_config.get('cores', 1)
+        self.mbuf_factor = config.mbuf_factor
         if gen_config.intf_speed:
             # interface speed is overriden from config
             self.intf_speed = bitmath.parse_string(gen_config.intf_speed.replace('ps', '')).bits

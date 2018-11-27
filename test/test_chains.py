@@ -262,15 +262,25 @@ def _check_nfvbench_openstack(sc=ChainType.PVP, l2_loopback=False):
 
 
 mac_seq = 0
+expected_mac_list = []
+mac_pkt_seq = -1
 
 def _mock_get_mac(dummy):
     global mac_seq
     mac_seq += 1
     return '01:00:00:00:00:%02x' % mac_seq
 
+def _mock_get_pkt_mac(dummy, test):
+    global expected_mac_list
+    global mac_pkt_seq
+    mac_pkt_seq += 1
+    return expected_mac_list[mac_pkt_seq]
+
 @patch.object(Compute, 'find_image', _mock_find_image)
 @patch.object(TrafficClient, 'skip_sleep', lambda x: True)
 @patch.object(ChainVnfPort, 'get_mac', _mock_get_mac)
+@patch.object(TrafficClient, 'get_mac', _mock_get_pkt_mac)
+@patch.object(TrafficClient, 'is_udp', lambda x, y: True)
 @patch('nfvbench.chaining.Client')
 @patch('nfvbench.chaining.neutronclient')
 @patch('nfvbench.chaining.glanceclient')
@@ -279,6 +289,11 @@ def test_nfvbench_run(mock_cred, mock_glance, mock_neutron, mock_client):
     """Test NFVbench class with openstack+PVP."""
     # instance = self.novaclient.servers.create(name=vmname,...)
     # instance.status == 'ACTIVE'
+    global expected_mac_list
+    expected_mac_list = ['01:00:00:00:00:05', '01:00:00:00:00:06', '01:00:00:00:00:0f',
+                         '01:00:00:00:00:10', '01:00:00:00:00:11', '01:00:00:00:00:12']
+    global mac_pkt_seq
+    mac_pkt_seq = -1
     mock_client.return_value.servers.create.return_value.status = 'ACTIVE'
     netw = {'id': 0, 'provider:network_type': 'vlan', 'provider:segmentation_id': 1000}
     mock_neutron.Client.return_value.create_network.return_value = {'network': netw}
@@ -287,6 +302,8 @@ def test_nfvbench_run(mock_cred, mock_glance, mock_neutron, mock_client):
 
 @patch.object(Compute, 'find_image', _mock_find_image)
 @patch.object(TrafficClient, 'skip_sleep', lambda x: True)
+@patch.object(TrafficClient, 'get_mac', _mock_get_pkt_mac)
+@patch.object(TrafficClient, 'is_udp', lambda x, y: True)
 @patch('nfvbench.chaining.Client')
 @patch('nfvbench.chaining.neutronclient')
 @patch('nfvbench.chaining.glanceclient')
@@ -295,6 +312,11 @@ def test_nfvbench_ext_arp(mock_cred, mock_glance, mock_neutron, mock_client):
     """Test NFVbench class with openstack+EXT+ARP."""
     # instance = self.novaclient.servers.create(name=vmname,...)
     # instance.status == 'ACTIVE'
+    global expected_mac_list
+    expected_mac_list = ['00:00:00:00:00:00', '00:00:00:00:01:00', '00:00:00:00:01:00',
+                         '00:00:00:00:01:01', '00:00:00:00:00:00', '00:00:00:00:00:01']
+    global mac_pkt_seq
+    mac_pkt_seq = -1
     mock_client.return_value.servers.create.return_value.status = 'ACTIVE'
     netw = {'id': 0, 'provider:network_type': 'vlan', 'provider:segmentation_id': 1000}
     mock_neutron.Client.return_value.list_networks.return_value = {'networks': [netw]}
@@ -302,6 +324,8 @@ def test_nfvbench_ext_arp(mock_cred, mock_glance, mock_neutron, mock_client):
 
 @patch.object(Compute, 'find_image', _mock_find_image)
 @patch.object(TrafficClient, 'skip_sleep', lambda x: True)
+@patch.object(TrafficClient, 'get_mac', _mock_get_pkt_mac)
+@patch.object(TrafficClient, 'is_udp', lambda x, y: True)
 @patch('nfvbench.chaining.Client')
 @patch('nfvbench.chaining.neutronclient')
 @patch('nfvbench.chaining.glanceclient')
@@ -310,6 +334,11 @@ def test_nfvbench_l2_loopback(mock_cred, mock_glance, mock_neutron, mock_client)
     """Test NFVbench class with l2-loopback."""
     # instance = self.novaclient.servers.create(name=vmname,...)
     # instance.status == 'ACTIVE'
+    global expected_mac_list
+    expected_mac_list = ['00:00:00:00:00:02', '00:00:00:00:00:01', '00:00:00:00:00:02',
+                         '00:00:00:00:00:01']
+    global mac_pkt_seq
+    mac_pkt_seq = -1
     mock_client.return_value.servers.create.return_value.status = 'ACTIVE'
     _check_nfvbench_openstack(l2_loopback=True)
 
@@ -466,8 +495,14 @@ def test_summarizer():
         assert stats == exp_stats
 
 @patch.object(TrafficClient, 'skip_sleep', lambda x: True)
+@patch.object(TrafficClient, 'get_mac', _mock_get_pkt_mac)
+@patch.object(TrafficClient, 'is_udp', lambda x, y: True)
 def test_fixed_rate_no_openstack():
     """Test FIxed Rate run - no openstack."""
+    global expected_mac_list
+    expected_mac_list = ['00:00:00:00:00:00', '00:00:00:00:01:00']
+    global mac_pkt_seq
+    mac_pkt_seq = -1
     config = _get_chain_config(ChainType.EXT, 1, True, rate='100%')
     specs = Specs()
     config.vlans = [100, 200]

@@ -147,6 +147,7 @@ traffic_generator:
     #                       chain count consecutive IP addresses spaced by tg_gateway_ip_addrs_step will be used
     # `tg_gateway_ip_addrs__step`: step for generating traffic generator gateway sequences. default is 0.0.0.1
     tg_gateway_ip_addrs: ['1.1.0.100', '2.2.0.100']
+    tg_gateway_ip_cidrs: ['1.1.0.0/24','2.2.0.0/24']
     tg_gateway_ip_addrs_step: 0.0.0.1
     # `gateway_ip_addrs`: base IPs of VNF router gateways (left and right), quantity used depends on chain count
     #                     must correspond to the public IP on the left and right networks
@@ -449,6 +450,38 @@ external_networks:
     left:
     right:
 
+# PVP L3 chain only. Prefix names of edge networks which will be used to send traffic via traffic generator.
+# If a network with given name already exists it will be reused.
+# Otherwise a new edge network will be created with that name, subnet and CIDR.
+#
+# gateway can be set in case of L3 traffic with edge networks - refer to edge_networks
+#
+# segmentation_id can be set to enforce a specific VLAN id - by default (empty) the VLAN id
+#                 will be assigned by Neutron.
+#                 Must be unique for each network
+# physical_network can be set to pick a specific phsyical network - by default (empty) the
+#                   default physical network will be picked
+#
+edge_networks:
+    left:
+        name: 'nfvbench-net2'
+        router_name: 'router_left'
+        subnet: 'nfvbench-subnet2'
+        cidr: '192.168.3.0/24'
+        gateway:
+        network_type:
+        segmentation_id:
+        physical_network:
+    right:
+        name: 'nfvbench-net3'
+        router_name: 'router_right'
+        subnet: 'nfvbench-subnet3'
+        cidr: '192.168.4.0/24'
+        gateway:
+        network_type:
+        segmentation_id:
+        physical_network:
+
 # Use 'true' to enable VXLAN encapsulation support and sent by the traffic generator
 # When this option enabled internal networks 'network type' parameter value should be 'vxlan'
 vxlan: false
@@ -508,6 +541,10 @@ traffic:
 # Check config and connectivity only - do not generate traffic
 # Can be overriden by --no-traffic
 no_traffic: false
+
+# Create L3 chain with neutron routers
+# Can be overriden by --l3-router
+l3_router: false
 
 # Test configuration
 

@@ -217,7 +217,7 @@ For example to run NFVbench with 3 PVP chains:
 
 It is not necessary to specify the service chain type (-sc) because PVP is set as default. The PVP service chains will have 3 VMs in 3 chains with this configuration.
 If ``-sc PVVP`` is specified instead, there would be 6 VMs in 3 chains as this service chain has 2 VMs per chain.
-Both **single run** or **NDR/PDR** can be run as multichain. Runnin multichain is a scenario closer to a real life situation than runs with a single chain.
+Both **single run** or **NDR/PDR** can be run as multichain. Running multichain is a scenario closer to a real life situation than runs with a single chain.
 
 
 Multiflow

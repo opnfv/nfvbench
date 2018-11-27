@@ -175,6 +175,8 @@ P2P (Physical interface to Physical interface - no VM) can be supported using th
 
 V2V (VM to VM) is not supported but PVVP provides a more complete (and more realistic) alternative.
 
+PVPL3 (Physical interface to VM to Physical interface) can be supported using based on PVP chain with L3 forwarding mode.
+
 
 Supported Neutron Network Plugins and vswitches
 -----------------------------------------------

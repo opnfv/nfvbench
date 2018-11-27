@@ -54,13 +54,16 @@ from neutronclient.neutron import client as neutronclient
 from novaclient.client import Client
 
 from attrdict import AttrDict
+from chain_router import ChainRouter
 import compute
 from log import LOG
 from specs import ChainType
-
 # Left and right index for network and port lists
 LEFT = 0
 RIGHT = 1
+# L3 traffic edge networks are at the end of networks list
+EDGE_LEFT = -2
+EDGE_RIGHT = -1
 # Name of the VM config file
 NFVBENCH_CFG_FILENAME = 'nfvbenchvm.conf'
 # full pathame of the VM config in the VM
@@ -75,6 +78,7 @@ class ChainException(Exception):
     """Exception while operating the chains."""
 
     pass
+
 
 class NetworkEncaps(object):
     """Network encapsulation."""
@@ -174,6 +178,10 @@ class ChainVnfPort(object):
         """Get the MAC address for this port."""
         return self.port['mac_address']
 
+    def get_ip(self):
+        """Get the IP address for this port."""
+        return self.port['fixed_ips'][0]['ip_address']
+
     def delete(self):
         """Delete this port instance."""
         if self.reuse or not self.port:
@@ -222,6 +230,8 @@ class ChainNetwork(object):
         self.reuse = False
         self.network = None
         self.vlan = None
+        if manager.config.l3_traffic and hasattr(network_config, 'router_name'):
+            self.router_name = network_config.router_name
         try:
             self._setup(network_config, lookup_only)
         except Exception:
@@ -294,7 +304,7 @@ class ChainNetwork(object):
                 'network': {
                     'name': self.name,
                     'admin_state_up': True
-                    }
+                }
             }
             if network_config.network_type:
                 body['network']['provider:network_type'] = network_config.network_type
@@ -388,6 +398,7 @@ class ChainVnf(object):
         # For example if 7 idle interfaces are requested, the corresp. ports will be
         # at index 2 to 8
         self.ports = []
+        self.routers = []
         self.status = None
         self.instance = None
         self.reuse = False
@@ -397,7 +408,10 @@ class ChainVnf(object):
         try:
             # the vnf_id is conveniently also the starting index in networks
             # for the left and right networks associated to this VNF
-            self._setup(networks[vnf_id:vnf_id + 2])
+            if self.manager.config.l3_traffic:
+                self._setup(networks[vnf_id:vnf_id + 4])
+            else:
+                self._setup(networks[vnf_id:vnf_id + 2])
         except Exception:
             LOG.error("Error creating VNF %s", self.name)
             self.delete()
@@ -406,22 +420,48 @@ class ChainVnf(object):
     def _get_vm_config(self, remote_mac_pair):
         config = self.manager.config
         devices = self.manager.generator_config.devices
+
+        if config.l3_traffic:
+            tg_gateway1_ip = self.routers[LEFT].ports[1]['fixed_ips'][0][
+                'ip_address']  # router edge ip left
+            tg_gateway2_ip = self.routers[RIGHT].ports[1]['fixed_ips'][0][
+                'ip_address']  # router edge ip right
+            tg_mac1 = self.routers[LEFT].ports[1]['mac_address']  # router edge mac left
+            tg_mac2 = self.routers[RIGHT].ports[1]['mac_address']  # router edge mac right
+            # edge cidr mask left
+            vnf_gateway1_cidr = \
+                self.ports[LEFT].get_ip() + self.manager.config.edge_networks.left.cidr[-3:]
+            # edge cidr mask right
+            vnf_gateway2_cidr = \
+                self.ports[RIGHT].get_ip() + self.manager.config.edge_networks.right.cidr[-3:]
+        else:
+            tg_gateway1_ip = devices[LEFT].tg_gateway_ip_addrs
+            tg_gateway2_ip = devices[RIGHT].tg_gateway_ip_addrs
+            tg_mac1 = remote_mac_pair[0]
+            tg_mac2 = remote_mac_pair[1]
+
+            g1cidr = devices[LEFT].get_gw_ip(
+                self.chain.chain_id) + self.manager.config.internal_networks.left.cidr[-3:]
+            g2cidr = devices[RIGHT].get_gw_ip(
+                self.chain.chain_id) + self.manager.config.internal_networks.right.cidr[-3:]
+
+            vnf_gateway1_cidr = g1cidr
+            vnf_gateway2_cidr = g2cidr
+
         with open(BOOT_SCRIPT_PATHNAME, 'r') as boot_script:
             content = boot_script.read()
-        g1cidr = devices[LEFT].get_gw_ip(self.chain.chain_id) + '/8'
-        g2cidr = devices[RIGHT].get_gw_ip(self.chain.chain_id) + '/8'
         vm_config = {
             'forwarder': config.vm_forwarder,
             'intf_mac1': self.ports[LEFT].get_mac(),
             'intf_mac2': self.ports[RIGHT].get_mac(),
-            'tg_gateway1_ip': devices[LEFT].tg_gateway_ip_addrs,
-            'tg_gateway2_ip': devices[RIGHT].tg_gateway_ip_addrs,
+            'tg_gateway1_ip': tg_gateway1_ip,
+            'tg_gateway2_ip': tg_gateway2_ip,
             'tg_net1': devices[LEFT].ip_addrs,
             'tg_net2': devices[RIGHT].ip_addrs,
-            'vnf_gateway1_cidr': g1cidr,
-            'vnf_gateway2_cidr': g2cidr,
-            'tg_mac1': remote_mac_pair[0],
-            'tg_mac2': remote_mac_pair[1]
+            'vnf_gateway1_cidr': vnf_gateway1_cidr,
+            'vnf_gateway2_cidr': vnf_gateway2_cidr,
+            'tg_mac1': tg_mac1,
+            'tg_mac2': tg_mac2
         }
         return content.format(**vm_config)
 
@@ -504,21 +544,27 @@ class ChainVnf(object):
         # Check if we can reuse an instance with same name
         for instance in self.manager.existing_instances:
             if instance.name == self.name:
+                instance_left = LEFT
+                instance_right = RIGHT
+                # In case of L3 traffic instance use edge networks
+                if self.manager.config.l3_traffic:
+                    instance_left = EDGE_LEFT
+                    instance_right = EDGE_RIGHT
                 # Verify that other instance characteristics match
                 if instance.flavor['id'] != flavor_id:
                     self._reuse_exception('Flavor mismatch')
                 if instance.status != "ACTIVE":
                     self._reuse_exception('Matching instance is not in ACTIVE state')
                 # The 2 networks for this instance must also be reused
-                if not networks[LEFT].reuse:
-                    self._reuse_exception('network %s is new' % networks[LEFT].name)
-                if not networks[RIGHT].reuse:
-                    self._reuse_exception('network %s is new' % networks[RIGHT].name)
+                if not networks[instance_left].reuse:
+                    self._reuse_exception('network %s is new' % networks[instance_left].name)
+                if not networks[instance_right].reuse:
+                    self._reuse_exception('network %s is new' % networks[instance_right].name)
                 # instance.networks have the network names as keys:
                 # {'nfvbench-rnet0': ['192.168.2.10'], 'nfvbench-lnet0': ['192.168.1.8']}
-                if networks[LEFT].name not in instance.networks:
+                if networks[instance_left].name not in instance.networks:
                     self._reuse_exception('Left network mismatch')
-                if networks[RIGHT].name not in instance.networks:
+                if networks[instance_right].name not in instance.networks:
                     self._reuse_exception('Right network mismatch')
 
                 self.reuse = True
@@ -526,15 +572,50 @@ class ChainVnf(object):
                 LOG.info('Reusing existing instance %s on %s',
                          self.name, self.get_hypervisor_name())
         # create or reuse/discover 2 ports per instance
-        self.ports = [ChainVnfPort(self.name + '-' + str(index),
-                                   self,
-                                   networks[index],
-                                   self._get_vnic_type(index)) for index in [0, 1]]
+        if self.manager.config.l3_traffic:
+            self.ports = [ChainVnfPort(self.name + '-' + str(index),
+                                       self,
+                                       networks[index + 2],
+                                       self._get_vnic_type(index)) for index in [0, 1]]
+        else:
+            self.ports = [ChainVnfPort(self.name + '-' + str(index),
+                                       self,
+                                       networks[index],
+                                       self._get_vnic_type(index)) for index in [0, 1]]
 
         # create idle networks and ports only if instance is not reused
         # if reused, we do not care about idle networks/ports
         if not self.reuse:
             self._get_idle_networks_ports()
+
+        # Create routers for L3 traffic use case
+        if self.manager.config.l3_traffic:
+            internal_nets = networks[:2]
+            if self.manager.config.service_chain == ChainType.PVP:
+                edge_nets = networks[2:]
+            else:
+                edge_nets = networks[3:]
+            subnets_left = [internal_nets[0], edge_nets[0]]
+            routes_left = [{'destination': self.manager.config.traffic_generator.ip_addrs[0],
+                            'nexthop': self.manager.config.traffic_generator.tg_gateway_ip_addrs[
+                                0]},
+                           {'destination': self.manager.config.traffic_generator.ip_addrs[1],
+                            'nexthop': self.ports[0].get_ip()}]
+            self.routers.append(
+                ChainRouter(self.manager, edge_nets[0].router_name, subnets_left, routes_left))
+            subnets_right = [internal_nets[1], edge_nets[1]]
+            routes_right = [{'destination': self.manager.config.traffic_generator.ip_addrs[0],
+                             'nexthop': self.ports[1].get_ip()},
+                            {'destination': self.manager.config.traffic_generator.ip_addrs[1],
+                             'nexthop': self.manager.config.traffic_generator.tg_gateway_ip_addrs[
+                                 1]}]
+            self.routers.append(
+                ChainRouter(self.manager, edge_nets[1].router_name, subnets_right, routes_right))
+            # Overload gateway_ips property with router ip address for ARP and traffic calls
+            self.manager.generator_config.devices[LEFT].set_gw_ip(
+                self.routers[LEFT].ports[0]['fixed_ips'][0]['ip_address'])  # router edge ip left)
+            self.manager.generator_config.devices[RIGHT].set_gw_ip(
+                self.routers[RIGHT].ports[0]['fixed_ips'][0]['ip_address'])  # router edge ip right)
 
         # if no reuse, actual vm creation is deferred after all ports in the chain are created
         # since we need to know the next mac in a multi-vnf chain
@@ -658,6 +739,7 @@ class ChainVnf(object):
             for network in self.idle_networks:
                 network.delete()
 
+
 class Chain(object):
     """A class to manage a single chain.
 
@@ -719,7 +801,8 @@ class Chain(object):
 
     def get_length(self):
         """Get the number of VNF in the chain."""
-        return len(self.networks) - 1
+        # Take into account 2 edge networks for routers
+        return len(self.networks) - 3 if self.manager.config.l3_traffic else len(self.networks) - 1
 
     def _get_remote_mac_pairs(self):
         """Get the list of remote mac pairs for every VNF in the chain.
@@ -1151,6 +1234,10 @@ class ChainManager(object):
                 net_cfg = [int_nets.left, int_nets.right]
             else:
                 net_cfg = [int_nets.left, int_nets.middle, int_nets.right]
+            if self.config.l3_traffic:
+                edge_nets = self.config.edge_networks
+                net_cfg.append(edge_nets.left)
+                net_cfg.append(edge_nets.right)
         networks = []
         try:
             for cfg in net_cfg:

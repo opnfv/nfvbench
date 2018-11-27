@@ -77,8 +77,9 @@ class ChainRunner(object):
         # or EXT+ARP+VLAN (because dest MAC will be discovered by TRex ARP)
         # Note that in the case of EXT+ARP+VxLAN, the dest MACs need to be loaded
         # because ARP only operates on the dest VTEP IP not on the VM dest MAC
-        if not config.l2_loopback and \
-           (config.service_chain != ChainType.EXT or config.no_arp or config.vxlan):
+        if not config.l2_loopback and (
+                config.service_chain != ChainType.EXT or config.no_arp or
+                config.vxlan or config.l3_traffic):
             gen_config.set_dest_macs(0, self.chain_manager.get_dest_macs(0))
             gen_config.set_dest_macs(1, self.chain_manager.get_dest_macs(1))
 
@@ -104,8 +105,8 @@ class ChainRunner(object):
         self.traffic_client.setup()
         if not self.config.no_traffic:
             # ARP is needed for EXT chain or VxLAN overlay unless disabled explicitly
-            if (self.config.service_chain == ChainType.EXT or self.config.vxlan) and \
-               not self.config.no_arp:
+            if (self.config.service_chain == ChainType.EXT or
+                    self.config.vxlan or self.config.l3_traffic) and not self.config.no_arp:
                 self.traffic_client.ensure_arp_successful()
             self.traffic_client.ensure_end_to_end()
 

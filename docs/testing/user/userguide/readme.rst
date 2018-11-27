@@ -175,6 +175,8 @@ P2P (Physical interface to Physical interface - no VM) can be supported using th
 
 V2V (VM to VM) is not supported but PVVP provides a more complete (and more realistic) alternative.
 
+PVP chain with L3 routers in the path can be supported using PVP chain with L3 forwarding mode (l3_router option). See PVP L3 Router Internal Chain section for more details.
+
 
 Supported Neutron Network Plugins and vswitches
 -----------------------------------------------

@@ -24,6 +24,7 @@ Table of Content
    installation
    examples
    advanced
+   pvpl3
    extchains
    fluentd
    sriov

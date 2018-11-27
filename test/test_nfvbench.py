@@ -152,6 +152,19 @@ def test_ip_block():
     assert ipb.get_ip(255) == '10.0.0.255'
     with pytest.raises(IndexError):
         ipb.get_ip(256)
+    ipb = IpBlock('10.0.0.0', '0.0.0.1', 1)
+    assert ipb.get_ip() == '10.0.0.0'
+    with pytest.raises(IndexError):
+        ipb.get_ip(1)
+
+    ipb = IpBlock('10.0.0.0', '0.0.0.2', 256)
+    assert ipb.get_ip() == '10.0.0.0'
+    assert ipb.get_ip(1) == '10.0.0.2'
+    assert ipb.get_ip(127) == '10.0.0.254'
+    assert ipb.get_ip(128) == '10.0.1.0'
+    with pytest.raises(IndexError):
+        ipb.get_ip(256)
+
     # verify with step larger than 1
     ipb = IpBlock('10.0.0.0', '0.0.0.2', 256)
     assert ipb.get_ip() == '10.0.0.0'
@@ -341,7 +354,7 @@ def test_ndr_at_lr():
     # tx packets should be line rate for 64B and no drops...
     assert tg.get_tx_pps_dropped_pps(100) == (LR_64B_PPS, 0)
     # NDR and PDR should be at 100%
-    traffic_client.ensure_end_to_end()
+    #traffic_client.ensure_end_to_end()
     results = traffic_client.get_ndr_and_pdr()
     assert_ndr_pdr(results, 200.0, 0.0, 200.0, 0.0)
 

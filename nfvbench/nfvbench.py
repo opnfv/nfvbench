@@ -318,6 +318,11 @@ def _parse_opts_from_cli():
                         action='store',
                         help='Traffic generator profile to use')
 
+    parser.add_argument('-l3', '--l3-traffic', dest='l3_traffic',
+                        default=None,
+                        action='store_true',
+                        help='Use L3 traffic with routers instead of L2 chain')
+
     parser.add_argument('-0', '--no-traffic', dest='no_traffic',
                         default=None,
                         action='store_true',

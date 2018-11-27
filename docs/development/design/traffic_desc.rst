@@ -37,6 +37,7 @@ The destination MAC address is based on the configuration and can be:
   or when using a loopback cable
 - the dest MAC as specified by the configuration file (EXT chain no ARP)
 - the dest MAC as discovered by ARP (EXT chain)
+- the router MAC as discovered from Neutron API (PVPL3 chain)
 - the VM MAC as dicovered from Neutron API (PVP, PVVP chains)
 
 NFVbench does not currently range on the MAC addresses.

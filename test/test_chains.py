@@ -271,6 +271,7 @@ def _mock_get_mac(dummy):
 @patch.object(Compute, 'find_image', _mock_find_image)
 @patch.object(TrafficClient, 'skip_sleep', lambda x: True)
 @patch.object(ChainVnfPort, 'get_mac', _mock_get_mac)
+@patch.object(TrafficClient, 'is_udp', lambda x, y: True)
 @patch('nfvbench.chaining.Client')
 @patch('nfvbench.chaining.neutronclient')
 @patch('nfvbench.chaining.glanceclient')
@@ -287,6 +288,7 @@ def test_nfvbench_run(mock_cred, mock_glance, mock_neutron, mock_client):
 
 @patch.object(Compute, 'find_image', _mock_find_image)
 @patch.object(TrafficClient, 'skip_sleep', lambda x: True)
+@patch.object(TrafficClient, 'is_udp', lambda x, y: True)
 @patch('nfvbench.chaining.Client')
 @patch('nfvbench.chaining.neutronclient')
 @patch('nfvbench.chaining.glanceclient')
@@ -302,6 +304,7 @@ def test_nfvbench_ext_arp(mock_cred, mock_glance, mock_neutron, mock_client):
 
 @patch.object(Compute, 'find_image', _mock_find_image)
 @patch.object(TrafficClient, 'skip_sleep', lambda x: True)
+@patch.object(TrafficClient, 'is_udp', lambda x, y: True)
 @patch('nfvbench.chaining.Client')
 @patch('nfvbench.chaining.neutronclient')
 @patch('nfvbench.chaining.glanceclient')
@@ -466,6 +469,7 @@ def test_summarizer():
         assert stats == exp_stats
 
 @patch.object(TrafficClient, 'skip_sleep', lambda x: True)
+@patch.object(TrafficClient, 'is_udp', lambda x, y: True)
 def test_fixed_rate_no_openstack():
     """Test FIxed Rate run - no openstack."""
     config = _get_chain_config(ChainType.EXT, 1, True, rate='100%')

@@ -23,7 +23,9 @@ from attrdict import AttrDict
 import bitmath
 from netaddr import IPNetwork
 # pylint: disable=import-error
+from trex.stl.api import Ether
 from trex.stl.api import STLError
+from trex.stl.api import UDP
 # pylint: enable=import-error
 
 from log import LOG
@@ -240,6 +242,11 @@ class Device(object):
     def set_vxlans(self, vnis):
         self.vnis = vnis
         LOG.info("Port %d: VNIs %s", self.port, self.vnis)
+
+    def set_gw_ip(self, gateway_ip):
+        self.gw_ip_block = IpBlock(gateway_ip,
+                                   self.generator_config.gateway_ip_addrs_step,
+                                   self.chain_count)
 
     def get_gw_ip(self, chain_index):
         """Retrieve the IP address assigned for the gateway of a given chain."""
@@ -611,11 +618,10 @@ class TrafficClient(object):
             self.gen.stop_traffic()
             self.gen.fetch_capture_packets()
             self.gen.stop_capture()
-
             for packet in self.gen.packet_list:
                 mac_id = get_mac_id(packet)
                 src_mac = ':'.join(["%02x" % ord(x) for x in mac_id])
-                if src_mac in mac_map:
+                if src_mac in mac_map and self.is_udp(packet):
                     port, chain = mac_map[src_mac]
                     LOG.info('Received packet from mac: %s (chain=%d, port=%d)',
                              src_mac, chain, port)
@@ -624,8 +630,17 @@ class TrafficClient(object):
                 if not mac_map:
                     LOG.info('End-to-end connectivity established')
                     return
-
+            if self.config.l3_router and not self.config.no_arp:
+                # In case of L3 traffic mode, routers are not able to route traffic
+                # until VM interfaces are up and ARP requests are done
+                LOG.info('Waiting for loopback service completely started...')
+                LOG.info('Sending ARP request to assure end-to-end connectivity established')
+                self.ensure_arp_successful()
         raise TrafficClientException('End-to-end connectivity cannot be ensured')
+
+    def is_udp(self, packet):
+        pkt = Ether(packet['binary'])
+        return UDP in pkt
 
     def ensure_arp_successful(self):
         """Resolve all IP using ARP and throw an exception in case of failure."""

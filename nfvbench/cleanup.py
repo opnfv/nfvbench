@@ -115,6 +115,68 @@ class NetworkCleaner(object):
             except Exception:
                 LOG.exception("Network deletion failed")
 
+
+class RouterCleaner(object):
+    """A cleaner for router resources."""
+
+    def __init__(self, neutron_client, router_names):
+        self.neutron_client = neutron_client
+        LOG.info('Discovering routers...')
+        all_routers = self.neutron_client.list_routers()['routers']
+        self.routers = []
+        self.ports = []
+        self.routes = []
+        rtr_ids = []
+        for rtr in all_routers:
+            rtrname = rtr['name']
+            for name in router_names:
+                if rtrname == name:
+                    self.routers.append(rtr)
+                    rtr_ids.append(rtr['id'])
+
+                    LOG.info('Discovering router routes for router %s...', rtr['name'])
+                    all_routes = rtr['routes']
+                    for route in all_routes:
+                        LOG.info("destination: %s, nexthop: %s", route['destination'],
+                                 route['nexthop'])
+
+                    LOG.info('Discovering router ports for router %s...', rtr['name'])
+                    self.ports.extend(self.neutron_client.list_ports(device_id=rtr['id'])['ports'])
+                    break
+
+    def get_resource_list(self):
+        res_list = [["Router", rtr['name'], rtr['id']] for rtr in self.routers]
+        return res_list
+
+    def clean(self):
+        # associated routes needs to be deleted before deleting routers
+        for rtr in self.routers:
+            LOG.info("Deleting routes for %s...", rtr['name'])
+            try:
+                body = {
+                    'router': {
+                        'routes': []
+                    }
+                }
+                self.neutron_client.update_router(rtr['id'], body)
+            except Exception:
+                LOG.exception("Router routes deletion failed")
+            LOG.info("Deleting ports for %s...", rtr['name'])
+            try:
+                for port in self.ports:
+                    body = {
+                        'port_id': port['id']
+                    }
+                    self.neutron_client.remove_interface_router(rtr['id'], body)
+            except Exception:
+                LOG.exception("Router ports deletion failed")
+            LOG.info("Deleting router %s...", rtr['name'])
+            try:
+                self.neutron_client.delete_router(rtr['id'])
+            except Exception:
+                LOG.exception("Router deletion failed")
+
+
 class FlavorCleaner(object):
     """Cleaner for NFVbench flavor."""
 
@@ -148,12 +210,15 @@ class Cleaner(object):
         self.neutron_client = nclient.Client('2.0', session=session)
         self.nova_client = Client(2, session=session)
         network_names = [inet['name'] for inet in config.internal_networks.values()]
+        network_names.extend([inet['name'] for inet in config.edge_networks.values()])
+        router_names = [rtr['router_name'] for rtr in config.edge_networks.values()]
         # add idle networks as well
         if config.idle_networks.name:
             network_names.append(config.idle_networks.name)
         self.cleaners = [ComputeCleaner(self.nova_client, config.loop_vm_name),
                          FlavorCleaner(self.nova_client, config.flavor_type),
-                         NetworkCleaner(self.neutron_client, network_names)]
+                         NetworkCleaner(self.neutron_client, network_names),
+                         RouterCleaner(self.neutron_client, router_names)]
 
     def show_resources(self):
         """Show all NFVbench resources."""
@@ -172,11 +237,27 @@ class Cleaner(object):
 
     def clean(self, prompt):
         """Clean all resources."""
-        LOG.info("NFVbench will delete all resources shown...")
+        LOG.info("NFVbench will delete resources shown...")
         if prompt:
-            answer = raw_input("Are you sure? (y/n) ")
+            answer = raw_input("Do you want to delete all ressources? (y/n) ")
             if answer.lower() != 'y':
-                LOG.info("Exiting without deleting any resource")
-                sys.exit(0)
+                print "What kind of resources do you want to delete?"
+                print "[i]nstance"
+                print "[f]lavor"
+                print "[n]etwork (ports and networks)"
+                print "[r]outer"
+                print "[a]bort"
+                answer_res = raw_input(":")
+                if answer_res.lower() == 'i':
+                    self.cleaners[0].clean()
+                elif answer_res.lower() == 'f':
+                    self.cleaners[1].clean()
+                elif answer_res.lower() == 'n':
+                    self.cleaners[2].clean()
+                elif answer_res.lower() == 'r':
+                    self.cleaners[3].clean()
+                else:
+                    LOG.info("Exiting without deleting any resource")
+                    sys.exit(0)
         for cleaner in self.cleaners:
             cleaner.clean()

@@ -21,3 +21,4 @@ requests>=2.13.0
 tabulate>=0.7.5
 flask>=0.12
 fluent-logger>=0.5.3
+netaddr>=0.7.19

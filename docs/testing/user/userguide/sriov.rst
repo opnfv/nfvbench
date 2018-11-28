@@ -26,6 +26,7 @@ This example instructs NFVbench to create the left and right networks of a PVP p
 
 .. code-block:: bash
 
+    sriov: true
     internal_networks:
        left:
            segmentation_id: 2000
@@ -38,26 +39,83 @@ The segmentation ID fields must be different.
 In the case of PVVP, the middle network also needs to be provisioned properly.
 The same physical network can also be shared by the virtual networks but with different segmentation IDs.
 
+NFVbench cores with SR-IOV
+--------------------------
+The default core count for NFVbench/TRex may not be sufficient for higher throughput line cards (greater than 10Gbps).
+This will result in warning messages such as:
 
-NIC NUMA socket placement and flavors
--------------------------------------
-If the 2 selected ports reside on NICs that are on different NUMA sockets, you will need to explicitly tell Nova to use 2 numa nodes in the flavor used for the VMs in order to satisfy the filters, for example:
+.. code-block:: bash
+
+    INFO WARNING: There is a significant difference between requested TX rate (119047618) and actual TX rate (38897379).
+    The traffic generator may not have sufficient CPU to achieve the requested TX rate.
+
+In that case it is recommended to try allocating more cores to TRex using the cores property in the configuration
+file, for example to set to 8 cores:
+
+.. code-block:: bash
+
+    cores: 8
+
+It is also advisable to increase the number of vcpus in the VMs:
+
+
+VM Flavor for SR-IOV and NIC NUMA socket placement
+--------------------------------------------------
+
+Because SR-IOV throughput uses a lot of CPU in the VM, it is recommended to increase the
+vcpu count, for example to 4 vcpus:
 
 .. code-block:: bash
 
     flavor:
       # Number of vCPUs for the flavor
-      vcpus: 2
+      vcpus: 4
       # Memory for the flavor in MB
       ram: 8192
       # Size of local disk in GB
       disk: 0
       extra_specs:
           "hw:cpu_policy": dedicated
-          "hw:mem_page_size": large
+
+If the 2 selected ports reside on NICs that are on different NUMA sockets, you will need to explicitly tell Nova to use 2 numa nodes in the flavor used for the VMs in order to satisfy the filters, for example:
+
+.. code-block:: bash
+
+    flavor:
+      # Number of vCPUs for the flavor
+      vcpus: 4
+      # Memory for the flavor in MB
+      ram: 8192
+      # Size of local disk in GB
+      disk: 0
+      extra_specs:
+          "hw:cpu_policy": dedicated
           "hw:numa_nodes": 2
 
 Failure to do so might cause the VM creation to fail with the Nova error
 "Instance creation error: Insufficient compute resources:
 Requested instance NUMA topology together with requested PCI devices cannot fit the given host NUMA topology."
 
+Example of configuration file (summary)
+---------------------------------------
+
+.. code-block:: bash
+
+    flavor:
+       # Number of vCPUs for the flavor
+       vcpus: 4
+       # Memory for the flavor in MB
+       ram: 8192
+       # Size of local disk in GB
+       disk: 0
+       extra_specs:
+          "hw:cpu_policy": dedicated
+    cores: 8
+    sriov: true
+    internal_networks:
+       left:
+          segmentation_id: 3830
+          physical_network: phys_sriov0
+       right:
+          segmentation_id: 3831
+          physical_network: phys_sriov1

@@ -377,13 +377,13 @@ class ChainVnf(object):
         can use vswitch or SR-IOV based on config.use_sriov_middle_net
         """
         if self.manager.config.sriov:
-            if self.manager.config.use_sriov_middle_net:
+            chain_length = self.chain.get_length()
+            if self.manager.config.use_sriov_middle_net or chain_length == 1:
                 return 'direct'
-            if self.vnf_id == 0:
+            if self.vnf_id == 0 and port_index == 0:
                 # first VNF in chain must use sriov for left port
-                if port_index == 0:
-                    return 'direct'
-            elif (self.vnf_id == self.chain.get_length() - 1) and (port_index == 1):
+                return 'direct'
+            if (self.vnf_id == chain_length - 1) and (port_index == 1):
                 # last VNF in chain must use sriov for right port
                 return 'direct'
         return 'normal'

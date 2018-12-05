@@ -49,17 +49,17 @@ def setup_module(module):
     nfvbench.log.setup(mute_stdout=False)
     nfvbench.log.set_level(debug=True)
 
-def _get_chain_config(sc=ChainType.PVP, scc=1, shared_net=True):
+def _get_chain_config(sc=ChainType.PVP, scc=1, shared_net=True, rate='1Mpps'):
     config, _ = load_default_config()
     config.vm_image_file = 'nfvbenchvm-0.0.qcow2'
     config.service_chain_count = scc
     config.service_chain = sc
     config.service_chain_shared_net = shared_net
-    config.rate = '1Mpps'
+    config.rate = rate
     config['traffic_generator']['generator_profile'] = [{'name': 'dummy',
                                                          'tool': 'dummy',
                                                          'ip': '127.0.0.1',
-                                                         'intf_speed': None,
+                                                         'intf_speed': '10Gbps',
                                                          'interfaces': [{'port': 0, 'pci': '0.0'},
                                                                         {'port': 1, 'pci': '0.0'}]}]
     config.ndr_run = False
@@ -381,3 +381,28 @@ def test_summarizer():
     for stats, exp_stats in zip(CHAIN_STATS, XP_CHAIN_STATS):
         _annotate_chain_stats(stats)
         assert stats == exp_stats
+
+@patch.object(TrafficClient, 'skip_sleep', lambda x: True)
+def test_fixed_rate_no_openstack():
+    """Test FIxed Rate run - no openstack."""
+    config = _get_chain_config(ChainType.EXT, 1, True, rate='100%')
+    specs = Specs()
+    config.vlans = [100, 200]
+    config.vnis = [5000, 6000]
+    config['traffic_generator']['mac_addrs_left'] = ['00:00:00:00:00:00']
+    config['traffic_generator']['mac_addrs_right'] = ['00:00:00:00:01:00']
+    config.no_arp = True
+    config['vlan_tagging'] = True
+    config['traffic'] = {'profile': 'profile_64',
+                         'bidirectional': True}
+    config['traffic_profile'] = [{'name': 'profile_64', 'l2frame_size': ['64']}]
+
+    runner = ChainRunner(config, None, specs, BasicFactory())
+    tg = runner.traffic_client.gen
+
+    tg.set_response_curve(lr_dr=0, ndr=100, max_actual_tx=50, max_11_tx=50)
+    # tx packets should be 50% at requested 50% line rate or higher for 64B and no drops...
+    results = runner.run()
+    assert results
+    # pprint.pprint(results['EXT']['result']['result']['64'])
+    runner.close()

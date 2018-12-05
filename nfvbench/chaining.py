@@ -194,9 +194,17 @@ class ChainNetwork(object):
     """Could be a shared network across all chains or a chain private network."""
 
     def __init__(self, manager, network_config, chain_id=None, lookup_only=False):
-        """Create a network for given chain."""
+        """Create a network for given chain.
+
+        network_config: a dict containing the network properties
+                        (segmentation_id and physical_network)
+        chain_id: to which chain the networks belong.
+                  a None value will mean that these networks are shared by all chains
+        """
         self.manager = manager
         self.name = network_config.name
+        self.segmentation_id = self._get_item(network_config.segmentation_id, chain_id)
+        self.physical_network = self._get_item(network_config.physical_network, chain_id)
         if chain_id is not None:
             self.name += str(chain_id)
         self.reuse = False
@@ -212,6 +220,24 @@ class ChainNetwork(object):
             self.delete()
             raise
 
+    def _get_item(self, item_field, index):
+        """Retrieve an item from a list or a single value.
+
+        item_field: can be None, a tuple of a single value
+        index: if None is same as 0, else is the index in the list
+
+        If the item_field is not a tuple, it is considered same as a tuple with same value at any
+        index.
+        If a list is provided, its length must be > index
+        """
+        if not item_field:
+            return None
+        if index is None:
+            index = 0
+        if isinstance(item_field, tuple):
+            return item_field[index]
+        return item_field
+
     def _setup(self, network_config, lookup_only):
         # Lookup if there is a matching network with same name
         networks = self.manager.neutron_client.list_networks(name=self.name)
@@ -219,23 +245,23 @@ class ChainNetwork(object):
             network = networks['networks'][0]
             # a network of same name already exists, we need to verify it has the same
             # characteristics
-            if network_config.segmentation_id:
-                if network['provider:segmentation_id'] != network_config.segmentation_id:
+            if self.segmentation_id:
+                if network['provider:segmentation_id'] != self.segmentation_id:
                     raise ChainException("Mismatch of 'segmentation_id' for reused "
                                          "network '{net}'. Network has id '{seg_id1}', "
                                          "configuration requires '{seg_id2}'."
                                          .format(net=self.name,
                                                  seg_id1=network['provider:segmentation_id'],
-                                                 seg_id2=network_config.segmentation_id))
+                                                 seg_id2=self.segmentation_id))
 
-            if network_config.physical_network:
-                if network['provider:physical_network'] != network_config.physical_network:
+            if self.physical_network:
+                if network['provider:physical_network'] != self.physical_network:
                     raise ChainException("Mismatch of 'physical_network' for reused "
                                          "network '{net}'. Network has '{phys1}', "
                                          "configuration requires '{phys2}'."
                                          .format(net=self.name,
                                                  phys1=network['provider:physical_network'],
-                                                 phys2=network_config.physical_network))
+                                                 phys2=self.physical_network))
 
             LOG.info('Reusing existing network %s', self.name)
             self.reuse = True
@@ -251,10 +277,10 @@ class ChainNetwork(object):
             }
             if network_config.network_type:
                 body['network']['provider:network_type'] = network_config.network_type
-                if network_config.segmentation_id:
-                    body['network']['provider:segmentation_id'] = network_config.segmentation_id
-                if network_config.physical_network:
-                    body['network']['provider:physical_network'] = network_config.physical_network
+                if self.segmentation_id:
+                    body['network']['provider:segmentation_id'] = self.segmentation_id
+                if self.physical_network:
+                    body['network']['provider:physical_network'] = self.physical_network
 
             self.network = self.manager.neutron_client.create_network(body)['network']
             body = {
@@ -1179,12 +1205,7 @@ class ChainManager(object):
         return []
 
     def delete(self):
-        """Delete resources for all chains.
-
-        Will not delete any resource if no-cleanup has been requested.
-        """
-        if self.config.no_cleanup:
-            return
+        """Delete resources for all chains."""
         for chain in self.chains:
             chain.delete()
         for network in self.networks:

@@ -277,6 +277,7 @@ loop_vm_name: 'nfvbench-loop-vm'
 # In the case of SR-IOV, both physical_network and segmentation ID must be provided
 # For example to setup PVP using 2 different SR-IOV ports, you must put the appropriate physnet
 # names under left.physical_network and right.physical_network.
+# For multi-chaining and non shared networks,
 # Example of override configuration to force PVP to run on 2 SRIOV ports (phys_sriov0 and phys_sriov1)
 # using VLAN ID 2000 and 2001:
 # internal_networks:
@@ -286,6 +287,11 @@ loop_vm_name: 'nfvbench-loop-vm'
 #    right:
 #        segmentation_id: 2001
 #        physical_network: phys_sriov1
+# For multi-chaining and non shared network mode:
+#
+# - the segmentation_id field if provided must be a list of values (as many as chains)
+# - the physical_network can be a single name (all VFs to be allocated on same physnet)
+#   of a list of physnet names to use different PFs
 
 internal_networks:
     left:

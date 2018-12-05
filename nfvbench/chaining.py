@@ -203,7 +203,8 @@ class ChainNetwork(object):
         """
         self.manager = manager
         self.name = network_config.name
-        self.segmentation_id = self._get_item(network_config.segmentation_id, chain_id)
+        self.segmentation_id = self._get_item(network_config.segmentation_id,
+                                              chain_id, auto_index=True)
         self.physical_network = self._get_item(network_config.physical_network, chain_id)
         if chain_id is not None:
             self.name += str(chain_id)
@@ -220,11 +221,13 @@ class ChainNetwork(object):
             self.delete()
             raise
 
-    def _get_item(self, item_field, index):
+    def _get_item(self, item_field, index, auto_index=False):
         """Retrieve an item from a list or a single value.
 
         item_field: can be None, a tuple of a single value
-        index: if None is same as 0, else is the index in the list
+        index: if None is same as 0, else is the index for a chain
+        auto_index: if true will automatically get the final value by adding the
+                    index to the base value (if full list not provided)
 
         If the item_field is not a tuple, it is considered same as a tuple with same value at any
         index.
@@ -235,7 +238,14 @@ class ChainNetwork(object):
         if index is None:
             index = 0
         if isinstance(item_field, tuple):
-            return item_field[index]
+            try:
+                return item_field[index]
+            except IndexError:
+                raise ChainException("List %s is too short for chain index %d" %
+                                     (str(item_field), index))
+        # single value is configured
+        if auto_index:
+            return item_field + index
         return item_field
 
     def _setup(self, network_config, lookup_only):
@@ -1038,6 +1048,7 @@ class ChainManager(object):
                                  'segmentation_id': None,
                                  'physical_network': None})
                        for name in [ext_net.left, ext_net.right]]
+            # segmentation id and subnet should be discovered from neutron
         else:
             lookup_only = False
             int_nets = self.config.internal_networks

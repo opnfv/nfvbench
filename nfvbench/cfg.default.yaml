@@ -263,19 +263,25 @@ generic_poll_sec: 2
 loop_vm_name: 'nfvbench-loop-vm'
 
 # Default names, subnets and CIDRs for PVP/PVVP networks
+#
 # If a network with given name already exists it will be reused.
 # - PVP only uses left and right
 # - PVVP uses left, middle and right
 # - for EXT chains, this structure is not relevant - refer to external_networks
 # Otherwise a new internal network will be created with that name, subnet and CIDR.
 #
-# segmentation_id can be set to enforce a specific VLAN id - by default (empty) the VLAN id
-#                 will be assigned by Neutron.
-#                 Must be unique for each network
+# network_type must be 'vlan' (for VLAN and SRIOV) or 'vxlan' (for VxLAN)
+#              all 3 networks must use the same network type in this release
+# segmentation_id can be set to enforce a specific segmentation id (vlan ID or VNI if vxlan)
+#                 by default (empty) the segmentation id will be assigned by Neutron.
+#                 If specified, it must be unique for each network
+#                 For multi-chaining, see notes below
 # physical_network can be set to pick a specific phsyical network - by default (empty) the
 #                   default physical network will be picked
-# In the case of SR-IOV, both physical_network and segmentation ID must be provided
-# For example to setup PVP using 2 different SR-IOV ports, you must put the appropriate physnet
+# SR-IOV: both physical_network and VLAN segmentation ID must be provided
+# VxLAN: the VNI must generally be provided (except special Neutron VxLAN implementations)
+#
+# For example to setup 1xPVP using 2 different SR-IOV ports, you must put the appropriate physnet
 # names under left.physical_network and right.physical_network.
 # For multi-chaining and non shared networks,
 # Example of override configuration to force PVP to run on 2 SRIOV ports (phys_sriov0 and phys_sriov1)
@@ -287,11 +293,34 @@ loop_vm_name: 'nfvbench-loop-vm'
 #    right:
 #        segmentation_id: 2001
 #        physical_network: phys_sriov1
-# For multi-chaining and non shared network mode:
 #
+# For multi-chaining and non shared network mode (VLAN, SRIOV, VxLAN):
 # - the segmentation_id field if provided must be a list of values (as many as chains)
+# - segmentation_id auto-indexing:
+#   the segmentation_id field can also be a single value that represents the base value from which
+#   values for each chain is derived using the chain ID as an offset. For example
+#   if 2000 is specified, NFVbench will use 2000 for chain 0, 2001 for chain 1 etc...
+#   The ranges of all the networks must not overlap.
 # - the physical_network can be a single name (all VFs to be allocated on same physnet)
 #   of a list of physnet names to use different PFs
+#
+# Example of 2-chain configuration:
+# internal_networks:
+#    left:
+#        segmentation_id: [2000, 2001]
+#        physical_network: phys_sriov0
+#    right:
+#        segmentation_id: [2010, 2011]
+#        physical_network: phys_sriov1
+#
+# Equivalent to (using auto-indexing):
+# internal_networks:
+#    left:
+#        segmentation_id: 2000
+#        physical_network: phys_sriov0
+#    right:
+#        segmentation_id: 2010
+#        physical_network: phys_sriov1
 
 internal_networks:
     left:

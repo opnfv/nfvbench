@@ -107,7 +107,7 @@ class Compute(object):
             security_groups = None
 
         # Also attach the created security group for the test
-        LOG.info('Creating instance %s with AZ %s', vmname, avail_zone)
+        LOG.info('Creating instance %s with AZ: "%s"', vmname, avail_zone)
         instance = self.novaclient.servers.create(name=vmname,
                                                   image=image,
                                                   flavor=flavor,

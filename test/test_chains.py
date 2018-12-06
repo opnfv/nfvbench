@@ -76,7 +76,6 @@ def test_chain_runner_ext_no_openstack():
     config = _get_chain_config(sc=ChainType.EXT)
     specs = Specs()
     config.vlans = [100, 200]
-    config.vnis = [5000, 6000]
     config['traffic_generator']['mac_addrs_left'] = ['00:00:00:00:00:00']
     config['traffic_generator']['mac_addrs_right'] = ['00:00:00:00:01:00']
 
@@ -173,7 +172,6 @@ def _check_nfvbench_openstack(sc=ChainType.PVP, l2_loopback=False):
         if l2_loopback:
             config.l2_loopback = True
             config.vlans = [[100], [200]]
-            config.vnis = [[5000], [6000]]
         factory = BasicFactory()
         config_plugin = factory.get_config_plugin_class()(config)
         config = config_plugin.get_config()
@@ -388,7 +386,6 @@ def test_fixed_rate_no_openstack():
     config = _get_chain_config(ChainType.EXT, 1, True, rate='100%')
     specs = Specs()
     config.vlans = [100, 200]
-    config.vnis = [5000, 6000]
     config['traffic_generator']['mac_addrs_left'] = ['00:00:00:00:00:00']
     config['traffic_generator']['mac_addrs_right'] = ['00:00:00:00:01:00']
     config.no_arp = True

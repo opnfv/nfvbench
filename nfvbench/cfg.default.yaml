@@ -157,13 +157,6 @@ traffic_generator:
     # Leave empty if there is no VLAN tagging required, or specify the VLAN id to use
     # for all VxLAN tunneled traffic
     vtep_vlan:
-    # VxLAN only: VNI range for VXLAN encapsulation [start_vni, end_vni]   [5000, 6000]
-    # VNI can have a value from range 5000-16777216
-    # For PVP, VNIs are allocated consecutively - 2 per each chain
-    # Chain 1: 5000, 5001; Chain 2: 5002, 5003; Chain X: 5000+x, 5000+x+1
-    # For PVVP scenario VNIs allocated consecutively - 3 per each chain
-    # Chain 1: 5000, 5001, 5002; Chain 2: 5003, 5004, 5005; Chain X: 5000+x, 5000+x+1, 5000+x+1
-    vnis:
     # VxLAN only: local/source vteps IP addresses for port 0 and 1 ['10.1.1.230', '10.1.1.231']
     src_vteps:
     # VxLAN only: remote IP address of the remote VTEPs that terminate all tunnels originating from local VTEPs
@@ -262,7 +255,7 @@ generic_poll_sec: 2
 # name of the loop VM
 loop_vm_name: 'nfvbench-loop-vm'
 
-# Default names, subnets and CIDRs for PVP/PVVP networks
+# Default names, subnets and CIDRs for PVP/PVVP networks (openstack only)
 #
 # If a network with given name already exists it will be reused.
 # - PVP only uses left and right

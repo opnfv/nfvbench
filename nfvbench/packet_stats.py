@@ -47,8 +47,13 @@ class InterfaceStats(object):
         self.device = device
         self.shared = shared
         # RX and TX counters for this interface
+        # A None value can be set to mean that the data is not available
         self.tx = 0
         self.rx = 0
+        # This is a special field to hold an optional total rx count that is only
+        # used for column aggregation to compute a total intertface stats
+        # Set to non zero to be picked by the add interface stats method for rx total
+        self.rx_total = None
 
     def get_packet_count(self, direction):
         """Get packet count for given direction.
@@ -79,8 +84,17 @@ class InterfaceStats(object):
 
     def add_if_stats(self, if_stats):
         """Add another ifstats to this instance."""
-        self.tx += if_stats.tx
-        self.rx += if_stats.rx
+        def added_counter(old_value, new_value_to_add):
+            if new_value_to_add:
+                if old_value is None:
+                    return new_value_to_add
+                return old_value + new_value_to_add
+            return old_value
+
+        self.tx = added_counter(self.tx, if_stats.tx)
+        self.rx = added_counter(self.rx, if_stats.rx)
+        # Add special rx total value if set
+        self.rx = added_counter(self.rx, if_stats.rx_total)
 
     def update_stats(self, tx, rx, diff):
         """Update stats for this interface.

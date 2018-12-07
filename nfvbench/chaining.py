@@ -291,7 +291,6 @@ class ChainNetwork(object):
                 body['network']['provider:segmentation_id'] = self.segmentation_id
             if self.physical_network:
                 body['network']['provider:physical_network'] = self.physical_network
-
             self.network = self.manager.neutron_client.create_network(body)['network']
             body = {
                 'subnet': {'name': network_config.subnet,

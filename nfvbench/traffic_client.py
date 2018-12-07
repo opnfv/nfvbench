@@ -360,7 +360,6 @@ class GeneratorConfig(object):
         self.udp_src_port = gen_config.udp_src_port
         self.udp_dst_port = gen_config.udp_dst_port
         self.vteps = gen_config.get('vteps')
-        self.vnis = gen_config.get('vnis')
         self.devices = [Device(port, self) for port in [0, 1]]
         # This should normally always be [0, 1]
         self.ports = [device.port for device in self.devices]
@@ -1027,7 +1026,29 @@ class TrafficClient(object):
                 # interface stats for the pps because it could have been modified to contain
                 # additional interface stats
                 self.gen.get_stream_stats(stats, ifs, self.pps_list[chain_idx].latencies, chain_idx)
-
+            # special handling for vxlan
+            # in case of vxlan, flow stats are not available so all rx counters will be
+            # zeros when the total rx port counter is non zero.
+            # in that case,
+            for port in range(2):
+                total_rx = 0
+                for ifs in self.ifstats:
+                    total_rx += ifs[port].rx
+                if total_rx == 0:
+                    # check if the total port rx from Trex is also zero
+                    port_rx = stats[port]['rx']['total_pkts']
+                    if port_rx:
+                        # the total rx for all chains from port level stats is non zero
+                        # which means that the per-chain stats are not available
+                        if len(self.ifstats) == 1:
+                            # only one chain, simply report the port level rx to the chain rx stats
+                            self.ifstats[0][port].rx = port_rx
+                        else:
+                            for ifs in self.ifstats:
+                                # mark this data as unavailable
+                                ifs[port].rx = None
+                            # pitch in the total rx only in the last chain pps
+                            self.ifstats[-1][port].rx_total = port_rx
 
     @staticmethod
     def compare_tx_rates(required, actual):

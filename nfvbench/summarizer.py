@@ -44,7 +44,8 @@ def _annotate_chain_stats(chain_stats, nodrop_marker='=>'):
          'total': {...}
     }
 
-    In the case of shared net, some columns in packets array can have ''
+    In the case of shared net, some columns in packets array can have ''.
+    Some columns cab also be None which means the data is not available.
     """
     for stats in chain_stats.values():
         packets = stats['packets']
@@ -60,6 +61,9 @@ def _annotate_chain_stats(chain_stats, nodrop_marker='=>'):
                     # an empty string indicates an unknown counter for a shared interface
                     # do not annotate those
                     annotated_value = ''
+                elif cur_count is None:
+                    # Not available
+                    annotated_value = 'n/a'
                 else:
                     drop = cur_count - prev_count
                     if drop:

@@ -66,16 +66,6 @@ class NFVBench(object):
         self.specs.set_openstack_spec(openstack_spec)
         self.vni_ports = []
         sys.stdout.flush()
-        self.check_options()
-
-    def check_options(self):
-        if self.base_config.vxlan:
-            if self.base_config.vlan_tagging:
-                raise Exception(
-                    'Inner VLAN tagging is not currently supported for VXLAN')
-            vtep_vlan = self.base_config.traffic_generator.get('vtep_vlan')
-            if vtep_vlan is None:
-                LOG.warning('Warning: VXLAN mode enabled, but VTEP vlan is not defined')
 
     def set_notifier(self, notifier):
         self.notifier = notifier
@@ -222,6 +212,13 @@ class NFVBench(object):
             if not os.path.exists(config.std_json):
                 raise Exception('Please provide existing path for storing results in JSON file. '
                                 'Path used: {path}'.format(path=config.std_json_path))
+
+        # VxLAN sanity checks
+        if config.vxlan:
+            if config.vlan_tagging:
+                config.vlan_tagging = False
+                LOG.info('VxLAN: vlan_tagging forced to False '
+                         '(inner VLAN tagging must be disabled)')
 
         self.config_plugin.validate_config(config, self.specs.openstack)
 
@@ -544,6 +541,8 @@ def main():
         if opts.hypervisor:
             # can be any of 'comp1', 'nova:', 'nova:comp1'
             config.compute_nodes = opts.hypervisor
+        if opts.vxlan:
+            config.vxlan = True
 
         # port to port loopback (direct or through switch)
         if opts.l2_loopback:

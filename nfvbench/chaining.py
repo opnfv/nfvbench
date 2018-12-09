@@ -908,13 +908,22 @@ class ChainManager(object):
         # if it is a single int or mac, make it a list of 1 int
         if isinstance(ll, (int, str)):
             ll = [ll]
-        if not ll or len(ll) < self.chain_count:
-            raise ChainException('%s=%s must be a list with %d elements per chain' %
-                                 (list_name, ll, self.chain_count))
         for item in ll:
             if not re.match(pattern, str(item)):
                 raise ChainException("Invalid format '{item}' specified in {fname}"
                                      .format(item=item, fname=list_name))
+        # must have at least 1 element
+        if not ll:
+            raise ChainException('%s cannot be empty' % (list_name))
+        # for shared network, if 1 element is passed, replicate it as many times
+        # as chains
+        if self.config.service_chain_shared_net and len(ll) == 1:
+            ll = [ll[0]] * self.chain_count
+
+        # number of elements musty be the number of chains
+        elif len(ll) < self.chain_count:
+            raise ChainException('%s=%s must be a list with %d elements per chain' %
+                                 (list_name, ll, self.chain_count))
         return ll
 
     def _setup_image(self):

@@ -84,12 +84,8 @@ class ChainRunner(object):
             vtep_vlan = gen_config.gen_config.vtep_vlan
             src_vteps = gen_config.gen_config.src_vteps
             dst_vtep = gen_config.gen_config.dst_vtep
-            int_nets = self.config.internal_networks
-            network_type = set(
-                [int_nets[net].get('network_type') for net in int_nets])
-            if 'vxlan' in network_type:
-                gen_config.set_vxlans(0, self.chain_manager.get_chain_vxlans(0))
-                gen_config.set_vxlans(1, self.chain_manager.get_chain_vxlans(1))
+            gen_config.set_vxlans(0, self.chain_manager.get_chain_vxlans(0))
+            gen_config.set_vxlans(1, self.chain_manager.get_chain_vxlans(1))
             gen_config.set_vtep_vlan(0, vtep_vlan)
             gen_config.set_vtep_vlan(1, vtep_vlan)
             # Configuring source an remote VTEPs on TREx interfaces

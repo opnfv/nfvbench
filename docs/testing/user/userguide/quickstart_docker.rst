@@ -55,12 +55,14 @@ The NFVbench container requires the following Docker options to operate properly
 
 It can be convenient to write a shell script (or an alias) to automatically insert the necessary options.
 
-The minimal configuration file required must specify the openrc file to use (using in-container path), the PCI addresses of the 2 NIC ports to use
-for generating traffic and the line rate (in each direction) of each of these 2 interfaces.
+The minimal configuration file required must specify the PCI addresses of the 2 NIC ports to use.
+If OpenStack is used, the openrc_file property must be defined to point to a valid OpenStack rc file.
 
-Here is an example of mimimal configuration where:
-the openrc file is located on the host current directory which is mapped under /tmp/nfvbench in the container (this is achieved using -v $PWD:/tmp/nfvbench)
-the 2 NIC ports to use for generating traffic have the PCI addresses "04:00.0" and "04:00.1"
+
+Here is an example of mimimal configuration using OpenStack where:
+
+- the openrc file is located on the host current directory which is mapped under /tmp/nfvbench in the container (this is achieved using -v $PWD:/tmp/nfvbench)
+- the 2 NIC ports to use for generating traffic have the PCI addresses "04:00.0" and "04:00.1"
 
 .. code-block:: bash
 
@@ -151,17 +153,18 @@ Create a new file containing the minimal configuration for NFVbench, we can call
             software_mode: false,
             interfaces:
               - port: 0
-                switch_port:
                 pci:
               - port: 1
-                switch_port:
                 pci:
             intf_speed:
 
-NFVbench requires an ``openrc`` file to connect to OpenStack using the OpenStack API. This file can be downloaded from the OpenStack Horizon dashboard (refer to the OpenStack documentation on how to
+If OpenStack is used, NFVbench requires an ``openrc`` file to connect to OpenStack using the OpenStack API. This file can be downloaded from the OpenStack Horizon dashboard (refer to the OpenStack documentation on how to
 retrieve the openrc file). The file pathname in the container must be stored in the "openrc_file" property. If it is stored on the host in the current directory, its full pathname must start with /tmp/nfvbench (since the current directory is mapped to /tmp/nfvbench in the container).
 
-The required configuration is the PCI address of the 2 physical interfaces that will be used by the traffic generator. The PCI address can be obtained for example by using the "lspci" Linux command. For example:
+If OpenStack is not used, remove the openrc_file property.
+
+The PCI address of the 2 physical interfaces that will be used by the traffic generator must be configured.
+The PCI address can be obtained for example by using the "lspci" Linux command. For example:
 
 .. code-block:: bash
 
@@ -206,7 +209,7 @@ Alternatively, the full template with comments can be obtained using the --show-
 
 Edit the nfvbench.cfg file to only keep those properties that need to be modified (preserving the nesting).
 
-Make sure you have your nfvbench configuration file (my_nfvbench.cfg) and OpenStack RC file in your pre-created working directory.
+Make sure you have your nfvbench configuration file (my_nfvbench.cfg) and - if OpenStack is used - OpenStack RC file in your pre-created working directory.
 
 
 5. Run NFVbench

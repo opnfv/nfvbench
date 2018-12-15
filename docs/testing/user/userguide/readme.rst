@@ -31,9 +31,9 @@ Results of each run include the following data:
 - Actual drop rate in %
 - Latency in usec (min, max, average in the current version)
 
-Built-in OpenStack support
---------------------------
-NFVbench can stage OpenStack resources to build 1 or more service chains using direct OpenStack APIs. Each service chain is composed of:
+Built-in OpenStack support (optional)
+-------------------------------------
+NFVbench can optionally stage OpenStack resources to build 1 or more service chains using direct OpenStack APIs. Each service chain is composed of:
 
 - 1 or 2 loopback VM instances per service chain
 - 2 Neutron networks per loopback VM

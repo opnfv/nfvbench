@@ -1,0 +1,123 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1a622d24_6fc1082e",
+        "filename": "nfvbench/cfg.default.yaml",
+        "patchSetId": 2
+      },
+      "lineNbr": 27,
+      "author": {
+        "id": 5807
+      },
+      "writtenOn": "2019-01-09T18:25:37Z",
+      "side": 1,
+      "message": "Please add here a comment saying that for non admin access, which config parameters are mandatory (just list the 3).",
+      "revId": "dc1d37908afed467e842f760d6b458d3502551d9",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a622d24_efb518ce",
+        "filename": "nfvbench/cfg.default.yaml",
+        "patchSetId": 2
+      },
+      "lineNbr": 69,
+      "author": {
+        "id": 5807
+      },
+      "writtenOn": "2019-01-09T18:25:37Z",
+      "side": 1,
+      "message": "Add a comment that availablity_zone must be set to a valid value if openrc is not admin",
+      "revId": "dc1d37908afed467e842f760d6b458d3502551d9",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a622d24_0fb174e1",
+        "filename": "nfvbench/cfg.default.yaml",
+        "patchSetId": 2
+      },
+      "lineNbr": 75,
+      "author": {
+        "id": 5807
+      },
+      "writtenOn": "2019-01-09T18:25:37Z",
+      "side": 1,
+      "message": "Add a comment mentioning clearly that this parameter must be set to a valid hostname if the openrc is not admin - and provide an example of value",
+      "revId": "dc1d37908afed467e842f760d6b458d3502551d9",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a622d24_4fca4c50",
+        "filename": "nfvbench/cfg.default.yaml",
+        "patchSetId": 2
+      },
+      "lineNbr": 375,
+      "author": {
+        "id": 5807
+      },
+      "writtenOn": "2019-01-09T18:25:37Z",
+      "side": 1,
+      "message": "This now needs to change bc there is one more case where the vlans must be provided (openstack and not admin).\nPlease update the comment.",
+      "revId": "dc1d37908afed467e842f760d6b458d3502551d9",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a622d24_2fc71047",
+        "filename": "nfvbench/chaining.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 528,
+      "author": {
+        "id": 5807
+      },
+      "writtenOn": "2019-01-09T18:25:37Z",
+      "side": 1,
+      "message": "It is worth adding a check here to make sure that value is not empty.\nif empty raise an exception (ChainException) saying that this parameter is mandatory for non admin openrc",
+      "revId": "dc1d37908afed467e842f760d6b458d3502551d9",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a622d24_8fc46441",
+        "filename": "nfvbench/chaining.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 546,
+      "author": {
+        "id": 5807
+      },
+      "writtenOn": "2019-01-09T18:25:37Z",
+      "side": 1,
+      "message": "ditto here for checking it is not empty",
+      "revId": "dc1d37908afed467e842f760d6b458d3502551d9",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a622d24_6faaa871",
+        "filename": "nfvbench/credentials.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 5807
+      },
+      "writtenOn": "2019-01-09T18:25:37Z",
+      "side": 1,
+      "message": "move this code to init():\nIt would be better to do this check once in init() and store the result in self.is_admin",
+      "revId": "dc1d37908afed467e842f760d6b458d3502551d9",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": false
+    }
+  ]
+}

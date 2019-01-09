@@ -21,6 +21,8 @@ import getpass
 from keystoneauth1.identity import v2
 from keystoneauth1.identity import v3
 from keystoneauth1 import session
+from keystoneclient import client
+from keystoneclient import utils
 from log import LOG
 
 
@@ -106,6 +108,7 @@ class Credentials(object):
         self.rc_project_domain_name = None
         self.rc_project_name = None
         self.rc_identity_api_version = 2
+        self.is_admin = False
         success = True
 
         if openrc_file:
@@ -164,3 +167,15 @@ class Credentials(object):
                     'Please enter your OpenStack Password: ')
         if not self.rc_password:
             self.rc_password = ""
+
+        # check if user has admin role in OpenStack project
+        try:
+            keystone = client.Client(session=self.get_session())
+            user = utils.find_resource(keystone.users, self.rc_username)
+            project = utils.find_resource(keystone.projects, self.rc_project_name)
+            roles = keystone.roles.list(user=user.id, project=project.id)
+            for role in roles:
+                if role.name == 'admin':
+                    self.is_admin = True
+        except Exception:
+            LOG.warning("User is not admin, no permission to list user roles")

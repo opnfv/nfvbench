@@ -22,6 +22,7 @@ from mock import patch
 import pytest
 
 from nfvbench.chain_runner import ChainRunner
+from nfvbench.chaining import ChainException
 from nfvbench.chaining import ChainVnfPort
 from nfvbench.chaining import InstancePlacer
 from nfvbench.compute import Compute
@@ -119,17 +120,86 @@ def _test_pvp_chain(config, cred, mock_glance, mock_neutron, mock_client):
     openstack_spec = OpenStackSpec()
     specs.set_openstack_spec(openstack_spec)
     cred = MagicMock(spec=nfvbench.credentials.Credentials)
+    cred.is_admin = True
     runner = ChainRunner(config, cred, specs, BasicFactory())
     runner.close()
 
 def test_pvp_chain_runner():
     """Test PVP chain runner."""
     cred = MagicMock(spec=nfvbench.credentials.Credentials)
+    cred.is_admin = True
     for shared_net in [True, False]:
         for sc in [ChainType.PVP]:
             for scc in [1, 2]:
                 config = _get_chain_config(sc, scc, shared_net)
                 _test_pvp_chain(config, cred)
+
+
+# Test not admin exception with empty value is raised
+@patch.object(Compute, 'find_image', _mock_find_image)
+@patch('nfvbench.chaining.Client')
+@patch('nfvbench.chaining.neutronclient')
+@patch('nfvbench.chaining.glanceclient')
+def _test_pvp_chain_no_admin_no_config_values(config, cred, mock_glance, mock_neutron, mock_client):
+    # instance = self.novaclient.servers.create(name=vmname,...)
+    # instance.status == 'ACTIVE'
+    mock_client.return_value.servers.create.return_value.status = 'ACTIVE'
+    netw = {'id': 0, 'provider:network_type': 'vlan', 'provider:segmentation_id': 1000}
+    mock_neutron.Client.return_value.create_network.return_value = {'network': netw}
+    mock_neutron.Client.return_value.list_networks.return_value = {'networks': None}
+    specs = Specs()
+    openstack_spec = OpenStackSpec()
+    specs.set_openstack_spec(openstack_spec)
+    runner = ChainRunner(config, cred, specs, BasicFactory())
+    runner.close()
+
+def test_pvp_chain_runner_no_admin_no_config_values():
+    """Test PVP chain runner."""
+    cred = MagicMock(spec=nfvbench.credentials.Credentials)
+    cred.is_admin = False
+    for shared_net in [True, False]:
+        for sc in [ChainType.PVP]:
+            for scc in [1, 2]:
+                config = _get_chain_config(sc, scc, shared_net)
+                with pytest.raises(ChainException):
+                    _test_pvp_chain_no_admin_no_config_values(config, cred)
+
+# Test not admin with mandatory parameters values in config file
+@patch.object(Compute, 'find_image', _mock_find_image)
+@patch('nfvbench.chaining.Client')
+@patch('nfvbench.chaining.neutronclient')
+@patch('nfvbench.chaining.glanceclient')
+def _test_pvp_chain_no_admin_config_values(config, cred, mock_glance, mock_neutron, mock_client):
+    # instance = self.novaclient.servers.create(name=vmname,...)
+    # instance.status == 'ACTIVE'
+    mock_client.return_value.servers.create.return_value.status = 'ACTIVE'
+    netw = {'id': 0, 'provider:network_type': 'vlan', 'provider:segmentation_id': 1000}
+    mock_neutron.Client.return_value.create_network.return_value = {'network': netw}
+    mock_neutron.Client.return_value.list_networks.return_value = {'networks': None}
+    specs = Specs()
+    openstack_spec = OpenStackSpec()
+    specs.set_openstack_spec(openstack_spec)
+    runner = ChainRunner(config, cred, specs, BasicFactory())
+    runner.close()
+
+def test_pvp_chain_runner_no_admin_config_values():
+    """Test PVP chain runner."""
+    cred = MagicMock(spec=nfvbench.credentials.Credentials)
+    cred.is_admin = False
+    for shared_net in [True, False]:
+        for sc in [ChainType.PVP]:
+            for scc in [1, 2]:
+                config = _get_chain_config(sc, scc, shared_net)
+                config.availability_zone = "az"
+                config.hypervisor_hostname = "server"
+                # these are the 2 valid forms of vlan ranges
+                if scc == 1:
+                    config.vlans = [100, 200]
+                else:
+                    config.vlans = [[port * 100 + index for index in range(scc)]
+                                    for port in range(2)]
+                _test_pvp_chain_no_admin_config_values(config, cred)
+
 
 @patch.object(Compute, 'find_image', _mock_find_image)
 @patch('nfvbench.chaining.Client')
@@ -145,6 +215,7 @@ def _test_ext_chain(config, cred, mock_glance, mock_neutron, mock_client):
     openstack_spec = OpenStackSpec()
     specs.set_openstack_spec(openstack_spec)
     cred = MagicMock(spec=nfvbench.credentials.Credentials)
+    cred.is_admin = True
     runner = ChainRunner(config, cred, specs, BasicFactory())
     runner.close()
 
@@ -155,6 +226,7 @@ def test_ext_chain_runner():
     shared/not shared net x arp/no_arp x scc 1 or 2
     """
     cred = MagicMock(spec=nfvbench.credentials.Credentials)
+    cred.is_admin = True
     for shared_net in [True, False]:
         for no_arp in [False, True]:
             for scc in [1, 2]:

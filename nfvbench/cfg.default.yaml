@@ -25,6 +25,11 @@
 # The only case where this field can be empty is when measuring a system that does not run
 # OpenStack or when OpenStack APIs are not accessible or OpenStack APis use is not
 # desirable. In that case the EXT service chain must be used.
+#
+# If openrc is not admin some parameters are mandatory and must be filled with valid values in config file such as :
+# - availability_zone
+# - hypervisor_hostname
+# - vlans
 openrc_file:
 
 # Forwarder to use in nfvbenchvm image. Available options: ['vpp', 'testpmd']
@@ -66,11 +71,15 @@ flavor:
 # Name of the availability zone to use for the test VMs
 # Must be one of the zones listed by 'nova availability-zone-list'
 # availability_zone: 'nova'
+# If openrc is not admin set a valid value
 availability_zone:
 # To force placement on a given hypervisor, set the name here
 # (if multiple names are provided, the first will be used)
 # Leave empty to let openstack pick the hypervisor
 compute_nodes:
+# If openrc is not admin set a valid value for hypervisor hostname
+# Example of value: hypervisor_hostname: "server1"
+hypervisor_hostname:
 
 # Type of service chain to run, possible options are PVP, PVVP and EXT
 # PVP - port to VM to port
@@ -192,7 +201,7 @@ traffic_generator:
     #
     # Generator profiles are listed in the following format:
     # `name`: Traffic generator profile name (use a unique name, no space or special character)
-    #         DFo not change this field
+    #         Do not change this field
     # `tool`: Traffic generator tool to be used (currently supported is `TRex`).
     #         Do not change this field
     # `ip`: IP address of the traffic generator.
@@ -369,7 +378,7 @@ vxlan: false
 # is not supported). Use the vtep_vlan option to enable vlan tagging for the VxLAN overlay network.
 vlan_tagging: true
 
-# Used only in the case of EXT chain and no openstack to specify the VLAN IDs to use.
+# Used only in the case of EXT chain and no openstack or not admin access to specify the VLAN IDs to use.
 # This property is ignored when OpenStakc is used or in the case of l2-loopback.
 # If OpenStack is used leave the list empty, VLAN IDs are retrieved from OpenStack networks using Neutron API.
 # If networks are shared across all chains (service_chain_shared_net=true), the list should have exactly 2 values

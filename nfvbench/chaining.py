@@ -522,7 +522,11 @@ class ChainVnf(object):
 
     def get_hostname(self):
         """Get the hypervisor host name running this VNF instance."""
-        return getattr(self.instance, 'OS-EXT-SRV-ATTR:hypervisor_hostname')
+        if self.manager.is_admin:
+            hypervisor_hostname = getattr(self.instance, 'OS-EXT-SRV-ATTR:hypervisor_hostname')
+        else:
+            hypervisor_hostname = self.manager.config.hypervisor_hostname
+        return hypervisor_hostname
 
     def get_host_ip(self):
         """Get the IP address of the host where this instance runs.
@@ -536,7 +540,10 @@ class ChainVnf(object):
     def get_hypervisor_name(self):
         """Get hypervisor name (az:hostname) for this VNF instance."""
         if self.instance:
-            az = getattr(self.instance, 'OS-EXT-AZ:availability_zone')
+            if self.manager.is_admin:
+                az = getattr(self.instance, 'OS-EXT-AZ:availability_zone')
+            else:
+                az = self.manager.config.availability_zone
             hostname = self.get_hostname()
             if az:
                 return az + ':' + hostname
@@ -851,6 +858,7 @@ class ChainManager(object):
         if self.openstack:
             # openstack only
             session = chain_runner.cred.get_session()
+            self.is_admin = chain_runner.cred.is_admin()
             self.nova_client = Client(2, session=session)
             self.neutron_client = neutronclient.Client('2.0', session=session)
             self.glance_client = glanceclient.Client('2', session=session)
@@ -877,12 +885,14 @@ class ChainManager(object):
                 else:
                     # Make sure all instances are active before proceeding
                     self._ensure_instances_active()
+                # network API call do not show VLANS ID if not admin read from config
+                if not self.is_admin:
+                    self._get_config_vlans()
             except Exception:
                 self.delete()
                 raise
         else:
             # no openstack, no need to create chains
-
             if not config.l2_loopback and config.no_arp:
                 self._get_dest_macs_from_config()
             if config.vlan_tagging:
@@ -890,11 +900,14 @@ class ChainManager(object):
                 if len(config.vlans) != 2:
                     raise ChainException('The config vlans property must be a list '
                                          'with 2 lists of VLAN IDs')
-                re_vlan = "[0-9]*$"
-                self.vlans = [self._check_list('vlans[0]', config.vlans[0], re_vlan),
-                              self._check_list('vlans[1]', config.vlans[1], re_vlan)]
+                self._get_config_vlans()
             if config.vxlan:
                 raise ChainException('VxLAN is only supported with OpenStack')
+
+    def _get_config_vlans(self):
+        re_vlan = "[0-9]*$"
+        self.vlans = [self._check_list('vlans[0]', self.config.vlans[0], re_vlan),
+                      self._check_list('vlans[1]', self.config.vlans[1], re_vlan)]
 
     def _get_dest_macs_from_config(self):
         re_mac = "[0-9a-fA-F]{2}([-:])[0-9a-fA-F]{2}(\\1[0-9a-fA-F]{2}){4}$"
@@ -1114,7 +1127,7 @@ class ChainManager(object):
         port_index: left port is 0, right port is 1
         return: a VLAN ID list indexed by the chain index or None if no vlan tagging
         """
-        if self.chains:
+        if self.chains and self.is_admin:
             return [self.chains[chain_index].get_vlan(port_index)
                     for chain_index in range(self.chain_count)]
         # no openstack

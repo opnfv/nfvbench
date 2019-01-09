@@ -21,10 +21,26 @@ import getpass
 from keystoneauth1.identity import v2
 from keystoneauth1.identity import v3
 from keystoneauth1 import session
+from keystoneclient import client
+from keystoneclient import utils
 from log import LOG
 
 
 class Credentials(object):
+
+    def is_admin(self):
+        is_admin = False
+        keystone = client.Client(session=self.get_session())
+        try:
+            user = utils.find_resource(keystone.users, self.rc_username)
+            project = utils.find_resource(keystone.projects, self.rc_project_name)
+            roles = keystone.roles.list(user=user.id, project=project.id)
+            for role in roles:
+                if role.name == 'admin':
+                    is_admin = True
+        except Exception:
+            LOG.warning("User is not admin, no permission to list user roles")
+        return is_admin
 
     def get_session(self):
         dct = {

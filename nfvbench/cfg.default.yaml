@@ -71,6 +71,9 @@ availability_zone:
 # (if multiple names are provided, the first will be used)
 # Leave empty to let openstack pick the hypervisor
 compute_nodes:
+# If no openstack admin access hypervisor hostname value will be
+# retrieve in config file
+hypervisor_hostname:
 
 # Type of service chain to run, possible options are PVP, PVVP and EXT
 # PVP - port to VM to port
@@ -192,7 +195,7 @@ traffic_generator:
     #
     # Generator profiles are listed in the following format:
     # `name`: Traffic generator profile name (use a unique name, no space or special character)
-    #         DFo not change this field
+    #         Do not change this field
     # `tool`: Traffic generator tool to be used (currently supported is `TRex`).
     #         Do not change this field
     # `ip`: IP address of the traffic generator.

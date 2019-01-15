@@ -36,7 +36,7 @@ import credentials as credentials
 from fluentd import FluentLogHandler
 import log
 from log import LOG
-from nfvbenchd import WebSocketIoServer
+#from nfvbenchd import WebSocketIoServer
 from specs import ChainType
 from specs import Specs
 from summarizer import NFVBenchSummarizer
@@ -599,18 +599,19 @@ def main():
         nfvbench_instance = NFVBench(config, openstack_spec, config_plugin, factory)
 
         if opts.server:
-            if os.path.isdir(opts.server):
-                server = WebSocketIoServer(opts.server, nfvbench_instance, fluent_logger)
-                nfvbench_instance.set_notifier(server)
-                try:
-                    port = int(opts.port)
-                except ValueError:
-                    server.run(host=opts.host)
-                else:
-                    server.run(host=opts.host, port=port)
-            else:
-                print 'Invalid HTTP root directory: ' + opts.server
-                sys.exit(1)
+            LOG.info("[Workaround] Webserver temporarily disabled")
+            #if os.path.isdir(opts.server):
+            #    server = WebSocketIoServer(opts.server, nfvbench_instance, fluent_logger)
+            #    nfvbench_instance.set_notifier(server)
+            #    try:
+            #        port = int(opts.port)
+            #    except ValueError:
+            #        server.run(host=opts.host)
+            #    else:
+            #        server.run(host=opts.host, port=port)
+            #else:
+            #    print 'Invalid HTTP root directory: ' + opts.server
+            #    sys.exit(1)
         else:
             with utils.RunLock():
                 run_summary_required = True

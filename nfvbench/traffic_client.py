@@ -571,7 +571,8 @@ class TrafficClient(object):
         LOG.info('Starting traffic generator to ensure end-to-end connectivity')
         # send 2pps on each chain and each direction
         rate_pps = {'rate_pps': str(self.config.service_chain_count * 2)}
-        self.gen.create_traffic('64', [rate_pps, rate_pps], bidirectional=True, latency=False)
+        self.gen.create_traffic('64', [rate_pps, rate_pps], bidirectional=True, latency=False,
+                                e2e=True)
 
         # ensures enough traffic is coming back
         retry_count = (self.config.check_traffic_time_sec +
@@ -652,7 +653,10 @@ class TrafficClient(object):
                 self.run_config['rates'][idx] = {'rate_pps': self.__convert_rates(rate)['rate_pps']}
 
         self.gen.clear_streamblock()
-        self.gen.create_traffic(frame_size, self.run_config['rates'], bidirectional, latency=True)
+        if not self.config.vxlan:
+            self.gen.create_traffic(frame_size, self.run_config['rates'], bidirectional, latency=True)
+        else:
+            self.gen.create_traffic(frame_size, self.run_config['rates'], bidirectional, latency=False)
 
     def _modify_load(self, load):
         self.current_total_rate = {'rate_percent': str(load)}

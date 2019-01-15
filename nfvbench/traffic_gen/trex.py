@@ -40,6 +40,7 @@ from trex_stl_lib.api import Ether
 from trex_stl_lib.api import FlagsField
 from trex_stl_lib.api import IP
 from trex_stl_lib.api import Packet
+from trex_stl_lib.api import ServiceARP
 from trex_stl_lib.api import STLClient
 from trex_stl_lib.api import STLError
 from trex_stl_lib.api import STLFlowLatencyStats
@@ -50,12 +51,11 @@ from trex_stl_lib.api import STLStream
 from trex_stl_lib.api import STLTXCont
 from trex_stl_lib.api import STLVmFixChecksumHw
 from trex_stl_lib.api import STLVmFlowVar
-from trex_stl_lib.api import STLVmFlowVarRepetableRandom
+from trex_stl_lib.api import STLVmFlowVarRepeatableRandom
 from trex_stl_lib.api import STLVmWrFlowVar
 from trex_stl_lib.api import ThreeBytesField
 from trex_stl_lib.api import UDP
 from trex_stl_lib.api import XByteField
-from trex_stl_lib.services.trex_stl_service_arp import STLServiceARP
 
 
 # pylint: enable=import-error
@@ -306,14 +306,14 @@ class TRex(AbstractTrafficGenerator):
         pkt_base /= IP() / UDP(**udp_args)
 
         if stream_cfg['ip_addrs_step'] == 'random':
-            src_fv = STLVmFlowVarRepetableRandom(
+            src_fv = STLVmFlowVarRepeatableRandom(
                 name="ip_src",
                 min_value=stream_cfg['ip_src_addr'],
                 max_value=stream_cfg['ip_src_addr_max'],
                 size=4,
                 seed=random.randint(0, 32767),
                 limit=stream_cfg['ip_src_count'])
-            dst_fv = STLVmFlowVarRepetableRandom(
+            dst_fv = STLVmFlowVarRepeatableRandom(
                 name="ip_dst",
                 min_value=stream_cfg['ip_dst_addr'],
                 max_value=stream_cfg['ip_dst_addr_max'],
@@ -349,7 +349,8 @@ class TRex(AbstractTrafficGenerator):
 
         return STLPktBuilder(pkt=pkt_base / pad, vm=STLScVmRaw(vm_param))
 
-    def generate_streams(self, port, chain_id, stream_cfg, l2frame, latency=True):
+    def generate_streams(self, port, chain_id, stream_cfg, l2frame, latency=True,
+                         e2e=False):
         """Create a list of streams corresponding to a given chain and stream config.
 
         port: port where the streams originate (0 or 1)
@@ -357,15 +358,26 @@ class TRex(AbstractTrafficGenerator):
         stream_cfg: stream configuration
         l2frame: L2 frame size (including 4-byte FCS) or 'IMIX'
         latency: if True also create a latency stream
+        e2e: True if performing "end to end" connectivity check
         """
         streams = []
         pg_id, lat_pg_id = self.get_pg_id(port, chain_id)
         if l2frame == 'IMIX':
             for ratio, l2_frame_size in zip(IMIX_RATIOS, IMIX_L2_SIZES):
                 pkt = self._create_pkt(stream_cfg, l2_frame_size)
-                streams.append(STLStream(packet=pkt,
-                                         flow_stats=STLFlowStats(pg_id=pg_id),
-                                         mode=STLTXCont(pps=ratio)))
+                if e2e:
+                    streams.append(STLStream(packet=pkt,
+                                             mode=STLTXCont(pps=ratio)))
+                else:
+                    if stream_cfg['vxlan'] is True:
+                        streams.append(STLStream(packet=pkt,
+                                                 flow_stats=STLFlowStats(pg_id=pg_id,
+                                                                         vxlan=True),
+                                                 mode=STLTXCont(pps=ratio)))
+                    else:
+                        streams.append(STLStream(packet=pkt,
+                                                 flow_stats=STLFlowStats(pg_id=pg_id),
+                                                 mode=STLTXCont(pps=ratio)))
 
             if latency:
                 # for IMIX, the latency packets have the average IMIX packet size
@@ -374,9 +386,19 @@ class TRex(AbstractTrafficGenerator):
         else:
             l2frame_size = int(l2frame)
             pkt = self._create_pkt(stream_cfg, l2frame_size)
-            streams.append(STLStream(packet=pkt,
-                                     flow_stats=STLFlowStats(pg_id=pg_id),
-                                     mode=STLTXCont()))
+            if e2e:
+                streams.append(STLStream(packet=pkt,
+                                         mode=STLTXCont()))
+            else:
+                if stream_cfg['vxlan'] is True:
+                    streams.append(STLStream(packet=pkt,
+                                             flow_stats=STLFlowStats(pg_id=pg_id,
+                                                                     vxlan=True),
+                                             mode=STLTXCont()))
+                else:
+                    streams.append(STLStream(packet=pkt,
+                                             flow_stats=STLFlowStats(pg_id=pg_id),
+                                             mode=STLTXCont()))
             # for the latency stream, the minimum payload is 16 bytes even in case of vlan tagging
             # without vlan, the min l2 frame size is 64
             # with vlan it is 68
@@ -385,6 +407,7 @@ class TRex(AbstractTrafficGenerator):
                 pkt = self._create_pkt(stream_cfg, 68)
 
         if latency:
+            # TRex limitation: VXLAN skip is not supported for latency stream
             streams.append(STLStream(packet=pkt,
                                      flow_stats=STLFlowLatencyStats(pg_id=lat_pg_id),
                                      mode=STLTXCont(pps=self.LATENCY_PPS)))
@@ -499,18 +522,18 @@ class TRex(AbstractTrafficGenerator):
             # the index in the list is the chain id
             if self.config.vxlan:
                 arps = [
-                    STLServiceARP(ctx,
-                                  src_ip=device.vtep_src_ip,
-                                  dst_ip=device.vtep_dst_ip,
-                                  vlan=device.vtep_vlan)
+                    ServiceARP(ctx,
+                               src_ip=device.vtep_src_ip,
+                               dst_ip=device.vtep_dst_ip,
+                               vlan=device.vtep_vlan)
                     for cfg in stream_configs
                 ]
             else:
                 arps = [
-                    STLServiceARP(ctx,
-                                  src_ip=cfg['ip_src_tg_gw'],
-                                  dst_ip=cfg['mac_discovery_gw'],
-                                  # will be None if no vlan tagging
+                    ServiceARP(ctx,
+                               src_ip=cfg['ip_src_tg_gw'],
+                               dst_ip=cfg['mac_discovery_gw'],
+                               # will be None if no vlan tagging
                                   vlan=cfg['vlan_tag'])
                     for cfg in stream_configs
                 ]
@@ -580,7 +603,7 @@ class TRex(AbstractTrafficGenerator):
 
         return {'result': True}
 
-    def create_traffic(self, l2frame_size, rates, bidirectional, latency=True):
+    def create_traffic(self, l2frame_size, rates, bidirectional, latency=True, e2e=False):
         """Program all the streams in Trex server.
 
         l2frame_size: L2 frame size or IMIX
@@ -588,6 +611,7 @@ class TRex(AbstractTrafficGenerator):
                each rate is a dict like {'rate_pps': '10kpps'}
         bidirectional: True if bidirectional
         latency: True if latency measurement is needed
+        e2e: True if performing "end to end" connectivity check
         """
         r = self.__is_rate_enough(l2frame_size, rates, bidirectional, latency)
         if not r['result']:
@@ -611,15 +635,21 @@ class TRex(AbstractTrafficGenerator):
                                                         chain_id,
                                                         fwd_stream_cfg,
                                                         l2frame_size,
-                                                        latency=latency))
+                                                        latency=latency,
+                                                        e2e=e2e))
             if len(self.rates) > 1:
                 streamblock[1].extend(self.generate_streams(self.port_handle[1],
                                                             chain_id,
                                                             rev_stream_cfg,
                                                             l2frame_size,
-                                                            latency=bidirectional and latency))
+                                                            latency=bidirectional and latency,
+                                                            e2e=e2e))
 
         for port in self.port_handle:
+            if self.config.vxlan:
+                self.client.set_port_attr(ports=port, vxlan_fs=[4789])
+            else:
+                self.client.set_port_attr(ports=port, vxlan_fs=None)
             self.client.add_streams(streamblock[port], ports=port)
             LOG.info('Created %d traffic streams for port %s.', len(streamblock[port]), port)
 

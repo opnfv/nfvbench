@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1a622d24_c45c67f0",
+        "filename": "nfvbench/cfg.default.yaml",
+        "patchSetId": 1
+      },
+      "lineNbr": 218,
+      "author": {
+        "id": 5807
+      },
+      "writtenOn": "2019-02-14T07:13:36Z",
+      "side": 1,
+      "message": "please specify the unit(looks like MB?)",
+      "revId": "cd52b2934668ca8205acdda52a41a45d4b2adc16",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a622d24_24739b81",
+        "filename": "nfvbench/cfg.default.yaml",
+        "patchSetId": 1
+      },
+      "lineNbr": 267,
+      "author": {
+        "id": 5807
+      },
+      "writtenOn": "2019-02-14T07:13:36Z",
+      "side": 1,
+      "message": "please document in the comments:\nif these fields under platform can be left empty?\nif yes what would be the default values/behavior used by trex?\nor possibly add as comment a URL link to the trex doc that describes these parameters.",
+      "revId": "cd52b2934668ca8205acdda52a41a45d4b2adc16",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": false
+    }
+  ]
+}

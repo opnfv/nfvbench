@@ -23,7 +23,7 @@ from attrdict import AttrDict
 import bitmath
 from netaddr import IPNetwork
 # pylint: disable=import-error
-from trex_stl_lib.api import STLError
+from trex.stl.api import STLError
 # pylint: enable=import-error
 
 from log import LOG
@@ -499,8 +499,8 @@ class TrafficClient(object):
     def _get_generator(self):
         tool = self.tool.lower()
         if tool == 'trex':
-            from traffic_gen import trex
-            return trex.TRex(self)
+            from traffic_gen import trex_gen
+            return trex_gen.TRex(self)
         if tool == 'dummy':
             from traffic_gen import dummy
             return dummy.DummyTG(self)

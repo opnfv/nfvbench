@@ -17,26 +17,29 @@ import sys
 
 # Because trex_stl_lib may not be installed when running unit test
 # nfvbench.traffic_client will try to import STLError:
-# from trex_stl_lib.api import STLError
-# will raise ImportError: No module named trex_stl_lib.api
-# trex.py will also try to import a number of trex_stl_lib classes
+# from trex.stl.api import STLError
+# will raise ImportError: No module named trex.stl.api
+# trex_gen.py will also try to import a number of trex.stl.api classes
 try:
-    import trex_stl_lib.api
-    assert trex_stl_lib.api
+    import trex.stl.api
+    assert trex.stl.api
 except ImportError:
     from types import ModuleType
 
-    # Make up a trex_stl_lib.api.STLError class
+    # Make up a trex.stl.api.STLError class
     class STLDummy(Exception):
         """Dummy class."""
 
         pass
 
-    stl_lib_mod = ModuleType('trex_stl_lib')
-    sys.modules['trex_stl_lib'] = stl_lib_mod
-    api_mod = ModuleType('trex_stl_lib.api')
+    trex_lib_mod = ModuleType('trex')
+    sys.modules['trex'] = trex_lib_mod
+    stl_lib_mod = ModuleType('trex.stl')
+    trex_lib_mod.stl = stl_lib_mod
+    sys.modules['trex.stl'] = stl_lib_mod
+    api_mod = ModuleType('trex.stl.api')
     stl_lib_mod.api = api_mod
-    sys.modules['trex_stl_lib.api'] = api_mod
+    sys.modules['trex.stl.api'] = api_mod
     api_mod.STLError = STLDummy
     api_mod.STLxyz = STLDummy
     api_mod.CTRexVmInsFixHwCs = STLDummy
@@ -61,14 +64,16 @@ except ImportError:
     api_mod.ThreeBytesField = STLDummy
     api_mod.XByteField = STLDummy
 
-    services_mod = ModuleType('trex_stl_lib.services')
-    stl_lib_mod.services = services_mod
-    sys.modules['trex_stl_lib.services'] = services_mod
-
-    arp_mod = ModuleType('trex_stl_lib.services.trex_stl_service_arp')
+    common_mod = ModuleType('trex.common')
+    trex_lib_mod.common = common_mod
+    sys.modules['trex.common'] = common_mod
+    services_mod = ModuleType('trex.common.services')
+    common_mod.services = services_mod
+    sys.modules['trex.common.services'] = services_mod
+    arp_mod = ModuleType('trex.common.services.trex_service_arp')
     services_mod.trex_stl_service_arp = arp_mod
-    sys.modules['trex_stl_lib.services.trex_stl_service_arp'] = arp_mod
-    arp_mod.STLServiceARP = STLDummy
+    sys.modules['trex.common.services.trex_service_arp'] = arp_mod
+    arp_mod.ServiceARP = STLDummy
 
 def no_op():
     """Empty function."""

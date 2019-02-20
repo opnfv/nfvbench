@@ -38,7 +38,7 @@ from nfvbench.specs import Specs
 from nfvbench.summarizer import _annotate_chain_stats
 from nfvbench.traffic_client import TrafficClient
 from nfvbench.traffic_gen.traffic_base import Latency
-from nfvbench.traffic_gen.trex import TRex
+from nfvbench.traffic_gen.trex_gen import TRex
 
 
 # just to get rid of the unused function warning

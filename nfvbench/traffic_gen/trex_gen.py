@@ -33,29 +33,29 @@ from traffic_utils import IMIX_L2_SIZES
 from traffic_utils import IMIX_RATIOS
 
 # pylint: disable=import-error
-from trex_stl_lib.api import bind_layers
-from trex_stl_lib.api import CTRexVmInsFixHwCs
-from trex_stl_lib.api import Dot1Q
-from trex_stl_lib.api import Ether
-from trex_stl_lib.api import FlagsField
-from trex_stl_lib.api import IP
-from trex_stl_lib.api import Packet
-from trex_stl_lib.api import STLClient
-from trex_stl_lib.api import STLError
-from trex_stl_lib.api import STLFlowLatencyStats
-from trex_stl_lib.api import STLFlowStats
-from trex_stl_lib.api import STLPktBuilder
-from trex_stl_lib.api import STLScVmRaw
-from trex_stl_lib.api import STLStream
-from trex_stl_lib.api import STLTXCont
-from trex_stl_lib.api import STLVmFixChecksumHw
-from trex_stl_lib.api import STLVmFlowVar
-from trex_stl_lib.api import STLVmFlowVarRepetableRandom
-from trex_stl_lib.api import STLVmWrFlowVar
-from trex_stl_lib.api import ThreeBytesField
-from trex_stl_lib.api import UDP
-from trex_stl_lib.api import XByteField
-from trex_stl_lib.services.trex_stl_service_arp import STLServiceARP
+from trex.common.services.trex_service_arp import ServiceARP
+from trex.stl.api import bind_layers
+from trex.stl.api import CTRexVmInsFixHwCs
+from trex.stl.api import Dot1Q
+from trex.stl.api import Ether
+from trex.stl.api import FlagsField
+from trex.stl.api import IP
+from trex.stl.api import Packet
+from trex.stl.api import STLClient
+from trex.stl.api import STLError
+from trex.stl.api import STLFlowLatencyStats
+from trex.stl.api import STLFlowStats
+from trex.stl.api import STLPktBuilder
+from trex.stl.api import STLScVmRaw
+from trex.stl.api import STLStream
+from trex.stl.api import STLTXCont
+from trex.stl.api import STLVmFixChecksumHw
+from trex.stl.api import STLVmFlowVar
+from trex.stl.api import STLVmFlowVarRepeatableRandom
+from trex.stl.api import STLVmWrFlowVar
+from trex.stl.api import ThreeBytesField
+from trex.stl.api import UDP
+from trex.stl.api import XByteField
 
 
 # pylint: enable=import-error
@@ -306,14 +306,14 @@ class TRex(AbstractTrafficGenerator):
         pkt_base /= IP() / UDP(**udp_args)
 
         if stream_cfg['ip_addrs_step'] == 'random':
-            src_fv = STLVmFlowVarRepetableRandom(
+            src_fv = STLVmFlowVarRepeatableRandom(
                 name="ip_src",
                 min_value=stream_cfg['ip_src_addr'],
                 max_value=stream_cfg['ip_src_addr_max'],
                 size=4,
                 seed=random.randint(0, 32767),
                 limit=stream_cfg['ip_src_count'])
-            dst_fv = STLVmFlowVarRepetableRandom(
+            dst_fv = STLVmFlowVarRepeatableRandom(
                 name="ip_dst",
                 min_value=stream_cfg['ip_dst_addr'],
                 max_value=stream_cfg['ip_dst_addr_max'],
@@ -500,19 +500,19 @@ class TRex(AbstractTrafficGenerator):
             # the index in the list is the chain id
             if self.config.vxlan:
                 arps = [
-                    STLServiceARP(ctx,
-                                  src_ip=device.vtep_src_ip,
-                                  dst_ip=device.vtep_dst_ip,
-                                  vlan=device.vtep_vlan)
+                    ServiceARP(ctx,
+                               src_ip=device.vtep_src_ip,
+                               dst_ip=device.vtep_dst_ip,
+                               vlan=device.vtep_vlan)
                     for cfg in stream_configs
                 ]
             else:
                 arps = [
-                    STLServiceARP(ctx,
-                                  src_ip=cfg['ip_src_tg_gw'],
-                                  dst_ip=cfg['mac_discovery_gw'],
-                                  # will be None if no vlan tagging
-                                  vlan=cfg['vlan_tag'])
+                    ServiceARP(ctx,
+                               src_ip=cfg['ip_src_tg_gw'],
+                               dst_ip=cfg['mac_discovery_gw'],
+                               # will be None if no vlan tagging
+                               vlan=cfg['vlan_tag'])
                     for cfg in stream_configs
                 ]
 

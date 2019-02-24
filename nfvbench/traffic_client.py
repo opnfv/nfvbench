@@ -391,10 +391,11 @@ class GeneratorConfig(object):
         port_index: the port for which dest macs must be set
         dest_macs: a list of dest MACs indexed by chain id
         """
-        if len(dest_macs) != self.config.service_chain_count:
+        if len(dest_macs) < self.config.service_chain_count:
             raise TrafficClientException('Dest MAC list %s must have %d entries' %
                                          (dest_macs, self.config.service_chain_count))
-        self.devices[port_index].set_dest_macs(dest_macs)
+        # only pass the first scc dest MACs
+        self.devices[port_index].set_dest_macs(dest_macs[:self.config.service_chain_count])
         LOG.info('Port %d: dst MAC %s', port_index, [str(mac) for mac in dest_macs])
 
     def set_vtep_dest_macs(self, port_index, dest_macs):

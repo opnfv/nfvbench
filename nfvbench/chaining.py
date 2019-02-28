@@ -883,8 +883,8 @@ class ChainManager(object):
                 for chain_id in range(self.chain_count):
                     self.chains.append(Chain(chain_id, self))
                 if config.service_chain == ChainType.EXT:
-                    # if EXT and no ARP we need to read dest MACs from config
-                    if config.no_arp:
+                    # if EXT and no ARP or VxLAN we need to read dest MACs from config
+                    if config.no_arp or config.vxlan:
                         self._get_dest_macs_from_config()
                 else:
                     # Make sure all instances are active before proceeding
@@ -1111,11 +1111,11 @@ class ChainManager(object):
         """
         return self.get_existing_ports().get(chain_network.get_uuid(), None)
 
-    def get_host_ip_from_mac(self, mac):
-        """Get the host IP address matching a MAC.
+    def get_hypervisor_from_mac(self, mac):
+        """Get the hypervisor that hosts a VM MAC.
 
         mac: MAC address to look for
-        return: the IP address of the host where the matching port runs or None if not found
+        return: the hypervisor where the matching port runs or None if not found
         """
         # _existing_ports is a dict of list of ports indexed by network id
         for port_list in self.get_existing_ports().values():
@@ -1123,9 +1123,20 @@ class ChainManager(object):
                 try:
                     if port['mac_address'] == mac:
                         host_id = port['binding:host_id']
-                        return self.comp.get_hypervisor(host_id).host_ip
+                        return self.comp.get_hypervisor(host_id)
                 except KeyError:
                     pass
+        return None
+
+    def get_host_ip_from_mac(self, mac):
+        """Get the host IP address matching a MAC.
+
+        mac: MAC address to look for
+        return: the IP address of the host where the matching port runs or None if not found
+        """
+        hypervisor = self.get_hypervisor_from_mac(mac)
+        if hypervisor:
+            return hypervisor.host_ip
         return None
 
     def get_chain_vlans(self, port_index):
@@ -1146,11 +1157,11 @@ class ChainManager(object):
         port_index: left port is 0, right port is 1
         return: a VNIs ID list indexed by the chain index or None if no vlan tagging
         """
-        if self.chains:
+        if self.chains and self.is_admin:
             return [self.chains[chain_index].get_vxlan(port_index)
                     for chain_index in range(self.chain_count)]
         # no openstack
-        raise ChainException('VxLAN is only supported with OpenStack')
+        raise ChainException('VxLAN is only supported with OpenStack and with admin user')
 
     def get_dest_macs(self, port_index):
         """Get the list of per chain dest MACs on a given port.
@@ -1198,7 +1209,18 @@ class ChainManager(object):
         if self.chains:
             # in the case of EXT, the compute node must be retrieved from the port
             # associated to any of the dest MACs
-            return self.chains[0].get_compute_nodes()
+            if self.config.service_chain != ChainType.EXT:
+                return self.chains[0].get_compute_nodes()
+            # in the case of EXT, the compute node must be retrieved from the port
+            # associated to any of the dest MACs
+            dst_macs = self.generator_config.get_dest_macs()
+            # dest MAC on port 0, chain 0
+            dst_mac = dst_macs[0][0]
+            hypervisor = self.get_hypervisor_from_mac(dst_mac)
+            if hypervisor:
+                LOG.info('Found hypervisor for EXT chain: %s', hypervisor.hypervisor_hostname)
+                return[':' + hypervisor.hypervisor_hostname]
+
         # no openstack = no chains
         return []
 

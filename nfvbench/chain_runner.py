@@ -74,8 +74,11 @@ class ChainRunner(object):
 
         # the only case we do not need to set the dest MAC is in the case of
         # l2-loopback (because the traffic gen will default to use the peer MAC)
-        # or EXT+ARP (because dest MAC will be discovered by TRex ARP)
-        if not config.l2_loopback and (config.service_chain != ChainType.EXT or config.no_arp):
+        # or EXT+ARP+VLAN (because dest MAC will be discovered by TRex ARP)
+        # Note that in the case of EXT+ARP+VxLAN, the dest MACs need to be loaded
+        # because ARP only operates on the dest VTEP IP not on the VM dest MAC
+        if not config.l2_loopback and \
+           (config.service_chain != ChainType.EXT or config.no_arp or config.vxlan):
             gen_config.set_dest_macs(0, self.chain_manager.get_dest_macs(0))
             gen_config.set_dest_macs(1, self.chain_manager.get_dest_macs(1))
 

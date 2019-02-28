@@ -22,8 +22,7 @@ Online Documentation
 --------------------
 The latest version of the NFVbench documentation is available online at:
 
-http://docs.opnfv.org/en/latest/submodules/nfvbench/docs/testing/user/userguide/index.html
-
+https://opnfv-nfvbench.readthedocs.io/en/latest/testing/user/userguide/index.html
 
 Contact Information
 -------------------

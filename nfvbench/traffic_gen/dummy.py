@@ -95,7 +95,7 @@ class DummyTG(AbstractTrafficGenerator):
         ports = list(self.traffic_client.generator_config.ports)
         self.port_handle = ports
 
-    def create_traffic(self, l2frame_size, rates, bidirectional, latency=True):
+    def create_traffic(self, l2frame_size, rates, bidirectional, latency=True, e2e=False):
         self.rates = [utils.to_rate_str(rate) for rate in rates]
         self.l2_frame_size = l2frame_size
 

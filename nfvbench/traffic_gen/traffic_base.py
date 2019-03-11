@@ -68,7 +68,7 @@ class AbstractTrafficGenerator(object):
         return None
 
     @abc.abstractmethod
-    def create_traffic(self, l2frame_size, rates, bidirectional, latency=True):
+    def create_traffic(self, l2frame_size, rates, bidirectional, latency=True, e2e=False):
         # Must be implemented by sub classes
         return None
 

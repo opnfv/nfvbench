@@ -20,8 +20,4 @@ pyzmq>=15.3.0
 requests>=2.13.0
 tabulate>=0.7.5
 flask>=0.12
-flask_socketio>=2.8.3
-backports.ssl-match-hostname==3.5.0.1  # via websocket-client
-socketIO-client==0.7.2
-websocket-client==0.40.0  # via socketio-client
 fluent-logger>=0.5.3

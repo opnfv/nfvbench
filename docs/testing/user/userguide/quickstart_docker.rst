@@ -11,6 +11,9 @@ NFVbench Installation and Quick Start Guide
 Make sure you satisfy the `hardware and software requirements <requirements>` before you start .
 
 
+NFVbench can be used in CLI mode or in REST server mode.
+The CLI mode allows to run NFVbench benchmarks from the CLI. The REST server mode allows to run NFVbench benchmarks through a REST interface.
+
 1. Container installation
 -------------------------
 
@@ -20,163 +23,16 @@ To pull the latest NFVbench container image:
 
     docker pull opnfv/nfvbench
 
-2. Docker Container configuration
----------------------------------
+2. NFVbench configuration file
+------------------------------
 
-The NFVbench container requires the following Docker options to operate properly.
-
-+-------------------------------------------------------+-------------------------------------------------------+
-| Docker options                                        | Description                                           |
-+=======================================================+=======================================================+
-| -v /lib/modules/$(uname -r):/lib/modules/$(uname -r)  | needed by kernel modules in the container             |
-+-------------------------------------------------------+-------------------------------------------------------+
-| -v /usr/src/kernels:/usr/src/kernels                  | needed by TRex to build kernel modules when needed    |
-+-------------------------------------------------------+-------------------------------------------------------+
-| -v /dev:/dev                                          | needed by kernel modules in the container             |
-+-------------------------------------------------------+-------------------------------------------------------+
-| -v $PWD:/tmp/nfvbench                                 | optional but recommended to pass files between the    |
-|                                                       | host and the docker space (see examples below)        |
-|                                                       | Here we map the current directory on the host to the  |
-|                                                       | /tmp/nfvbench director in the container but any       |
-|                                                       | other similar mapping can work as well                |
-+-------------------------------------------------------+-------------------------------------------------------+
-| --net=host                                            | (optional) needed if you run the NFVbench             |
-|                                                       | server in the container (or use any appropriate       |
-|                                                       | docker network mode other than "host")                |
-+-------------------------------------------------------+-------------------------------------------------------+
-| --privileged                                          | (optional) required if SELinux is enabled on the host |
-+-------------------------------------------------------+-------------------------------------------------------+
-| -e HOST="127.0.0.1"                                   | (optional) required if REST server is enabled         |
-+-------------------------------------------------------+-------------------------------------------------------+
-| -e PORT=7556                                          | (optional) required if REST server is enabled         |
-+-------------------------------------------------------+-------------------------------------------------------+
-| -e CONFIG_FILE="/root/nfvbenchconfig.json             | (optional) required if REST server is enabled         |
-+-------------------------------------------------------+-------------------------------------------------------+
-
-It can be convenient to write a shell script (or an alias) to automatically insert the necessary options.
-
-The minimal configuration file required must specify the PCI addresses of the 2 NIC ports to use.
-If OpenStack is used, the openrc_file property must be defined to point to a valid OpenStack rc file.
-
-
-Here is an example of mimimal configuration using OpenStack where:
-
-- the openrc file is located on the host current directory which is mapped under /tmp/nfvbench in the container (this is achieved using -v $PWD:/tmp/nfvbench)
-- the 2 NIC ports to use for generating traffic have the PCI addresses "04:00.0" and "04:00.1"
+Create a directory under $HOME called nfvbench to store the minimal configuration file:
 
 .. code-block:: bash
 
-    {
-        "openrc_file": "/tmp/nfvbench/openrc",
-        "traffic_generator": {
-            "generator_profile": [
-                {
-                    "interfaces": [
-                        {
-                            "pci": "04:00.0",
-                            "port": 0,
-                        },
-                        {
-                            "pci": "04:00.1",
-                            "port": 1,
-                        }
-                    ],
-                    "intf_speed": "",
-                    "ip": "127.0.0.1",
-                    "name": "trex-local",
-                    "software_mode": false,
-                    "tool": "TRex"
-                }
-            ]
-        }
-    }
+    mkdir $HOME/nfvbench
 
-The other options in the minimal configuration must be present and must have the same values as above.
-
-3. Start the Docker container
------------------------------
-As for any Docker container, you can execute NFVbench measurement sessions using a temporary container ("docker run" - which exits after each NFVbench run)
-or you can decide to run the NFVbench container in the background then execute one or more NFVbench measurement sessions on that container ("docker exec").
-
-The former approach is simpler to manage (since each container is started and terminated after each command) but incurs a small delay at start time (several seconds).
-The second approach is more responsive as the delay is only incurred once when starting the container.
-
-We will take the second approach and start the NFVbench container in detached mode with the name "nfvbench" (this works with bash, prefix with "sudo" if you do not use the root login)
-
-First create a new working directory, and change the current working directory to there. A "nfvbench_ws" directory under your home directory is good place for that, and this is where the OpenStack RC file and NFVbench config file will sit.
-
-To run NFVBench without server mode
-
-.. code-block:: bash
-
-    cd ~/nfvbench_ws
-    docker run --detach --net=host --privileged -v $PWD:/tmp/nfvbench -v /dev:/dev -v /lib/modules/$(uname -r):/lib/modules/$(uname -r) -v /usr/src/kernels:/usr/src/kernels --name nfvbench opnfv/nfvbench
-
-To run NFVBench enabling REST server (mount the configuration json and the path for openrc)
-
-.. code-block:: bash
-
-    cd ~/nfvbench_ws
-    docker run --detach --net=host --privileged -e HOST="127.0.0.1" -e PORT=7556 -e CONFIG_FILE="/tmp/nfvbench/nfvbenchconfig.json -v $PWD:/tmp/nfvbench -v /dev:/dev -v /lib/modules/$(uname -r):/lib/modules/$(uname -r) -v /usr/src/kernels:/usr/src/kernels --name nfvbench opnfv/nfvbench start_rest_server
-
-
-The create an alias to make it easy to execute nfvbench commands directly from the host shell prompt:
-
-.. code-block:: bash
-
-    alias nfvbench='docker exec -it nfvbench nfvbench'
-
-The next to last "nfvbench" refers to the name of the container while the last "nfvbench" refers to the NFVbench binary that is available to run in the container.
-
-To verify it is working:
-
-.. code-block:: bash
-
-    nfvbench --version
-    nfvbench --help
-
-
-4. NFVbench configuration
--------------------------
-
-Create a new file containing the minimal configuration for NFVbench, we can call it any name, for example "my_nfvbench.cfg" and paste the following yaml template in the file:
-
-.. code-block:: bash
-
-  openrc_file:
-  traffic_generator:
-      generator_profile:
-          - name: trex-local
-            tool: TRex
-            ip: 127.0.0.1
-            cores: 3
-            software_mode: false,
-            interfaces:
-              - port: 0
-                pci:
-              - port: 1
-                pci:
-            intf_speed:
-
-If OpenStack is used, NFVbench requires an ``openrc`` file to connect to OpenStack using the OpenStack API. This file can be downloaded from the OpenStack Horizon dashboard (refer to the OpenStack documentation on how to
-retrieve the openrc file). The file pathname in the container must be stored in the "openrc_file" property. If it is stored on the host in the current directory, its full pathname must start with /tmp/nfvbench (since the current directory is mapped to /tmp/nfvbench in the container).
-
-If OpenStack is not used, remove the openrc_file property.
-
-The PCI address of the 2 physical interfaces that will be used by the traffic generator must be configured.
-The PCI address can be obtained for example by using the "lspci" Linux command. For example:
-
-.. code-block:: bash
-
-    [root@sjc04-pod6-build ~]# lspci | grep 710
-    0a:00.0 Ethernet controller: Intel Corporation Ethernet Controller X710 for 10GbE SFP+ (rev 01)
-    0a:00.1 Ethernet controller: Intel Corporation Ethernet Controller X710 for 10GbE SFP+ (rev 01)
-    0a:00.2 Ethernet controller: Intel Corporation Ethernet Controller X710 for 10GbE SFP+ (rev 01)
-    0a:00.3 Ethernet controller: Intel Corporation Ethernet Controller X710 for 10GbE SFP+ (rev 01)
-
-
-Example of edited configuration with an OpenStack RC file stored in the current directory with the "openrc" name, and
-PCI addresses "0a:00.0" and "0a:00.1" (first 2 ports of the quad port NIC):
+Create a new file containing the minimal configuration for NFVbench, we can call it any name, for example "nfvbench.cfg" and paste the following yaml template in the file:
 
 .. code-block:: bash
 
@@ -190,47 +46,281 @@ PCI addresses "0a:00.0" and "0a:00.1" (first 2 ports of the quad port NIC):
             software_mode: false,
             interfaces:
               - port: 0
-                switch_port:
                 pci: "0a:00.0"
               - port: 1
-                switch_port:
                 pci: "0a:00.1"
             intf_speed:
+
+If OpenStack is not used, the openrc_file property can be removed.
+
+If OpenStack is used, the openrc_file property must contain a valid container pathname of the OpenStack ``openrc`` file to connect to OpenStack using the OpenStack API.
+This file can be downloaded from the OpenStack Horizon dashboard (refer to the OpenStack documentation on how to
+retrieve the openrc file). This property must point to a valid pathname in the container (/tmp/nfvbench/openrc).
+We will map the host $HOME/nfvbench directory to the container /tmp/nfvbench directory and name the file "openrc".
+The file name viewed from the container will be "/tmp/nfvbench/openrc" (see container file pathname mapping in the next sections).
+
+The PCI address of the 2 physical interfaces that will be used by the traffic generator must be configured.
+The PCI address can be obtained for example by using the "lspci" Linux command. For example:
+
+.. code-block:: bash
+
+    [root@sjc04-pod6-build ~]# lspci | grep 710
+    0a:00.0 Ethernet controller: Intel Corporation Ethernet Controller X710 for 10GbE SFP+ (rev 01)
+    0a:00.1 Ethernet controller: Intel Corporation Ethernet Controller X710 for 10GbE SFP+ (rev 01)
+    0a:00.2 Ethernet controller: Intel Corporation Ethernet Controller X710 for 10GbE SFP+ (rev 01)
+    0a:00.3 Ethernet controller: Intel Corporation Ethernet Controller X710 for 10GbE SFP+ (rev 01)
+
+In the above example, the PCI addresses "0a:00.0" and "0a:00.1" (first 2 ports of the quad port NIC) are used.
 
 .. warning::
 
     You have to put quotes around the pci addresses as shown in the above example, otherwise TRex will read it wrong.
+    The other fields in the minimal configuration must be present and must have the same values as above.
 
-Alternatively, the full template with comments can be obtained using the --show-default-config option in yaml format:
+
+3. Starting NFVbench in CLI mode
+--------------------------------
+
+In this mode, the NFVbench code will reside in a container running in the background. This container will not run anything in the background.
+An alias is then used to invoke a new NFVbench benchmark run using docker exec.
+The $HOME/nfvbench directory on the host is mapped on the /tmp/nfvbench in the container to facilitate file sharing between the 2 environments.
+
+Start NFVbench container
+~~~~~~~~~~~~~~~~~~~~~~~~
+The NFVbench container can be started using docker run command or using docker compose.
+
+To run NFVBench in CLI mode using docker run:
 
 .. code-block:: bash
 
-    nfvbench --show-default-config > my_nfvbench.cfg
+    docker run --name nfvbench --detach --privileged -v /lib/modules/$(uname -r):/lib/modules/$(uname -r) -v /usr/src/kernels:/usr/src/kernels -v /dev:/dev -v $HOME/nfvbench:/tmp/nfvbench opnfv/nfvbench
 
-Edit the nfvbench.cfg file to only keep those properties that need to be modified (preserving the nesting).
++-------------------------------------------------------+-------------------------------------------------------+
+| Docker options                                        | Description                                           |
++=======================================================+=======================================================+
+| --name nfvbench                                       | container name is "nfvbench"                          |
++-------------------------------------------------------+-------------------------------------------------------+
+| --detach                                              | run container in background                           |
++-------------------------------------------------------+-------------------------------------------------------+
+| --privileged                                          | (optional) required if SELinux is enabled on the host |
++-------------------------------------------------------+-------------------------------------------------------+
+| -v /lib/modules:/lib/modules                          | needed by kernel modules in the container             |
++-------------------------------------------------------+-------------------------------------------------------+
+| -v /usr/src/kernels:/usr/src/kernels                  | needed by TRex to build kernel modules when needed    |
++-------------------------------------------------------+-------------------------------------------------------+
+| -v /dev:/dev                                          | needed by kernel modules in the container             |
++-------------------------------------------------------+-------------------------------------------------------+
+| -v $HOME/nfvbench:/tmp/nfvbench                       | folder mapping to pass files between the              |
+|                                                       | host and the docker space (see examples below)        |
+|                                                       | Here we map the $HOME/nfvbench directory on the host  |
+|                                                       | to the /tmp/nfvbench director in the container.       |
+|                                                       | Any other mapping can work as well                    |
++-------------------------------------------------------+-------------------------------------------------------+
+| opnfv/nfvbench                                        | container image name                                  |
++-------------------------------------------------------+-------------------------------------------------------+
 
-Make sure you have your nfvbench configuration file (my_nfvbench.cfg) and - if OpenStack is used - OpenStack RC file in your pre-created working directory.
+To run NFVbench using docker compose, create the docker-compose.yml file and paste the following content:
 
+.. code-block:: bash
 
-5. Run NFVbench
----------------
+    version: '3'
+    services:
+        nfvbench:
+            image: "opnfv/nfvbench"
+            container_name: "nfvbench"
+            volumes:
+                - /dev:/dev
+                - /usr/src/kernels:/usr/src/kernels
+                - /lib/modules:/lib/modules
+                - ${HOME}/nfvbench:/tmp/nfvbench
+            network_mode: "host"
+            privileged: true
+
+Then start the container in detached mode:
+
+.. code-block:: bash
+
+    docker-compose up -d
+
+Requesting an NFVbench benchmark run
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Create an alias to make it easy to execute nfvbench commands directly from the host shell prompt:
+
+.. code-block:: bash
+
+    alias nfvbench='docker exec -it nfvbench nfvbench'
+
+The next to last "nfvbench" refers to the name of the container while the last "nfvbench" refers to the NFVbench binary that is available to run inside the container.
+
+Once the alias is set, NFVbench runs can simply be requested from teh command line using "nfvbench <options>".
+
+To verify it is working:
+
+.. code-block:: bash
+
+    nfvbench --version
+    nfvbench --help
+
+Example of run
+~~~~~~~~~~~~~~
 
 To do a single run at 10,000pps bi-directional (or 5kpps in each direction) using the PVP packet path:
 
 .. code-block:: bash
 
-   nfvbench -c /tmp/nfvbench/my_nfvbench.cfg --rate 10kpps
+   nfvbench -c /tmp/nfvbench/nfvbench.cfg --rate 10kpps
 
 NFVbench options used:
 
-* ``-c /tmp/nfvbench/my_nfvbench.cfg`` : specify the config file to use (this must reflect the file path from inside the container)
+* ``-c /tmp/nfvbench/nfvbench.cfg`` : specify the config file to use
 * ``--rate 10kpps`` : specify rate of packets for test for both directions using the kpps unit (thousands of packets per second)
 
-This should produce a result similar to this (a simple run with the above options should take less than 5 minutes):
 
-.. code-block:: none
+Retrieve complete configuration file as template
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-  [TBP]
+The full configuration file template with comments (yaml format) can be obtained using the --show-default-config option in order to use more advanced configuration options:
+
+.. code-block:: bash
+
+    nfvbench --show-default-config > $HOME/nfvbench/full_nfvbench.cfg
+
+Edit the full_nfvbench.cfg file to only keep those properties that need to be modified (preserving the nesting).
+
+
+4. Start NFVbench in REST server mode
+-------------------------------------
+In this mode, the NFVbench REST server will run in the container.
+The $HOME/nfvbench directory on the host is mapped on the /tmp/nfvbench in the container to facilitate file sharing between the 2 environments.
+
+Start NFVbench container
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+To start the NFVbench container with REST server using docker run cli:
+
+.. code-block:: bash
+
+    docker run --name nfvbench --detach --privileged --net=host -e CONFIG_FILE="/tmp/nfvbench/nfvbench.cfg" -v /lib/modules/$(uname -r):/lib/modules/$(uname -r) -v /usr/src/kernels:/usr/src/kernels -v /dev:/dev -v $HOME/nfvbench:/tmp/nfvbench opnfv/nfvbench start_rest_server
+
+REST mode requires the same arguments as CLI mode and adds the following options:
++-------------------------------------------------------+-------------------------------------------------------+
+| Docker options                                        | Description                                           |
++=======================================================+=======================================================+
+| --net=host                                            | use "host" docker networking mode                     |
+|                                                       | Other modes (such as NAT) could be used if required   |
+|                                                       | with proper adjustment of the port to use for REST    |
++-------------------------------------------------------+-------------------------------------------------------+
+| -e CONFIG_FILE="/tmp/nfvbench/nfvbench.cfg"           | (optional)                                            |
+|                                                       | specify the initial NFVbench config file to use.      |
+|                                                       | defaults to none                                      |
++-------------------------------------------------------+-------------------------------------------------------+
+| start_rest_server                                     | to request a REST server to run in background in the  |
+|                                                       | container                                             |
++-------------------------------------------------------+-------------------------------------------------------+
+| -e HOST="127.0.0.1"                                   | (optional)                                            |
+|                                                       | specify the IP address to listen to.                  |
+|                                                       | defaults to 127.0.0.1                                 |
++-------------------------------------------------------+-------------------------------------------------------+
+| -e PORT=7555                                          | (optional)                                            |
+|                                                       | specify the port address to listen to.                |
+|                                                       | defaults to 7555                                      |
++-------------------------------------------------------+-------------------------------------------------------+
+
+
+The initial configuration file is optional but is handy to define mandatory deployment parameters that are common to all subsequent REST requests.
+If this initial configuration file is not passed at container start time, it must be included in every REST request.
+
+To start the NFVbench container with REST server using docker compose, use the following compose file:
+
+.. code-block:: bash
+
+    version: '3'
+    services:
+        nfvbench:
+            image: "opnfv/nfvbench"
+            container_name: "nfvbench_server"
+            command: start_rest_server
+            volumes:
+                - /dev:/dev
+                - /usr/src/kernels:/usr/src/kernels
+                - /lib/modules:/lib/modules
+                - ${HOME}/nfvbench:/tmp/nfvbench
+            network_mode: "host"
+            environment:
+                - HOST="127.0.0.1"
+                - PORT=7555
+            privileged: true
+
+Requesting an NFVbench benchmark run
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+To request a benchmark run, you must create a JSON document that describes the benchmark and send it to the NFVbench server in the body of a POST request.
+
+
+Examples of REST requests
+~~~~~~~~~~~~~~~~~~~~~~~~~
+In this example, we will use curl to interact with the NFVbench REST server.
+
+Query the NFVbench version:
+
+.. code-block:: bash
+
+    [root@sjc04-pod3-mgmt ~]# curl -G http://127.0.0.1:7555/version
+    3.1.1
+
+This is the JSON for a fixed rate run at 10,000pps bi-directional (or 5kpps in each direction) using the PVP packet path:
+
+.. code-block:: bash
+
+    {"rate": "10kpps"}
+
+This is the curl request to send this benchmark request to the NFVbench server:
+
+.. code-block:: bash
+
+    [root@sjc04-pod3-mgmt ~]# curl -H "Accept: application/json" -H "Content-type: application/json" -X POST -d '{"rate": "10kpps"}' http://127.0.0.1:7555/start_run
+    {
+      "error_message": "nfvbench run still pending",
+      "status": "PENDING"
+    }
+    [root@sjc04-pod3-mgmt ~]#
+
+This request will return immediately with status set to "PENDING" if the request was started successfully.
+
+The status can be polled until the run completes. Here the poll returns a "PENDING" status, indicating the run is still not completed:
+
+.. code-block:: bash
+
+    [root@sjc04-pod3-mgmt ~]# curl -G http://127.0.0.1:7555/status
+    {
+      "error_message": "nfvbench run still pending",
+      "status": "PENDING"
+    }
+    [root@sjc04-pod3-mgmt ~]#
+
+Finally, the status request returns a "OK" status along with the full results (truncated here):
+
+.. code-block:: bash
+
+    [root@sjc04-pod3-mgmt ~]# curl -G http://127.0.0.1:7555/status
+    {
+      "result": {
+        "benchmarks": {
+          "network": {
+            "service_chain": {
+              "PVP": {
+                "result": {
+                  "bidirectional": true,
+
+    ...
+
+      "status": "OK"
+    }
+    [root@sjc04-pod3-mgmt ~]#
+
+
+Retrieve complete configuration file as template
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 7. Terminating the NFVbench container

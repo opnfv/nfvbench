@@ -56,9 +56,7 @@ class IntervalCollector(StatsCollector):
         self.notifier = notifier
 
     def add(self, stats):
-        if self.notifier:
-            current_stats = self.__compute_tx_rx_diff(stats)
-            self.notifier.send_interval_stats(**current_stats)
+        pass
 
     def reset(self):
         # don't reset time!
@@ -66,52 +64,7 @@ class IntervalCollector(StatsCollector):
         self.last_tx_pkts = 0
 
     def add_ndr_pdr(self, tag, stats):
-        if self.notifier:
-
-            current_time = self._get_current_time_diff()
-            rx_pps = self._get_rx_pps(stats['tx_pps'], stats['drop_percentage'])
-
-            self.last_tx_pkts = stats['tx_pps'] / 1000 * (current_time - self.last_time)
-            self.last_rx_pkts = rx_pps / 1000 * (current_time - self.last_time)
-            self.last_time = current_time
-
-            # 'drop_pct' key is an unfortunate name, since in iteration stats it means
-            # number of the packets. More suitable would be 'drop_percentage'.
-            # FDS frontend depends on this key
-            current_stats = {
-                '{}_pps'.format(tag): stats['tx_pps'],
-                'tx_pps': stats['tx_pps'],
-                'rx_pps': rx_pps,
-                'drop_pct': stats['drop_percentage'],
-                'time_ms': current_time
-            }
-
-            self.notifier.send_interval_stats(time_ms=current_stats['time_ms'],
-                                              tx_pps=current_stats['tx_pps'],
-                                              rx_pps=current_stats['rx_pps'],
-                                              drop_pct=current_stats['drop_pct'])
-            if tag == 'ndr':
-                self.notifier.send_ndr_found(stats['tx_pps'])
-            else:
-                self.notifier.send_pdr_found(stats['tx_pps'])
-
-    def __compute_tx_rx_diff(self, stats):
-        current_time = self._get_current_time_diff()
-        tx_diff = stats['overall']['tx']['total_pkts'] - self.last_tx_pkts
-        tx_pps = (tx_diff * 1000) / (current_time - self.last_time)
-        rx_diff = stats['overall']['rx']['total_pkts'] - self.last_rx_pkts
-        rx_pps = (rx_diff * 1000) / (current_time - self.last_time)
-
-        self.last_rx_pkts = stats['overall']['rx']['total_pkts']
-        self.last_tx_pkts = stats['overall']['tx']['total_pkts']
-        self.last_time = current_time
-
-        return {
-            'tx_pps': tx_pps,
-            'rx_pps': rx_pps,
-            'drop_pct': max(0.0, (1 - (float(rx_pps) / tx_pps)) * 100),
-            'time_ms': current_time
-        }
+        pass
 
 
 class IterationCollector(StatsCollector):

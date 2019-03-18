@@ -17,7 +17,7 @@
 if [ -z "$1" ] ||  [ $1 != 'start_rest_server' ]; then
         tail -f /dev/null
 else
-        PARAMS="--server /tmp/http_root"
+        PARAMS="--server"
         if [ -n "$HOST" ]; then
                 PARAMS+=" --host $HOST"
         fi

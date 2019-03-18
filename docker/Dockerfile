@@ -4,6 +4,9 @@ FROM ubuntu:16.04
 ENV TREX_VER "v2.53"
 ENV VM_IMAGE_VER "0.6"
 
+# Note: do not clone with --depth 1 as it will cause pbr to fail extracting the nfvbench version
+# from the git tag
+
 RUN apt-get update && apt-get install -y \
        git \
        kmod \
@@ -14,7 +17,6 @@ RUN apt-get update && apt-get install -y \
        wget \
        net-tools \
        libelf1 \
-       && mkdir /tmp/http_root \
        && mkdir -p /opt/trex \
        && mkdir /var/log/nfvbench \
        && wget --no-cache https://trex-tgn.cisco.com/trex/release/$TREX_VER.tar.gz \
@@ -24,11 +26,13 @@ RUN apt-get update && apt-get install -y \
        && cp -a /opt/trex/$TREX_VER/automation/trex_control_plane/interactive/trex /usr/local/lib/python2.7/dist-packages/ \
        && rm -rf /opt/trex/$TREX_VER/automation/trex_control_plane/interactive/trex \
        && sed -i -e "s/2048 /512 /" -e "s/2048\"/512\"/" /opt/trex/$TREX_VER/trex-cfg \
-       && pip install -U pip pbr \
-       && hash -r pip \
+       && apt-get remove -y python-pip \
+       && wget https://bootstrap.pypa.io/get-pip.py \
+       && python get-pip.py \
+       && pip install -U pbr \
        && pip install -U setuptools \
        && cd / \
-       && git clone --depth 1 https://gerrit.opnfv.org/gerrit/nfvbench \
+       && git clone https://gerrit.opnfv.org/gerrit/nfvbench \
        && cd /nfvbench && pip install -e . \
        && wget -O nfvbenchvm-$VM_IMAGE_VER.qcow2 http://artifacts.opnfv.org/nfvbench/images/nfvbenchvm_centos-$VM_IMAGE_VER.qcow2 \
        && python ./docker/cleanup_generators.py \

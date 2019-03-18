@@ -5,36 +5,6 @@
 NFVbench Server mode and NFVbench client API
 ============================================
 
-NFVbench can run as an HTTP server to:
-
-- optionally provide access to any arbitrary HTLM files (HTTP server function) - this is optional
-- service fully parameterized aynchronous run requests using the HTTP protocol (REST/json with polling)
-- service fully parameterized run requests with interval stats reporting using the WebSocket/SocketIO protocol.
-
-Start the NFVbench server
--------------------------
-To run in server mode, simply use the --server <http_root_path> and optionally the listen address to use (--host <ip>, default is 0.0.0.0) and listening port to use (--port <port>, default is 7555).
-
-
-If HTTP files are to be serviced, they must be stored right under the http root path.
-This root path must contain a static folder to hold static files (css, js) and a templates folder with at least an index.html file to hold the template of the index.html file to be used.
-This mode is convenient when you do not already have a WEB server hosting the UI front end.
-If HTTP files servicing is not needed (REST only or WebSocket/SocketIO mode), the root path can point to any dummy folder.
-
-Once started, the NFVbench server will be ready to service HTTP or WebSocket/SocketIO requests at the advertised URL.
-
-Example of NFVbench server start in a container:
-
-.. code-block:: bash
-
-    # get to the container shell (assume the container name is "nfvbench")
-    docker exec -it nfvbench bash
-    # from the container shell start the NFVbench server in the background
-    nfvbench -c /tmp/nfvbench/nfvbench.cfg --server /tmp &
-    # exit container
-    exit
-
-
 
 HTTP Interface
 --------------

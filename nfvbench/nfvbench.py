@@ -36,7 +36,7 @@ import credentials as credentials
 from fluentd import FluentLogHandler
 import log
 from log import LOG
-from nfvbenchd import WebSocketIoServer
+from nfvbenchd import WebServer
 from specs import ChainType
 from specs import Specs
 from summarizer import NFVBenchSummarizer
@@ -71,6 +71,11 @@ class NFVBench(object):
         self.notifier = notifier
 
     def run(self, opts, args):
+        """This run() method is called for every NFVbench benchmark request.
+
+        In CLI mode, this method is called only once per invocation.
+        In REST server mode, this is called once per REST POST request
+        """
         status = NFVBench.STATUS_OK
         result = None
         message = ''
@@ -82,6 +87,12 @@ class NFVBench(object):
         try:
             # recalc the running config based on the base config and options for this run
             self._update_config(opts)
+
+            # check that an empty openrc file (no OpenStack) is only allowed
+            # with EXT chain
+            if not self.config.openrc_file and self.config.service_chain != ChainType.EXT:
+                raise Exception("openrc_file in the configuration is required for PVP/PVVP chains")
+
             self.specs.set_run_spec(self.config_plugin.get_run_spec(self.config,
                                                                     self.specs.openstack))
             self.chain_runner = ChainRunner(self.config,
@@ -239,10 +250,8 @@ def _parse_opts_from_cli():
 
     parser.add_argument('--server', dest='server',
                         default=None,
-                        action='store',
-                        metavar='<http_root_pathname>',
-                        help='Run nfvbench in server mode and pass'
-                             ' the HTTP root folder full pathname')
+                        action='store_true',
+                        help='Run nfvbench in server mode')
 
     parser.add_argument('--host', dest='host',
                         action='store',
@@ -574,14 +583,6 @@ def main():
             print json.dumps(config, sort_keys=True, indent=4)
             sys.exit(0)
 
-        # check that an empty openrc file (no OpenStack) is only allowed
-        # with EXT chain
-        if not config.openrc_file:
-            if config.service_chain == ChainType.EXT:
-                LOG.info('EXT chain with OpenStack mode disabled')
-            else:
-                raise Exception("openrc_file is empty in the configuration and is required")
-
         # update the config in the config plugin as it might have changed
         # in a copy of the dict (config plugin still holds the original dict)
         config_plugin.set_config(config)
@@ -599,18 +600,14 @@ def main():
         nfvbench_instance = NFVBench(config, openstack_spec, config_plugin, factory)
 
         if opts.server:
-            if os.path.isdir(opts.server):
-                server = WebSocketIoServer(opts.server, nfvbench_instance, fluent_logger)
-                nfvbench_instance.set_notifier(server)
-                try:
-                    port = int(opts.port)
-                except ValueError:
-                    server.run(host=opts.host)
-                else:
-                    server.run(host=opts.host, port=port)
+            server = WebServer(nfvbench_instance, fluent_logger)
+            try:
+                port = int(opts.port)
+            except ValueError:
+                server.run(host=opts.host)
             else:
-                print 'Invalid HTTP root directory: ' + opts.server
-                sys.exit(1)
+                server.run(host=opts.host, port=port)
+            # server.run() should never return
         else:
             with utils.RunLock():
                 run_summary_required = True

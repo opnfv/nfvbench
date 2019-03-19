@@ -38,10 +38,6 @@ committers:
       email: 'yicwang@cisco.com'
       company: 'cisco.com'
       id: 'yicwang'
-    - name: 'Al Morton'
-      email: 'acmorton@att.com'
-      company: 'att.com'
-      id: 'acm'
 tsc:
     # yamllint disable rule:line-length
     approval: ''

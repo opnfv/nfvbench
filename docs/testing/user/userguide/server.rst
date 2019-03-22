@@ -311,6 +311,15 @@ A short run of 5 seconds at a fixed rate of 1Mpps (and everything else same as t
        "rate": "1Mpps"
     }
 
+Use the default configuration but force TRex restart:
+
+.. code-block:: bash
+
+    {
+       "restart": true
+    }
+
+
 Example of interaction with the NFVbench server using HTTP and curl
 -------------------------------------------------------------------
 HTTP requests can be sent directly to the NFVbench server from CLI using curl from any host that can connect to the server (here we run it from the local host).

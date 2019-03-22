@@ -354,6 +354,11 @@ def _parse_opts_from_cli():
                         action='store_true',
                         help='Cleanup NFVbench resources (do not prompt)')
 
+    parser.add_argument('--restart', dest='restart',
+                        default=None,
+                        action='store_true',
+                        help='Restart TRex server')
+
     parser.add_argument('--json', dest='json',
                         action='store',
                         help='store results in json format file',
@@ -552,7 +557,8 @@ def main():
             config.compute_nodes = opts.hypervisor
         if opts.vxlan:
             config.vxlan = True
-
+        if opts.restart:
+            config.restart = True
         # port to port loopback (direct or through switch)
         if opts.l2_loopback:
             config.l2_loopback = True

@@ -276,6 +276,10 @@ traffic_generator:
               - socket:
                 threads:
 
+# Use 'true' to force restart of local TRex server before next run
+# TRex local server will be restarted even if restart property is false in case of generator config changes between runs
+restart: false
+
 # Simpler override for trex core count and mbuf multilier factor
 # if empty defaults to the one specified in generator_profile.cores
 cores:

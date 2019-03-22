@@ -78,6 +78,22 @@ Used parameters:
 * ``--no-traffic`` or ``-0`` : sending traffic from traffic generator is skipped
 
 
+TRex force restart
+------------------------------------
+
+NFVbench allows to restart TRex traffic generator between runs.
+It runs the whole test, but restart TRex instance before generating new traffic.
+
+To force restart, use the --restart option:
+
+.. code-block:: bash
+
+    nfvbench --restart
+
+Used parameters:
+
+* ``--restart`` : restart traffic generator (TRex)
+
 
 Fixed Rate Run
 --------------

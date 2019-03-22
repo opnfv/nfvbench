@@ -440,30 +440,13 @@ class TRex(AbstractTrafficGenerator):
                                 async_port=self.generator_config.zmq_pub_port)
         try:
             self.__connect(self.client)
+            if server_ip == '127.0.0.1':
+                config_updated = self.__check_config()
+                if config_updated or self.config.restart:
+                    self.__restart()
         except (TimeoutError, STLError) as e:
             if server_ip == '127.0.0.1':
-                try:
-                    self.__start_server()
-                    self.__connect_after_start()
-                except (TimeoutError, STLError) as e:
-                    LOG.error('Cannot connect to TRex')
-                    LOG.error(traceback.format_exc())
-                    logpath = '/tmp/trex.log'
-                    if os.path.isfile(logpath):
-                        # Wait for TRex to finish writing error message
-                        last_size = 0
-                        for _ in xrange(self.config.generic_retry_count):
-                            size = os.path.getsize(logpath)
-                            if size == last_size:
-                                # probably not writing anymore
-                                break
-                            last_size = size
-                            time.sleep(1)
-                        with open(logpath, 'r') as f:
-                            message = f.read()
-                    else:
-                        message = e.message
-                    raise TrafficGeneratorException(message)
+                self.__start_local_server()
             else:
                 raise TrafficGeneratorException(e.message)
 
@@ -498,9 +481,62 @@ class TRex(AbstractTrafficGenerator):
                                             (self.port_info[0]['speed'],
                                              self.port_info[1]['speed']))
 
+    def __start_local_server(self):
+        try:
+            LOG.info("Starting TRex ...")
+            self.__start_server()
+            self.__connect_after_start()
+        except (TimeoutError, STLError) as e:
+            LOG.error('Cannot connect to TRex')
+            LOG.error(traceback.format_exc())
+            logpath = '/tmp/trex.log'
+            if os.path.isfile(logpath):
+                # Wait for TRex to finish writing error message
+                last_size = 0
+                for _ in xrange(self.config.generic_retry_count):
+                    size = os.path.getsize(logpath)
+                    if size == last_size:
+                        # probably not writing anymore
+                        break
+                    last_size = size
+                    time.sleep(1)
+                with open(logpath, 'r') as f:
+                    message = f.read()
+            else:
+                message = e.message
+            raise TrafficGeneratorException(message)
+
     def __start_server(self):
         server = TRexTrafficServer()
         server.run_server(self.generator_config)
+
+    def __check_config(self):
+        server = TRexTrafficServer()
+        return server.check_config_updated(self.generator_config)
+
+    def __restart(self):
+        LOG.info("Restarting TRex ...")
+        self.__stop_server()
+        # Wait for server stopped
+        for _ in xrange(self.config.generic_retry_count):
+            time.sleep(1)
+            if not self.client.is_connected():
+                LOG.info("TRex is stopped...")
+                break
+        self.__start_local_server()
+
+    def __stop_server(self):
+        if self.generator_config.ip == '127.0.0.1':
+            ports = self.client.get_acquired_ports()
+            LOG.info('Release ports %s and stopping TRex...', ports)
+            try:
+                if ports:
+                    self.client.release(ports=ports)
+                self.client.server_shutdown()
+            except STLError as e:
+                LOG.warn('Unable to stop TRex. Error: %s', e)
+        else:
+            LOG.info('Using remote TRex. Unable to stop TRex')
 
     def resolve_arp(self):
         """Resolve all configured remote IP addresses.

@@ -16,6 +16,7 @@ RUN apt-get update && apt-get install -y \
        vim \
        wget \
        net-tools \
+       iproute2 \
        libelf1 \
        && mkdir -p /opt/trex \
        && mkdir /var/log/nfvbench \

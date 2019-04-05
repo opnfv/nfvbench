@@ -43,7 +43,7 @@ Create a new file containing the minimal configuration for NFVbench, we can call
             tool: TRex
             ip: 127.0.0.1
             cores: 3
-            software_mode: false,
+            software_mode: false
             interfaces:
               - port: 0
                 pci: "0a:00.0"

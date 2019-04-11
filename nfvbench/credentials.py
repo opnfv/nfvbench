@@ -172,8 +172,12 @@ class Credentials(object):
         try:
             keystone = client.Client(session=self.get_session())
             user = utils.find_resource(keystone.users, self.rc_username)
-            project = utils.find_resource(keystone.projects, self.rc_project_name)
-            roles = keystone.roles.list(user=user.id, project=project.id)
+            if self.rc_identity_api_version == 2:
+                tenant = utils.find_resource(keystone.tenants, self.rc_tenant_name)
+                roles = keystone.roles.roles_for_user(user, tenant=tenant.id)
+            elif self.rc_identity_api_version == 3:
+                project = utils.find_resource(keystone.projects, self.rc_project_name)
+                roles = keystone.roles.list(user=user.id, project=project.id)
             for role in roles:
                 if role.name == 'admin':
                     self.is_admin = True

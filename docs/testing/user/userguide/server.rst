@@ -18,7 +18,7 @@ Example request:
 
 .. code-block:: bash
 
-    curl -XGET '127.0.0.1:7556/echo' -H "Content-Type: application/json" -d '{"nfvbench": "test"}'
+    curl -XGET '127.0.0.1:7555/echo' -H "Content-Type: application/json" -d '{"nfvbench": "test"}'
     Response:
     {
       "nfvbench": "test"
@@ -84,44 +84,6 @@ If there is already an NFVBench running then it will return:
      "status": "ERROR"
     }
 
-WebSocket/SocketIO events
--------------------------
-
-List of SocketIO events supported:
-
-Client to Server
-^^^^^^^^^^^^^^^^
-
-start_run:
-
-    sent by client to start a new run with the configuration passed in argument (JSON).
-    The configuration can be any valid NFVbench configuration passed as a JSON document (see "NFVbench configuration JSON parameter" below)
-
-Server to Client
-^^^^^^^^^^^^^^^^
-
-run_interval_stats:
-
-    sent by server to report statistics during a run
-    the message contains the statistics {'time_ms': time_ms, 'tx_pps': tx_pps, 'rx_pps': rx_pps, 'drop_pct': drop_pct}
-
-ndr_found:
-
-    (during NDR-PDR search)
-    sent by server when the NDR rate is found
-    the message contains the NDR value {'rate_pps': ndr_pps}
-
-ndr_found:
-
-    (during NDR-PDR search)
-    sent by server when the PDR rate is found
-    the message contains the PDR value {'rate_pps': pdr_pps}
-
-
-run_end:
-
-    sent by server to report the end of a run
-    the message contains the complete results in JSON format
 
 NFVbench configuration JSON parameter
 -------------------------------------
@@ -385,7 +347,7 @@ Finally, the status request returns a "OK" status along with the full results (t
 
 Example of interaction with the NFVbench server using a python CLI app (nfvbench_client)
 ----------------------------------------------------------------------------------------
-The module client/client.py contains an example of python class that can be used to control the NFVbench server from a python app using HTTP or WebSocket/SocketIO.
+The module client/client.py contains an example of python class that can be used to control the NFVbench server from a python app using HTTP.
 
 The module client/nfvbench_client.py has a simple main application to control the NFVbench server from CLI.
 The "nfvbench_client" wrapper script can be used to invoke the client front end (this wrapper is pre-installed in the NFVbench container)
@@ -407,11 +369,3 @@ use the default NFVbench configuration but do not generate traffic (no_traffic p
     ...
 
     [root@sjc04-pod3-mgmt ~]#
-
-The http interface is used unless --use-socketio is defined.
-
-Example of invocation using Websocket/SocketIO, execute NFVbench using the default configuration but with a duration of 5 seconds and a fixed rate run of 5kpps.
-
-.. code-block:: bash
-
-    [root@sjc04-pod3-mgmt ~]# docker exec -it nfvbench nfvbench_client -c '{"duration":5,"rate":"5kpps"}' --use-socketio  http://127.0.0.1:7555 >results.json

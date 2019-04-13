@@ -24,7 +24,7 @@ Yes.
 
 Can I drive NFVbench using a REST interface?
 --------------------------------------------
-NFVbench can run in server mode and accept HTTP or WebSocket/SocketIO events to run any type of measurement (fixed rate run or NDR_PDR run)
+NFVbench can run in server mode and accept HTTP requests to run any type of measurement (fixed rate run or NDR_PDR run)
 with any run configuration.
 
 Can I run NFVbench on a Cisco UCS-B series blade?

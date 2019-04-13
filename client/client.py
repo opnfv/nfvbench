@@ -17,8 +17,6 @@
 import requests
 import time
 
-from socketIO_client import SocketIO
-
 
 class TimeOutException(Exception):
     pass
@@ -32,42 +30,14 @@ class NfvbenchClient(object):
     """Python client class to control a nfvbench server
 
     The nfvbench server must run in background using the --server option.
-    Since HTML pages are not required, the path to pass to --server can be
-    any directory on the host.
     """
-    def __init__(self, nfvbench_url, use_socketio):
+    def __init__(self, nfvbench_url):
         """Client class to send requests to the nfvbench server
 
         Args:
             nfvbench_url: the URL of the nfvbench server (e.g. 'http://127.0.0.1:7555')
         """
         self.url = nfvbench_url
-        self.use_socketio = use_socketio
-
-    def socketio_send(self, send_event, receive_event, config, timeout):
-        class Exec(object):
-            socketIO = None
-            socketio_result = None
-
-        def close_socketio(result):
-            Exec.socketio_result = result
-            Exec.socketIO.disconnect()
-
-        def on_response(*args):
-            close_socketio(args[0])
-
-        def on_error(*args):
-            raise NfvbenchException(args[0])
-
-        Exec.socketIO = SocketIO(self.url)
-        Exec.socketIO.on(receive_event, on_response)
-        Exec.socketIO.on('error', on_error)
-        Exec.socketIO.emit(send_event, config)
-        Exec.socketIO.wait(seconds=timeout)
-
-        if timeout and not Exec.socketio_result:
-            raise TimeOutException()
-        return Exec.socketio_result
 
     def http_get(self, command, config):
         url = self.url + '/' + command
@@ -102,8 +72,6 @@ class NfvbenchClient(object):
             TimeOutException: the request timed out (and might still being executed
                               by the server)
         """
-        if self.use_socketio:
-            return self.socketio_send('echo', 'echo', config, timeout)
         return self.http_get('echo', config)
 
     def run_config(self, config, timeout=300, poll_interval=5):
@@ -132,8 +100,6 @@ class NfvbenchClient(object):
                                the exception contains the description of the failure.
             TimeOutException: the request timed out but will still be executed by the server.
         """
-        if self.use_socketio:
-            return self.socketio_send('start_run', 'run_end', config, timeout)
         res = self.http_post('start_run', config)
         if res['status'] != 'PENDING':
             raise NfvbenchException(res['error_message'])

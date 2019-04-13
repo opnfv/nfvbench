@@ -1,7 +1,5 @@
 #
 #
 backports.ssl-match-hostname==3.5.0.1  # via websocket-client
-requests==2.13.0          # via socketio-client
-six==1.10.0               # via socketio-client, websocket-client
-socketIO-client==0.7.2
-websocket-client==0.40.0  # via socketio-client
+requests==2.13.0          
+six==1.10.0               # via websocket-client

@@ -54,9 +54,6 @@ def main():
                         action='store',
                         help='time (seconds) to wait for NFVbench result',
                         metavar='<config>')
-    parser.add_argument('--use-socketio', dest='use_socketio',
-                        action='store_true',
-                        help='NFVbench config to echo (json format)')
     parser.add_argument('url', help='nfvbench server url (e.g. http://10.0.0.1:5000)')
     opts = parser.parse_args()
 
@@ -64,7 +61,7 @@ def main():
         print('at least one of -f or -c or -e required')
         sys.exit(-1)
 
-    nfvbench = NfvbenchClient(opts.url, opts.use_socketio)
+    nfvbench = NfvbenchClient(opts.url)
     # convert JSON into a dict
     try:
         timeout = int(opts.timeout)

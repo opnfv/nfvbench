@@ -50,7 +50,8 @@ class TRexTrafficServer(TrafficServer):
         else:
             mbuf_opt = ""
         subprocess.Popen(['nohup', '/bin/bash', '-c',
-                          './t-rex-64 -i -c {} --iom 0 --no-scapy-server --close-at-end {} '
+                          './t-rex-64 -i -c {} --iom 0 --no-scapy-server '
+                          '--unbind-unused-ports --close-at-end {} '
                           '{} {} --cfg {} &> /tmp/trex.log & disown'.format(cores, sw_mode,
                                                                             vlan_opt,
                                                                             mbuf_opt, cfg)],

@@ -390,18 +390,32 @@ internal_networks:
 # SRIOV can be used by toggling below setting.
 use_sriov_middle_net: false
 
-# EXT chain only. Prefix names of edge networks which will be used to send traffic via traffic generator.
+# EXT chain only. Prefix names of edge networks or list of edge network names
+# used to send traffic via traffic generator.
 #
 # If service_chain_shared_net is true, the left and right networks must pre-exist and match exactly by name.
 #
 # If service_chain_shared_net is false, each chain must have its own pre-existing left and right networks.
-# An index will be appended to each network name to form the final name:
+# left and right can take either a string prefix or a list of arbitrary network names
+# If a string prefix is passed, an index will be appended to each network name to form the final name.
+# Example:
+# external_networks:
+#    left:  'ext-lnet'
+#    right: 'ext-rnet'
 # ext-lnet0 ext-rnet0 for chain #0
 # ext-lnet1 ext-rnet1 for chain #1
 # etc...
+# If a list of strings is passed, each string in the list must be the name of the network used for the
+# chain indexed by the entry position in the list.
+# The list must have at least as many entries as there are chains
+# Example:
+# external_networks:
+#   left:  ['ext-lnet', 'ext-lnet2']
+#   right: ['ext-rnet', 'ext-rnet2']
+# 
 external_networks:
-    left: 'ext-lnet'
-    right: 'ext-rnet'
+    left:
+    right:
 
 # Use 'true' to enable VXLAN encapsulation support and sent by the traffic generator
 # When this option enabled internal networks 'network type' parameter value should be 'vxlan'

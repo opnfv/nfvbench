@@ -4,6 +4,7 @@
 .tox
 .cache
 .eggs
+.vscode
 .pytest_cache/
 venv
 nfvbench.egg-info

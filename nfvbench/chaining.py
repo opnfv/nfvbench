@@ -197,17 +197,24 @@ class ChainNetwork(object):
         """Create a network for given chain.
 
         network_config: a dict containing the network properties
-                        (segmentation_id and physical_network)
+                        (name, segmentation_id and physical_network)
         chain_id: to which chain the networks belong.
                   a None value will mean that these networks are shared by all chains
         """
         self.manager = manager
-        self.name = network_config.name
+        if chain_id is None:
+            self.name = network_config.name
+        else:
+            # the name itself can be either a string or a list of names indexed by chain ID
+            if isinstance(network_config.name, tuple):
+                self.name = network_config.name[chain_id]
+            else:
+                # network_config.name is a prefix string
+                self.name = network_config.name + str(chain_id)
         self.segmentation_id = self._get_item(network_config.segmentation_id,
                                               chain_id, auto_index=True)
         self.physical_network = self._get_item(network_config.physical_network, chain_id)
-        if chain_id is not None:
-            self.name += str(chain_id)
+
         self.reuse = False
         self.network = None
         self.vlan = None
@@ -876,6 +883,12 @@ class ChainManager(object):
                     self.flavor = ChainFlavor(config.flavor_type, config.flavor, self.comp)
                     # Get list of all existing instances to check if some instances can be reused
                     self.existing_instances = self.comp.get_server_list()
+                else:
+                    # For EXT chains, the external_networks left and right fields in the config
+                    # must be either a prefix string or a list of at least chain-count strings
+                    self._check_extnet('left', config.external_networks.left)
+                    self._check_extnet('right', config.external_networks.right)
+
                 # If networks are shared across chains, get the list of networks
                 if config.service_chain_shared_net:
                     self.networks = self.get_networks()
@@ -907,6 +920,14 @@ class ChainManager(object):
                 self._get_config_vlans()
             if config.vxlan:
                 raise ChainException('VxLAN is only supported with OpenStack')
+
+    def _check_extnet(self, side, name):
+        if not name:
+            raise ChainException('external_networks.%s must contain a valid network'
+                                 ' name prefix or a list of network names' % side)
+        if isinstance(name, tuple) and len(name) < self.chain_count:
+            raise ChainException('external_networks.%s %s'
+                                 ' must have at least %d names' % (side, name, self.chain_count))
 
     def _get_config_vlans(self):
         re_vlan = "[0-9]*$"

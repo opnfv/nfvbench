@@ -232,6 +232,9 @@ def test_ext_chain_runner():
             for scc in [1, 2]:
                 config = _get_chain_config(ChainType.EXT, scc, shared_net)
                 config.no_arp = no_arp
+                # this time use a tuple of network names
+                config['external_networks']['left'] = ('ext-lnet00', 'ext-lnet01')
+                config['external_networks']['right'] = ('ext-rnet00', 'ext-rnet01')
                 if no_arp:
                     # If EXT and no arp, the config must provide mac addresses (1 pair per chain)
                     config['traffic_generator']['mac_addrs_left'] = ['00:00:00:00:00:00'] * scc
@@ -244,6 +247,9 @@ def _check_nfvbench_openstack(sc=ChainType.PVP, l2_loopback=False):
         if l2_loopback:
             config.l2_loopback = True
             config.vlans = [[100], [200]]
+        if sc == ChainType.EXT:
+            config['external_networks']['left'] = 'ext-lnet'
+            config['external_networks']['right'] = 'ext-rnet'
         factory = BasicFactory()
         config_plugin = factory.get_config_plugin_class()(config)
         config = config_plugin.get_config()

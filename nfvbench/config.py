@@ -43,7 +43,7 @@ def config_loads(cfg_text, from_cfg=None, whitelist_keys=None):
     """Same as config_load but load from a string
     """
     try:
-        cfg = AttrDict(yaml.load(cfg_text))
+        cfg = AttrDict(yaml.safe_load(cfg_text))
     except TypeError:
         # empty string
         cfg = AttrDict()

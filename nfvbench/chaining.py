@@ -49,7 +49,7 @@ import os
 import re
 import time
 
-from glanceclient.v2 import client as glanceclient
+import glanceclient
 from neutronclient.neutron import client as neutronclient
 from novaclient.client import Client
 

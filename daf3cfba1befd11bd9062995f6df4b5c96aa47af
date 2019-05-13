@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "adffede8_43886e83",
+        "filename": "nfvbenchvm/dib/elements/nfvbenchvm/static/etc/rc.d/rc.local",
+        "patchSetId": 1
+      },
+      "lineNbr": 42,
+      "author": {
+        "id": 6909
+      },
+      "writtenOn": "2019-05-13T17:44:23Z",
+      "side": 1,
+      "message": "PCI_ADDRESS\u003d$(basename $(readlink $NET_PATH/$f/device))",
+      "revId": "daf3cfba1befd11bd9062995f6df4b5c96aa47af",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": false
+    }
+  ]
+}

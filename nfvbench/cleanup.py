@@ -107,6 +107,7 @@ class NetworkCleaner(object):
             except Exception:
                 LOG.exception("Port deletion failed")
 
+        # associated subnets are automatically deleted by neutron
         for net in self.networks:
             LOG.info("Deleting network %s...", net['name'])
             try:
@@ -147,6 +148,9 @@ class Cleaner(object):
         self.neutron_client = nclient.Client('2.0', session=session)
         self.nova_client = Client(2, session=session)
         network_names = [inet['name'] for inet in config.internal_networks.values()]
+        # add idle networks as well
+        if config.idle_networks.name:
+            network_names.append(config.idle_networks.name)
         self.cleaners = [ComputeCleaner(self.nova_client, config.loop_vm_name),
                          FlavorCleaner(self.nova_client, config.flavor_type),
                          NetworkCleaner(self.neutron_client, network_names)]

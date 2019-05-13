@@ -193,13 +193,15 @@ class ChainVnfPort(object):
 class ChainNetwork(object):
     """Could be a shared network across all chains or a chain private network."""
 
-    def __init__(self, manager, network_config, chain_id=None, lookup_only=False):
+    def __init__(self, manager, network_config, chain_id=None, lookup_only=False,
+                 suffix=None):
         """Create a network for given chain.
 
         network_config: a dict containing the network properties
                         (name, segmentation_id and physical_network)
         chain_id: to which chain the networks belong.
                   a None value will mean that these networks are shared by all chains
+        suffix: a suffix to add to the network name (if not None)
         """
         self.manager = manager
         if chain_id is None:
@@ -211,6 +213,8 @@ class ChainNetwork(object):
             else:
                 # network_config.name is a prefix string
                 self.name = network_config.name + str(chain_id)
+        if suffix:
+            self.name = self.name + suffix
         self.segmentation_id = self._get_item(network_config.segmentation_id,
                                               chain_id, auto_index=True)
         self.physical_network = self._get_item(network_config.physical_network, chain_id)
@@ -299,6 +303,8 @@ class ChainNetwork(object):
             if self.physical_network:
                 body['network']['provider:physical_network'] = self.physical_network
             self.network = self.manager.neutron_client.create_network(body)['network']
+            # create associated subnet, all subnets have the same name (which is ok since
+            # we do not need to address them directly by name)
             body = {
                 'subnet': {'name': network_config.subnet,
                            'cidr': network_config.cidr,
@@ -376,11 +382,18 @@ class ChainVnf(object):
         if len(networks) > 2:
             # we will have more than 1 VM in each chain
             self.name += '-' + str(vnf_id)
+        # A list of ports for this chain
+        # There are normally 2 ports carrying traffic (index 0, and index 1) and
+        # potentially multiple idle ports not carrying traffic (index 2 and up)
+        # For example if 7 idle interfaces are requested, the corresp. ports will be
+        # at index 2 to 8
         self.ports = []
         self.status = None
         self.instance = None
         self.reuse = False
         self.host_ip = None
+        self.idle_networks = []
+        self.idle_ports = []
         try:
             # the vnf_id is conveniently also the starting index in networks
             # for the left and right networks associated to this VNF
@@ -415,7 +428,7 @@ class ChainVnf(object):
     def _get_vnic_type(self, port_index):
         """Get the right vnic type for given port indexself.
 
-        If SR-IOV is speficied, middle ports in multi-VNF chains
+        If SR-IOV is specified, middle ports in multi-VNF chains
         can use vswitch or SR-IOV based on config.use_sriov_middle_net
         """
         if self.manager.config.sriov:
@@ -429,6 +442,59 @@ class ChainVnf(object):
                 # last VNF in chain must use sriov for right port
                 return 'direct'
         return 'normal'
+
+    def _get_idle_networks_ports(self):
+        """Get the idle networks for PVP or PVVP chain (non shared net only)
+
+        For EXT packet path or shared net, returns empty list.
+        For PVP, PVVP these networks will be created if they do not exist.
+        chain_id: to which chain the networks belong.
+                a None value will mean that these networks are shared by all chains
+        """
+        networks = []
+        ports = []
+        config = self.manager.config
+        chain_id = self.chain.chain_id
+        idle_interfaces_per_vm = config.idle_interfaces_per_vm
+        if config.service_chain == ChainType.EXT or chain_id is None or \
+           idle_interfaces_per_vm == 0 :
+                return []
+
+        # Make a copy of the idle networks dict as we may have to modify the
+        # segmentation ID
+        idle_network_cfg = AttrDict(config.idle_networks)
+        if idle_network_cfg.segmentation_id:
+            segmentation_id = idle_network_cfg.segmentation_id + \
+                              chain_id * idle_interfaces_per_vm
+        else:
+            segmentation_id = None
+        try:
+            # create as many idle networks and ports as requested
+            for idle_index in range(idle_interfaces_per_vm):
+                if config.service_chain == ChainType.PVP:
+                    suffix = '.%d' % (idle_index)
+                else:
+                    suffix = '.%d.%d' % (self.vnf_id, idle_index)
+                # update the segmentation id based on chain id and idle index
+                if segmentation_id:
+                    idle_network_cfg.segmentation_id = segmentation_id + idle_index
+                networks.append(ChainNetwork(self.manager, 
+                                             idle_network_cfg, 
+                                             chain_id,
+                                             suffix=suffix))
+                ports.append(ChainVnfPort(self.name + '-idle' + str(idle_index),
+                                   self,
+                                   networks[idle_index],
+                                   'normal'))
+        except Exception:
+            # need to cleanup all successful networks
+            for net in networks:
+                net.delete()
+            for port in ports:
+                port.delete()
+            raise
+        self.idle_networks = networks
+        self.idle_ports = ports
 
     def _setup(self, networks):
         flavor_id = self.manager.flavor.flavor.id
@@ -461,6 +527,12 @@ class ChainVnf(object):
                                    self,
                                    networks[index],
                                    self._get_vnic_type(index)) for index in [0, 1]]
+    
+        # create idle networks and ports only if instance is not reused
+        # if reused, we do not care about idle networks/ports
+        if not self.reuse:
+            self._get_idle_networks_ports()
+
         # if no reuse, actual vm creation is deferred after all ports in the chain are created
         # since we need to know the next mac in a multi-vnf chain
 
@@ -469,6 +541,9 @@ class ChainVnf(object):
         if self.instance is None:
             port_ids = [{'port-id': vnf_port.port['id']}
                         for vnf_port in self.ports]
+            # add idle ports
+            for idle_port in self.idle_ports:
+                port_ids.append({'port-id': idle_port.port['id']})
             vm_config = self._get_vm_config(remote_mac_pair)
             az = self.manager.placer.get_required_az()
             server = self.manager.comp.create_server(self.name,
@@ -575,6 +650,10 @@ class ChainVnf(object):
                 LOG.info("Deleted instance %s", self.name)
             for port in self.ports:
                 port.delete()
+            for port in self.idle_ports:
+                port.delete()
+            for network in self.idle_networks:
+                network.delete()
 
 class Chain(object):
     """A class to manage a single chain.

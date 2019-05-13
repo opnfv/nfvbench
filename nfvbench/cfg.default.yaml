@@ -385,6 +385,38 @@ internal_networks:
         segmentation_id:
         physical_network:
 
+# IDLE INTERFACES: PVP, PVVP and non shared net only.
+# By default each test VM will have 2 virtual interfaces for looping traffic.
+# If service_chain_shared_net is false, additional virtual interfaces can be
+# added at VM creation time, these interfaces will not carry any traffic and
+# can be used to test the impact of idle interfaces in the overall performance.
+# All these idle interfaces will use normal ports (not direct).
+# Number of idle interfaces per VM (none by default)
+idle_interfaces_per_vm: 0
+
+# A new network is created for each idle interface.
+# If service_chain_shared_net is true, the options below will be ignored
+# and no idle interfaces will be added.
+idle_networks:
+    # Prefix for all idle networks
+    name: 'nfvbench-idle-net'
+    # Prefix for all idle subnetworks 
+    subnet: 'nfvbench-idle-subnet'
+    # CIDR to use for all idle networks (value should not matter)
+    cidr: '192.169.1.0/24'
+    # Type of network associated to the idle virtual interfaces (vlan or vxlan)
+    network_type: 'vlan'
+    # segmentation ID to use for the network attached to the idle virtual interfaces
+    # vlan: leave empty to let neutron pick the segmentation ID
+    # vxlan: must specify the VNI value to be used (cannot be empty)
+    # Note that NFVbench will use as many consecutive segmentation IDs as needed.
+    # For example, for 4 PVP chains and 8 idle
+    # interfaces per VM, NFVbench will use 32 consecutive values of segmentation ID
+    # starting from the value provided.
+    segmentation_id:
+    # physnet name to use for all idle interfaces
+    physical_network:
+
 # In the scenario of PVVP + SRIOV, there is choice of how the traffic will be
 # handled in the middle network. The default (false) will use vswitch, while
 # SRIOV can be used by toggling below setting.

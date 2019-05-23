@@ -1,0 +1,106 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "40368a9f_a7e69404",
+        "filename": "docs/testing/user/userguide/readme.rst",
+        "patchSetId": 6
+      },
+      "lineNbr": 178,
+      "author": {
+        "id": 5807
+      },
+      "writtenOn": "2019-05-23T19:08:26Z",
+      "side": 1,
+      "message": "PVP chain with L3 routers in the path.\n\nI think we should be able to make the use a L3 router in the path independent of the router implementation - which in this case has to be Neutron router.\nI\u0027ll give 3 other use cases:\n\na) use PVP but with a pair of external routers (non Neutron)\nb) use PVP with a pait of pre-existing Neutron routers (ie you dont want nfvbench to create the neutron routers but you want to reuse an existing pair) - this you may  already support in the code if you make sure you never delete discovered resources in the cleanup\nc) use EXT chain with a pair of external routers\n\nBasically the concept of packet path should be independent of the devices used in your path and the abstraction of the L3 path should be good enough to support all use cases.\n\nIn practice what it means in the code is to condition the neutron router part to the openstack flag, while the traffic gen part would be conditional to the l3 router flag.\nIt also means we should allow l3-router in the path with EXT.\n\n(It is actually pretty easy to test EXT by running with PVP no cleanup then run in EXT mode if you consider the just created chain to be an EXT chain).\n\n\nThe patchset might already support EXT + l3-router \"accidentally\" which I will check next, but it is good to document the above in the rst files. Also the diagram could be made more generic to show that the router does not have to be a neutron router and the VM do not have to be a nfvbench test VM running VPP (eg it can be a commercial router).\n\nRegarding multi-chaining, I think we can add support by allocating specific dest IP range for each chain, and let the routers route to the right next hop VNF based on the dest IP. This will require minor adjustment in the code that calculates the dest IP (something similar to a chain step to increment the subnet portion of the IP address for each chain). For now we can limit it to 1 chain and this might require a check in the code (either error out if the chain count is \u003e1 or force it to 1)\n\nLastly I\u0027ll have to see how vxlan would work with L3 router option, for now we can say only VLAN is supported.",
+      "revId": "dcc0bb831a5b4a3bc96a1b2bc1ff88b3057c2eed",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5fc07584_02c2e03a",
+        "filename": "nfvbench/cfg.default.yaml",
+        "patchSetId": 6
+      },
+      "lineNbr": 453,
+      "author": {
+        "id": 5807
+      },
+      "writtenOn": "2019-05-23T19:08:26Z",
+      "side": 1,
+      "message": "(add reference to the l3_router option as this is only used if l3 router is in the packet path)",
+      "revId": "dcc0bb831a5b4a3bc96a1b2bc1ff88b3057c2eed",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1de0f0b4_953c8c4d",
+        "filename": "nfvbench/cfg.default.yaml",
+        "patchSetId": 6
+      },
+      "lineNbr": 545,
+      "author": {
+        "id": 5807
+      },
+      "writtenOn": "2019-05-23T19:08:26Z",
+      "side": 1,
+      "message": "Create is not the only result (it could be reuse as well).\nSuggest changing this to\n\nUse an L3 router in the packet path. This option if set will create or reuse an openstack neutron router (PVP, PVVP) or reuse an existing L3 router (EXT) to route traffic to the destination VM.",
+      "revId": "dcc0bb831a5b4a3bc96a1b2bc1ff88b3057c2eed",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "bdd378a0_a828ee55",
+        "filename": "nfvbench/chain_router.py",
+        "patchSetId": 6
+      },
+      "lineNbr": 115,
+      "author": {
+        "id": 5807
+      },
+      "writtenOn": "2019-05-23T19:08:26Z",
+      "side": 1,
+      "message": "there is also the case where neutron routers exist but none of them matches, in that case you\u0027d want to proceed and create a new router.\n\nyou could for ex add a return in the above if block\nand let the below block run after the above block (remove else and shift left)",
+      "revId": "dcc0bb831a5b4a3bc96a1b2bc1ff88b3057c2eed",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "c78e837c_04ac6d86",
+        "filename": "nfvbench/chain_router.py",
+        "patchSetId": 6
+      },
+      "lineNbr": 155,
+      "author": {
+        "id": 5807
+      },
+      "writtenOn": "2019-05-23T19:08:26Z",
+      "side": 1,
+      "message": "s/network/router/",
+      "revId": "dcc0bb831a5b4a3bc96a1b2bc1ff88b3057c2eed",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "e731c0e0_12f8be91",
+        "filename": "nfvbench/traffic_client.py",
+        "patchSetId": 6
+      },
+      "lineNbr": 602,
+      "author": {
+        "id": 5807
+      },
+      "writtenOn": "2019-05-23T19:08:26Z",
+      "side": 1,
+      "message": "still not addressed previous comment on this code which is needed for vxlan.\nthe mac offset is different if vxlan (need to use inner header)",
+      "revId": "dcc0bb831a5b4a3bc96a1b2bc1ff88b3057c2eed",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": false
+    }
+  ]
+}

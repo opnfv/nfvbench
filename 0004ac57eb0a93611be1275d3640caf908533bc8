@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "ada7c0a2_cef76b1e",
+        "filename": "docs/testing/user/userguide/pvpl3.rst",
+        "patchSetId": 5
+      },
+      "lineNbr": 23,
+      "author": {
+        "id": 5807
+      },
+      "writtenOn": "2019-05-23T07:18:07Z",
+      "side": 1,
+      "message": "you also need to force the test VM to run a L3 router (vpp) as it will likely not work with the default testpmd L2 forwarder.\n\nvm_forwarder: vpp\n\n(to be added to the config file below as well)",
+      "revId": "0004ac57eb0a93611be1275d3640caf908533bc8",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "413670f8_533536ce",
+        "filename": "nfvbench/nfvbench.py",
+        "patchSetId": 5
+      },
+      "lineNbr": 324,
+      "author": {
+        "id": 5807
+      },
+      "writtenOn": "2019-05-23T07:18:07Z",
+      "side": 1,
+      "message": "this is more of a terminology choice.\nl3 routing is actually already working without the need of going through a neutron router.\u003d and we already generate L3 traffic.\nso I would suggest to change the feature/option name to --l3-router (meaning we go through a router or a couple of routers)\nPlease adjust the remaining code accordingly (other doc, comments...)",
+      "revId": "0004ac57eb0a93611be1275d3640caf908533bc8",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": false
+    }
+  ]
+}

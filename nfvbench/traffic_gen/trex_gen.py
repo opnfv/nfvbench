@@ -280,7 +280,7 @@ class TRex(AbstractTrafficGenerator):
         """
         # Trex will add the FCS field, so we need to remove 4 bytes from the l2 frame size
         frame_size = int(l2frame_size) - 4
-
+        vm_param = []
         if stream_cfg['vxlan'] is True:
             self._bind_vxlan()
             encap_level = '1'
@@ -291,6 +291,16 @@ class TRex(AbstractTrafficGenerator):
             pkt_base /= UDP(sport=random.randint(1337, 32767), dport=4789)
             pkt_base /= VXLAN(vni=stream_cfg['net_vni'])
             pkt_base /= Ether(src=stream_cfg['mac_src'], dst=stream_cfg['mac_dst'])
+            # need to randomize the outer header UDP src port based on flow
+            vxlan_udp_src_fv = STLVmFlowVar(
+                name="vxlan_udp_src",
+                min_value=1337,
+                max_value=32767,
+                size=2,
+                op="random")
+            
+            vm_param = [vxlan_udp_src_fv,
+                        STLVmWrFlowVar(fv_name="vxlan_udp_src", pkt_offset="UDP.sport")]
         else:
             encap_level = '0'
             pkt_base = Ether(src=stream_cfg['mac_src'], dst=stream_cfg['mac_dst'])
@@ -336,7 +346,7 @@ class TRex(AbstractTrafficGenerator):
                 op="inc",
                 step=stream_cfg['ip_addrs_step'])
 
-        vm_param = [
+        vm_param.extend([
             src_fv,
             STLVmWrFlowVar(fv_name="ip_src", pkt_offset="IP:{}.src".format(encap_level)),
             dst_fv,
@@ -344,7 +354,7 @@ class TRex(AbstractTrafficGenerator):
             STLVmFixChecksumHw(l3_offset="IP:{}".format(encap_level),
                                l4_offset="UDP:{}".format(encap_level),
                                l4_type=CTRexVmInsFixHwCs.L4_TYPE_UDP)
-        ]
+        ])
         pad = max(0, frame_size - len(pkt_base)) * 'x'
 
         return STLPktBuilder(pkt=pkt_base / pad, vm=STLScVmRaw(vm_param))

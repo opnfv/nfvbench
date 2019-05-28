@@ -103,7 +103,7 @@ def test_chain_runner_ext_no_openstack():
 
 
 def _mock_find_image(self, image_name):
-    return True
+    return MagicMock()
 
 @patch.object(Compute, 'find_image', _mock_find_image)
 @patch('nfvbench.chaining.Client')

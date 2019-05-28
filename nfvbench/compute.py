@@ -95,6 +95,24 @@ class Compute(object):
 
         return True
 
+    def image_multiqueue_enabled(self, img):
+        """Check if multiqueue property is enabled on given image."""
+        try:
+            return img['hw_vif_multiqueue_enabled'] == 'true'
+        except KeyError:
+            return False
+
+    def image_set_multiqueue(self, img, enabled):
+        """Set multiqueue property as enabled or disabled on given image."""
+        cur_mqe = self.image_multiqueue_enabled(img)
+        LOG.info('Image %s hw_vif_multiqueue_enabled property is "%s"',
+                 img.name, str(cur_mqe).lower())
+        if cur_mqe != enabled:
+            mqe = str(enabled).lower()
+            self.glance_client.images.update(img.id, hw_vif_multiqueue_enabled=mqe)
+            img['hw_vif_multiqueue_enabled'] = mqe
+            LOG.info('Image %s hw_vif_multiqueue_enabled property changed to "%s"', img.name, mqe)
+
     # Create a server instance with name vmname
     # and check that it gets into the ACTIVE state
     def create_server(self, vmname, image, flavor, key_name,

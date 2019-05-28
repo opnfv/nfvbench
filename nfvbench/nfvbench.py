@@ -203,6 +203,9 @@ class NFVBench(object):
 
         if config.openrc_file:
             config.openrc_file = os.path.expanduser(config.openrc_file)
+            if config.flavor.vcpus < 2:
+                raise Exception("Flavor vcpus must be >= 2")
+
 
         config.ndr_run = (not config.no_traffic and
                           'ndr' in config.rate.strip().lower().split('_'))
@@ -223,6 +226,11 @@ class NFVBench(object):
             if not os.path.exists(config.std_json):
                 raise Exception('Please provide existing path for storing results in JSON file. '
                                 'Path used: {path}'.format(path=config.std_json_path))
+
+        # Check that multiqueue is between 1 and 8 (8 is the max allowed by libvirt/qemu)
+        if config.vif_multiqueue_size < 1 or config.vif_multiqueue_size > 8:
+            raise Exception('vif_multiqueue_size (%d) must be in [1..8]' %
+                            config.vif_multiqueue_size)
 
         # VxLAN sanity checks
         if config.vxlan:

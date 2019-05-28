@@ -421,7 +421,8 @@ class ChainVnf(object):
             'vnf_gateway1_cidr': g1cidr,
             'vnf_gateway2_cidr': g2cidr,
             'tg_mac1': remote_mac_pair[0],
-            'tg_mac2': remote_mac_pair[1]
+            'tg_mac2': remote_mac_pair[1],
+            'vif_mq_size': config.vif_multiqueue_size
         }
         return content.format(**vm_config)
 
@@ -1087,6 +1088,10 @@ class ChainManager(object):
                                          (self.image_name, self.config.vm_image_file))
                 LOG.info('Image %s successfully uploaded.', self.image_name)
                 self.image_instance = self.comp.find_image(self.image_name)
+
+        # image multiqueue property must be set according to the vif_multiqueue_size
+        # config value (defaults to 1 or disabled)
+        self.comp.image_set_multiqueue(self.image_instance, self.config.vif_multiqueue_size > 1)
 
     def _ensure_instances_active(self):
         instances = []

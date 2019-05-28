@@ -19,10 +19,34 @@ echo "Generating configurations for forwarder..."
 eval $(cat $NFVBENCH_CONF)
 touch /nfvbench_configured.flag
 
+# WE assume there are at least 2 cores available for the VM
+CPU_CORES=$(grep -c ^processor /proc/cpuinfo)
 
-CPU_CORES=`grep -c ^processor /proc/cpuinfo`
-CPU_MASKS=0x`echo "obase=16; 2 ^ $CPU_CORES - 1" | bc`
-WORKER_CORES=`expr $CPU_CORES - 1`
+# We need at least 1 admin core. 
+if [ $CPU_CORES -le 2 ]; then
+    ADMIN_CORES=1
+else
+    # If the number of cores is even we
+    # reserve 2 cores for admin (second being idle) so the number of
+    # workers is either 1 (if CPU_CORES is 2) or always even
+    if (( $CPU_CORES % 2 )); then
+        ADMIN_CORES=1
+    else
+        ADMIN_CORES=2
+    fi
+fi
+# 2 vcpus: AW (core 0: Admin, core 1: Worker)
+# 3 vcpus: AWW (core 0: Admin, core 1,2: Worker)
+# 4 vcpus: AAWW (core 0,1: Admin, core 2,3: Worker)
+# 5 vcpus: AWWWW
+# 6 vcpus: AAWWWW
+WORKER_CORES=$(expr $CPU_CORES - $ADMIN_CORES)
+# worker cores are all cores except the admin cores (core 0 or core 0,1)
+WORKER_CORE_LIST=$(seq -s, $ADMIN_CORES $(($CPU_CORES - 1)))
+# always use all cores
+CORE_MASK=0x$(echo "obase=16; 2 ^ $CPU_CORES - 1" | bc)
+
+logger "NFVBENCHVM: CPU_CORES=$CPU_CORES, ADMIN_CORES=$ADMIN_CORES, WORKER_CORES=$WORKER_CORES ($CORE_LIST)"
 
 # CPU isolation optimizations
 echo 1 > /sys/bus/workqueue/devices/writeback/cpumask
@@ -33,7 +57,9 @@ for irq in `ls /proc/irq/`; do
         echo 1 > /proc/irq/$irq/smp_affinity
     fi
 done
-tuna -c $(seq -s, 1 1 $WORKER_CORES) --isolate
+
+# Isolate all cores that are reserved for workers
+tuna -c $WORKER_CORE_LIST --isolate
 
 NET_PATH=/sys/class/net
 
@@ -52,6 +78,8 @@ get_pci_address() {
             pci_addr=$(readlink $NET_PATH/$f | cut -d "/" -f5)
             # some virtual interfaces match on MAC and do not have a PCI address
             if [ "$pci_addr" -a "$pci_addr" != "N/A" ]; then
+                # Found matching interface
+                logger "NFVBENCHVM: found interface $f ($pci_addr) matching $mac"
                 break
             else
                 pci_addr=""
@@ -93,9 +121,10 @@ if [ $PCI_ADDRESS_1 ] && [ $PCI_ADDRESS_2 ]; then
         /dpdk/dpdk-devbind.py -b igb_uio $PCI_ADDRESS_1
         /dpdk/dpdk-devbind.py -b igb_uio $PCI_ADDRESS_2
         screen -dmSL testpmd /dpdk/testpmd \
-                            -c $CPU_MASKS \
+                            -c $CORE_MASK \
                             -n 4 \
                             -- \
+                                --nb-ports=2 \
                                 --burst=32 \
                                 --txd=256 \
                                 --rxd=1024 \
@@ -103,6 +132,8 @@ if [ $PCI_ADDRESS_1 ] && [ $PCI_ADDRESS_2 ]; then
                                 --eth-peer=1,$TG_MAC2 \
                                 --forward-mode=mac \
                                 --nb-cores=$WORKER_CORES \
+                                --txq=$VIF_MQ_SIZE \
+                                --rxq=$VIF_MQ_SIZE \
                                 --max-pkt-len=9000 \
                                 --cmdline-file=/dpdk/testpmd_cmd.txt
         echo "testpmd running in screen 'testpmd'"
@@ -115,6 +146,7 @@ if [ $PCI_ADDRESS_1 ] && [ $PCI_ADDRESS_2 ]; then
         sed -i "s/{{PCI_ADDRESS_1}}/$PCI_ADDRESS_1/g" /etc/vpp/startup.conf
         sed -i "s/{{PCI_ADDRESS_2}}/$PCI_ADDRESS_2/g" /etc/vpp/startup.conf
         sed -i "s/{{WORKER_CORES}}/$WORKER_CORES/g" /etc/vpp/startup.conf
+        sed -i "s/{{VIF_MQ_SIZE}}/${VIF_MQ_SIZE}/g" /etc/vpp/startup.conf
         service vpp start
         sleep 10
 

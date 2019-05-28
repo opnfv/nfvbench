@@ -224,6 +224,11 @@ class NFVBench(object):
                 raise Exception('Please provide existing path for storing results in JSON file. '
                                 'Path used: {path}'.format(path=config.std_json_path))
 
+        # Check that multiqueue is between 1 and 8 (8 is the max allowed by libvirt/qemu)
+        if config.vif_multiqueue_size < 1 or config.vif_multiqueue_size > 8:
+            raise Exception('vif_multiqueue_size (%d) must be in [1..8]' %
+                            config.vif_multiqueue_size)
+
         # VxLAN sanity checks
         if config.vxlan:
             if config.vlan_tagging:

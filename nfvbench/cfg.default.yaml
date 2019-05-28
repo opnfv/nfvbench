@@ -51,9 +51,9 @@ vm_image_file:
 # Otherwise, a new flavor will be created with attributes listed below.
 flavor_type: 'nfvbench.medium'
 
-# Custom flavor attributes
+# Custom flavor attributes for the test VM
 flavor:
-  # Number of vCPUs for the flavor
+  # Number of vCPUs for the flavor, must be at least 2!
   vcpus: 2
   # Memory for the flavor in MB
   ram: 4096
@@ -67,6 +67,15 @@ flavor:
   extra_specs:
       "hw:cpu_policy": dedicated
       "hw:mem_page_size": large
+
+# Enable multiqueue for all test VM interfaces (PVP and PVVP only).
+# When enabled, the test VM image will get added the property to enable
+# multiqueue (hw_vif_multiqueue_enabled='true').
+# The number of queues per interace will be set to the number of vCPUs configured for
+# the VM.
+# By default there is only 1 queue per interface
+# The max allowed queue per interface is 8
+vif_multiqueue_size: 1
 
 # Name of the availability zone to use for the test VMs
 # Must be one of the zones listed by 'nova availability-zone-list'
@@ -398,9 +407,10 @@ idle_interfaces_per_vm: 0
 # If service_chain_shared_net is true, the options below will be ignored
 # and no idle interfaces will be added.
 idle_networks:
-    # Prefix for all idle networks
+    # Prefix for all idle networks, the final name will append the chain ID and idle index
+    # e.g. "nfvbench-idle-net.0.4" chain 0 idle index 4
     name: 'nfvbench-idle-net'
-    # Prefix for all idle subnetworks 
+    # Subnet name to use for all idle subnetworks 
     subnet: 'nfvbench-idle-subnet'
     # CIDR to use for all idle networks (value should not matter)
     cidr: '192.169.1.0/24'
@@ -408,7 +418,7 @@ idle_networks:
     network_type: 'vlan'
     # segmentation ID to use for the network attached to the idle virtual interfaces
     # vlan: leave empty to let neutron pick the segmentation ID
-    # vxlan: must specify the VNI value to be used (cannot be empty)
+    # vxlan: must specify the starting VNI value to be used (cannot be empty)
     # Note that NFVbench will use as many consecutive segmentation IDs as needed.
     # For example, for 4 PVP chains and 8 idle
     # interfaces per VM, NFVbench will use 32 consecutive values of segmentation ID

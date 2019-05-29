@@ -1,0 +1,72 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "c353a6f0_0ac1e857",
+        "filename": "nfvbench/cfg.default.yaml",
+        "patchSetId": 2
+      },
+      "lineNbr": 78,
+      "author": {
+        "id": 6909
+      },
+      "writtenOn": "2019-05-29T01:05:29Z",
+      "side": 1,
+      "message": "*parameter",
+      "revId": "a43c7df3e2ac9835ac2ad220775f0a24d1f1ccc0",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "c6a06c54_c3562995",
+        "filename": "nfvbench/chaining.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 1094,
+      "author": {
+        "id": 6909
+      },
+      "writtenOn": "2019-05-29T01:05:29Z",
+      "side": 1,
+      "message": "I think when we are re-using VMs, we also need to add one more check to make sure the VM is launched with required queue settings as well. Proceed when they match, and fail when they don\u0027t match.",
+      "revId": "a43c7df3e2ac9835ac2ad220775f0a24d1f1ccc0",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "0805192d_0fe4a315",
+        "filename": "nfvbenchvm/dib/elements/nfvbenchvm/static/etc/rc.d/rc.local",
+        "patchSetId": 2
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 6909
+      },
+      "writtenOn": "2019-05-29T01:05:29Z",
+      "side": 1,
+      "message": "Actually, this comment reminds me that, when we are launching VMs from NFVbench, check if the flavor vCPU is greater than 2 or not, and we can fail earlier.",
+      "revId": "a43c7df3e2ac9835ac2ad220775f0a24d1f1ccc0",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "2b8aef5d_37bb638f",
+        "filename": "nfvbenchvm/dib/elements/nfvbenchvm/static/etc/rc.d/rc.local",
+        "patchSetId": 2
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 6909
+      },
+      "writtenOn": "2019-05-29T01:05:29Z",
+      "side": 1,
+      "message": "Maybe further enhancements, when we have two NUMAs, maybe keep the admin core from one socket each is a better choice.",
+      "revId": "a43c7df3e2ac9835ac2ad220775f0a24d1f1ccc0",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": false
+    }
+  ]
+}

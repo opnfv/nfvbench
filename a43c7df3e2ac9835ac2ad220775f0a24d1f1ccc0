@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "3e7f655f_81ca48ba",
+        "filename": "nfvbench/cfg.default.yaml",
+        "patchSetId": 2
+      },
+      "lineNbr": 78,
+      "author": {
+        "id": 5807
+      },
+      "writtenOn": "2019-05-29T01:44:13Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "c353a6f0_0ac1e857",
+      "revId": "a43c7df3e2ac9835ac2ad220775f0a24d1f1ccc0",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "c6a06c54_c3562995",
         "filename": "nfvbench/chaining.py",
         "patchSetId": 2
@@ -30,6 +48,24 @@
       "writtenOn": "2019-05-29T01:05:29Z",
       "side": 1,
       "message": "I think when we are re-using VMs, we also need to add one more check to make sure the VM is launched with required queue settings as well. Proceed when they match, and fail when they don\u0027t match.",
+      "revId": "a43c7df3e2ac9835ac2ad220775f0a24d1f1ccc0",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "b5c078f7_b6d15868",
+        "filename": "nfvbench/chaining.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 1094,
+      "author": {
+        "id": 5807
+      },
+      "writtenOn": "2019-05-29T01:44:13Z",
+      "side": 1,
+      "message": "yes that would be good but there is no way to get the multi-queue property from the instance (that I know), the only unreliable way is to look at the image property which may have changed independently...\nwe woudl also need to check other things like vcpu, ram etc.. so Id rather pass on those checks for now and rely on the tester to cleanup when needed.",
+      "parentUuid": "c6a06c54_c3562995",
       "revId": "a43c7df3e2ac9835ac2ad220775f0a24d1f1ccc0",
       "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
       "unresolved": false
@@ -53,6 +89,24 @@
     },
     {
       "key": {
+        "uuid": "a6ebf5ac_aee09a84",
+        "filename": "nfvbenchvm/dib/elements/nfvbenchvm/static/etc/rc.d/rc.local",
+        "patchSetId": 2
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 5807
+      },
+      "writtenOn": "2019-05-29T01:44:13Z",
+      "side": 1,
+      "message": "ok added a check on vcpu \u003e\u003d 2",
+      "parentUuid": "0805192d_0fe4a315",
+      "revId": "a43c7df3e2ac9835ac2ad220775f0a24d1f1ccc0",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "2b8aef5d_37bb638f",
         "filename": "nfvbenchvm/dib/elements/nfvbenchvm/static/etc/rc.d/rc.local",
         "patchSetId": 2
@@ -64,6 +118,24 @@
       "writtenOn": "2019-05-29T01:05:29Z",
       "side": 1,
       "message": "Maybe further enhancements, when we have two NUMAs, maybe keep the admin core from one socket each is a better choice.",
+      "revId": "a43c7df3e2ac9835ac2ad220775f0a24d1f1ccc0",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "416072ae_d62c04f5",
+        "filename": "nfvbenchvm/dib/elements/nfvbenchvm/static/etc/rc.d/rc.local",
+        "patchSetId": 2
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 5807
+      },
+      "writtenOn": "2019-05-29T01:44:13Z",
+      "side": 1,
+      "message": "not sure if testpmd even makes use of the second admin core?",
+      "parentUuid": "2b8aef5d_37bb638f",
       "revId": "a43c7df3e2ac9835ac2ad220775f0a24d1f1ccc0",
       "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
       "unresolved": false

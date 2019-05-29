@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "d7eb5695_70c058c6",
+        "filename": "nfvbench/cfg.default.yaml",
+        "patchSetId": 3
+      },
+      "lineNbr": 83,
+      "author": {
+        "id": 5807
+      },
+      "writtenOn": "2019-05-29T16:40:36Z",
+      "side": 1,
+      "message": "as discussed, it seems to work without dropping packets. so I will leave it as is.",
+      "parentUuid": "f7a6e5fb_17ced35b",
+      "range": {
+        "startLine": 81,
+        "startChar": 2,
+        "endLine": 83,
+        "endChar": 42
+      },
+      "revId": "51fb40776eb042520ead6d6996d759aa8aaf3bf1",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "a11a3430_b5f2b508",
         "filename": "nfvbenchvm/dib/elements/nfvbenchvm/static/etc/rc.d/rc.local",
         "patchSetId": 3
@@ -36,6 +60,30 @@
       "writtenOn": "2019-05-29T08:01:21Z",
       "side": 1,
       "message": "In the case of 4 vCPU, only cores 2,3 will be isolated. Given that the CORE_MASK is still 0xF, I suspect that the core allocation done by Testpmd will be Admin: 0, Worker: 1,2 (as WORKER_CORES is not a mask). The result will be that one of the workers won\u0027t be isolated.",
+      "range": {
+        "startLine": 62,
+        "startChar": 0,
+        "endLine": 62,
+        "endChar": 35
+      },
+      "revId": "51fb40776eb042520ead6d6996d759aa8aaf3bf1",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "deea97ac_5048bfcc",
+        "filename": "nfvbenchvm/dib/elements/nfvbenchvm/static/etc/rc.d/rc.local",
+        "patchSetId": 3
+      },
+      "lineNbr": 62,
+      "author": {
+        "id": 5807
+      },
+      "writtenOn": "2019-05-29T16:40:36Z",
+      "side": 1,
+      "message": "Good catch",
+      "parentUuid": "a11a3430_b5f2b508",
       "range": {
         "startLine": 62,
         "startChar": 0,

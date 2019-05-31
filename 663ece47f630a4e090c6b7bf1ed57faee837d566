@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "b888d3a4_94c4ad50",
+        "filename": "docs/release/release-notes/release-notes.rst",
+        "patchSetId": 1
+      },
+      "lineNbr": 114,
+      "author": {
+        "id": 5807
+      },
+      "writtenOn": "2019-05-31T22:15:12Z",
+      "side": 1,
+      "message": "buildvm",
+      "revId": "663ece47f630a4e090c6b7bf1ed57faee837d566",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": false
+    }
+  ]
+}

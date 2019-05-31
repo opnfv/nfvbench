@@ -3,9 +3,12 @@
 .. http://creativecommons.org/licenses/by/4.0
 .. (c) Cisco Systems, Inc
 
-.. toctree::
-   :maxdepth: 3
+===============================
+OPNFV NFVbench Euphrates Design
+===============================
 
-   overview/index
-   design/index
-   building/index
+.. toctree::
+   :maxdepth: 2
+
+   build
+

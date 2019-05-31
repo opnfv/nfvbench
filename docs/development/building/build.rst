@@ -39,8 +39,10 @@ The version strings to change are located in 2 files:
 
 Building and uploading the VM image
 -----------------------------------
-The VM image is built and uploaded to Google storage from the CI/CD whenever the
-commit text of a gerrit review contains the word "buildvm".
+The VM image is built on gerrit verify when the image is not present in google storage.
+It is not uploaded yet on google storage.
+
+The build + upload of the new VM image is done after the review is merged.
 
 For details on how this is done, refer to ./jjb/nfvbench/nfvbench.yaml in the opnfv releng repository.
 
@@ -61,7 +63,7 @@ NFVbench code has changed:
 VM code has changed:
 
 - update VM version in the 2 locations
-- commit VM changes with gerrit and add "buildvm" in your commit message to trigger VM build and publish to google storage
+- commit VM changes with gerrit to trigger VM build and publication to google storage
 - apply a new semver tag to trigger the container image build/publication
 
 To increase the TRex version:

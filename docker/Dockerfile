@@ -2,7 +2,7 @@
 FROM ubuntu:16.04
 
 ENV TREX_VER "v2.56"
-ENV VM_IMAGE_VER "0.6"
+ENV VM_IMAGE_VER "0.8"
 
 # Note: do not clone with --depth 1 as it will cause pbr to fail extracting the nfvbench version
 # from the git tag

@@ -4,6 +4,15 @@
 
 RELEASE NOTES
 +++++++++++++
+Release 3.3.0
+=============
+
+Major release highlights:
+
+- VxLAN support
+- test VM can now have idle interfaces
+- test VM can be launched with multiqueue enabled
+
 
 Release 2.0
 ===========

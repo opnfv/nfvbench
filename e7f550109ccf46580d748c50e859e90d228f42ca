@@ -1,0 +1,89 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9bdeab1e_10246dee",
+        "filename": "nfvbench/cleanup.py",
+        "patchSetId": 8
+      },
+      "lineNbr": 181,
+      "author": {
+        "id": 5807
+      },
+      "writtenOn": "2019-06-04T18:03:02Z",
+      "side": 1,
+      "message": "not sure why \"code in clean_options\" is needed?\n\nI think this should suffice:\n\nreturn code[0] in clean_options",
+      "revId": "e7f550109ccf46580d748c50e859e90d228f42ca",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "2db8f3b1_d647647f",
+        "filename": "nfvbench/cleanup.py",
+        "patchSetId": 8
+      },
+      "lineNbr": 289,
+      "author": {
+        "id": 5807
+      },
+      "writtenOn": "2019-06-04T18:03:02Z",
+      "side": 1,
+      "message": "below should be replaced by an iteration\nall_option\u003d\"\"\nfor cleaner in self.cleaners:\n     code \u003d cleaner.get_cleaner_code()\n     print \"%s: %s\" % (code[0], code)\n     all_option +\u003d code[0]",
+      "revId": "e7f550109ccf46580d748c50e859e90d228f42ca",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "cfd0cf83_17b206b5",
+        "filename": "nfvbench/cleanup.py",
+        "patchSetId": 8
+      },
+      "lineNbr": 293,
+      "author": {
+        "id": 5807
+      },
+      "writtenOn": "2019-06-04T18:03:02Z",
+      "side": 1,
+      "message": "insert here the all option\n\nprint \"[a]ll resources - a shortcut for %s\", all_option",
+      "revId": "e7f550109ccf46580d748c50e859e90d228f42ca",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "355191ee_bc0ec63d",
+        "filename": "nfvbench/cleanup.py",
+        "patchSetId": 8
+      },
+      "lineNbr": 295,
+      "author": {
+        "id": 5807
+      },
+      "writtenOn": "2019-06-04T18:03:02Z",
+      "side": 1,
+      "message": "answer_res \u003d raw_input(\":\").lower()\n\nsaves you from calling lower() below",
+      "revId": "e7f550109ccf46580d748c50e859e90d228f42ca",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "0c91a475_4a493b65",
+        "filename": "nfvbench/cleanup.py",
+        "patchSetId": 8
+      },
+      "lineNbr": 297,
+      "author": {
+        "id": 5807
+      },
+      "writtenOn": "2019-06-04T18:03:02Z",
+      "side": 1,
+      "message": "and here substitute the all option\nif \"a\" in clean_options:\n    clean_options \u003d all_option",
+      "revId": "e7f550109ccf46580d748c50e859e90d228f42ca",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": false
+    }
+  ]
+}

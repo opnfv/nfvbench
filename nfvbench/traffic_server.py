@@ -66,7 +66,7 @@ class TRexTrafficServer(TrafficServer):
         if os.path.exists(filename):
             with open(filename, 'r') as stream:
                 try:
-                    result = yaml.load(stream)
+                    result = yaml.safe_load(stream)
                 except yaml.YAMLError as exc:
                     print exc
         return result

@@ -30,6 +30,7 @@ class Latency(object):
         self.min_usec = sys.maxint
         self.max_usec = 0
         self.avg_usec = 0
+        self.hdrh = None
         if latency_list:
             for lat in latency_list:
                 if lat.available():

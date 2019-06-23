@@ -245,11 +245,74 @@ class TRex(AbstractTrafficGenerator):
                 else:
                     latencies[port].min_usec = get_latency(lat['total_min'])
                     latencies[port].avg_usec = get_latency(lat['average'])
+                # pick up the HDR histogram if present (otherwise will raise KeyError)
+                latencies[port].hdrh = lat['hdrh']
             except KeyError:
                 pass
 
     def __combine_latencies(self, in_stats, results, port_handle):
-        """Traverse TRex result dictionary and combines chosen latency stats."""
+        """Traverse TRex result dictionary and combines chosen latency stats.
+
+          example of latency dict returned by trex (2 chains):
+         'latency': {256: {'err_cntrs': {'dropped': 0,
+                                 'dup': 0,
+                                 'out_of_order': 0,
+                                 'seq_too_high': 0,
+                                 'seq_too_low': 0},
+                            'latency': {'average': 26.5,
+                                        'hdrh': u'HISTFAAAAEx4nJNpmSgz...bFRgxi',
+                                        'histogram': {20: 303,
+                                                        30: 320,
+                                                        40: 300,
+                                                        50: 73,
+                                                        60: 4,
+                                                        70: 1},
+                                        'jitter': 14,
+                                        'last_max': 63,
+                                        'total_max': 63,
+                                        'total_min': 20}},
+                    257: {'err_cntrs': {'dropped': 0,
+                                        'dup': 0,
+                                        'out_of_order': 0,
+                                        'seq_too_high': 0,
+                                        'seq_too_low': 0},
+                            'latency': {'average': 29.75,
+                                        'hdrh': u'HISTFAAAAEV4nJN...CALilDG0=',
+                                        'histogram': {20: 261,
+                                                        30: 431,
+                                                        40: 3,
+                                                        50: 80,
+                                                        60: 225},
+                                        'jitter': 23,
+                                        'last_max': 67,
+                                        'total_max': 67,
+                                        'total_min': 20}},
+                    384: {'err_cntrs': {'dropped': 0,
+                                        'dup': 0,
+                                        'out_of_order': 0,
+                                        'seq_too_high': 0,
+                                        'seq_too_low': 0},
+                            'latency': {'average': 18.0,
+                                        'hdrh': u'HISTFAAAADR4nJNpm...MjCwDDxAZG',
+                                        'histogram': {20: 987, 30: 14},
+                                        'jitter': 0,
+                                        'last_max': 34,
+                                        'total_max': 34,
+                                        'total_min': 20}},
+                    385: {'err_cntrs': {'dropped': 0,
+                                    'dup': 0,
+                                    'out_of_order': 0,
+                                    'seq_too_high': 0,
+                                    'seq_too_low': 0},
+                            'latency': {'average': 19.0,
+                                        'hdrh': u'HISTFAAAADR4nJNpm...NkYmJgDdagfK',
+                                        'histogram': {20: 989, 30: 11},
+                                        'jitter': 0,
+                                        'last_max': 38,
+                                        'total_max': 38,
+                                        'total_min': 20}},
+                    'global': {'bad_hdr': 0, 'old_flow': 0}},
+        """
         total_max = 0
         average = 0
         total_min = float("inf")

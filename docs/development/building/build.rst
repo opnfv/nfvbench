@@ -64,6 +64,8 @@ VM code has changed:
 
 - update VM version in the 2 locations
 - commit VM changes with gerrit to trigger VM build and publication to google storage
+- IMPORTANT! wait for the VM image to be pushed to google storage before going to the next step
+  (otherwise the container build will fail as it will not find the VM image)
 - apply a new semver tag to trigger the container image build/publication
 
 To increase the TRex version:

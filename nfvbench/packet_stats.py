@@ -237,6 +237,8 @@ class PacketPathStats(object):
             results = {'lat_min_usec': latency.min_usec,
                        'lat_max_usec': latency.max_usec,
                        'lat_avg_usec': latency.avg_usec}
+            if latency.hdrh:
+                results['hdrh'] = latency.hdrh
         else:
             results = {}
         results['packets'] = counters

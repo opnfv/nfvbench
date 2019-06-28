@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "f9b987b2_bb8d0d4d",
+        "filename": "nfvbench/traffic_server.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 120,
+      "author": {
+        "id": 5807
+      },
+      "writtenOn": "2019-06-28T13:53:23Z",
+      "side": 1,
+      "message": "I think it will be simpler to just access the various fields as if  they exist and surround this code with a try/except KeyError: LOG.info:\ntry:\n   platform \u003d \"\"\"...\"\"\"\nexcept KeyError:\n   LOG.info(\"Generator profile \u0027platform\u0027 sub-properties are set but not filled in \\\n                         config file. TRex will use default values.\")",
+      "revId": "55384b3ca00886fb647fac1d089e9935823bb1fd",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": false
+    }
+  ]
+}

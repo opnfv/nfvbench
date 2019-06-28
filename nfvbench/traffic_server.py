@@ -95,8 +95,8 @@ class TRexTrafficServer(TrafficServer):
                                          limit_memory=generator_config.limit_memory,
                                          ifs=ifs)
         if hasattr(generator_config, 'platform'):
-            if generator_config.platform.master_thread_id \
-                    and generator_config.platform.latency_thread_id:
+            if hasattr(generator_config.platform, 'master_thread_id') \
+                    and hasattr(generator_config.platform, 'latency_thread_id'):
                 platform = """
           platform     :
             master_thread_id  : {master_thread_id}

@@ -94,29 +94,27 @@ class TRexTrafficServer(TrafficServer):
                                          prefix=generator_config.name,
                                          limit_memory=generator_config.limit_memory,
                                          ifs=ifs)
-        if hasattr(generator_config, 'platform'):
-            if generator_config.platform.master_thread_id \
-                    and generator_config.platform.latency_thread_id:
-                platform = """
+        try:
+            platform = """
           platform     :
             master_thread_id  : {master_thread_id}
             latency_thread_id : {latency_thread_id}
             dual_if:""".format(master_thread_id=generator_config.platform.master_thread_id,
                                latency_thread_id=generator_config.platform.latency_thread_id)
-                result += platform
+            result += platform
 
-                for core in generator_config.platform.dual_if:
-                    threads = ""
-                    try:
-                        threads = ",".join([repr(thread) for thread in core.threads])
-                    except TypeError:
-                        LOG.warn("No threads defined for socket %s", core.socket)
-                    core_result = """
+            for core in generator_config.platform.dual_if:
+                threads = ""
+                try:
+                    threads = ",".join([repr(thread) for thread in core.threads])
+                except TypeError:
+                    LOG.warn("No threads defined for socket %s", core.socket)
+                core_result = """
                   - socket : {socket}
                     threads : [{threads}]""".format(socket=core.socket, threads=threads)
-                    result += core_result
-            else:
-                LOG.info("Generator profile 'platform' sub-properties are set but not filled in \
+                result += core_result
+        except (KeyError, AttributeError) as e:
+            LOG.info("Generator profile 'platform' sub-properties are set but not filled in \
                          config file. TRex will use default values.")
         return result
 

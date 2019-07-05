@@ -21,8 +21,6 @@ import getpass
 from keystoneauth1.identity import v2
 from keystoneauth1.identity import v3
 from keystoneauth1 import session
-from keystoneclient import client
-from keystoneclient import utils
 from log import LOG
 
 
@@ -170,16 +168,12 @@ class Credentials(object):
 
         # check if user has admin role in OpenStack project
         try:
-            keystone = client.Client(session=self.get_session())
-            user = utils.find_resource(keystone.users, self.rc_username)
-            if self.rc_identity_api_version == 2:
-                tenant = utils.find_resource(keystone.tenants, self.rc_tenant_name)
-                roles = keystone.roles.roles_for_user(user, tenant=tenant.id)
-            elif self.rc_identity_api_version == 3:
-                project = utils.find_resource(keystone.projects, self.rc_project_name)
-                roles = keystone.roles.list(user=user.id, project=project.id)
-            for role in roles:
-                if role.name == 'admin':
-                    self.is_admin = True
-        except Exception:
-            LOG.warning("User is not admin, no permission to list user roles")
+            # vX/users URL returns exception (HTTP 403) if user is not admin.
+            # Return HTTP 200 if user is admin
+            self.get_session().get('/v' + str(self.rc_identity_api_version) + '/users',
+                                   endpoint_filter={'service_type': 'identity',
+                                                    'interface': 'public',
+                                                    'region_name': self.rc_region_name})
+            self.is_admin = True
+        except Exception as e:
+            LOG.warning("User is not admin, no permission to list user roles. Exception: %s", e)

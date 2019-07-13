@@ -49,14 +49,17 @@ class TRexTrafficServer(TrafficServer):
             mbuf_opt = "--mbuf-factor " + str(generator_config.mbuf_factor)
         else:
             mbuf_opt = ""
+        hdrh_opt = "--hdrh" if generator_config.hdrh else ""
+
         # --unbind-unused-ports: for NIC that have more than 2 ports such as Intel X710
         # this will instruct trex to unbind all ports that are unused instead of
         # erroring out with an exception (i40e only)
         subprocess.Popen(['nohup', '/bin/bash', '-c',
                           './t-rex-64 -i -c {} --iom 0 --no-scapy-server '
-                          '--unbind-unused-ports --close-at-end {} '
+                          '--unbind-unused-ports --close-at-end {} {} '
                           '{} {} --cfg {} &> /tmp/trex.log & disown'.format(cores, sw_mode,
                                                                             vlan_opt,
+                                                                            hdrh_opt,
                                                                             mbuf_opt, cfg)],
                          cwd=self.trex_dir)
         LOG.info('TRex server is running...')

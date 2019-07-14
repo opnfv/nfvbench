@@ -52,13 +52,14 @@ class TRexTrafficServer(TrafficServer):
         # --unbind-unused-ports: for NIC that have more than 2 ports such as Intel X710
         # this will instruct trex to unbind all ports that are unused instead of
         # erroring out with an exception (i40e only)
-        subprocess.Popen(['nohup', '/bin/bash', '-c',
-                          './t-rex-64 -i -c {} --iom 0 --no-scapy-server '
-                          '--unbind-unused-ports --close-at-end {} '
-                          '{} {} --cfg {} &> /tmp/trex.log & disown'.format(cores, sw_mode,
-                                                                            vlan_opt,
-                                                                            mbuf_opt, cfg)],
-                         cwd=self.trex_dir)
+        cmd = ['nohup', '/bin/bash', '-c',
+               './t-rex-64 -i -c {} --iom 0 --no-scapy-server '
+               '--unbind-unused-ports --close-at-end {} '
+               '{} {} --cfg {} &> /tmp/trex.log & disown'.format(cores, sw_mode,
+                                                                 vlan_opt,
+                                                                 mbuf_opt, cfg)]
+        LOG.info(' '.join(cmd))
+        subprocess.Popen(cmd, cwd=self.trex_dir)
         LOG.info('TRex server is running...')
 
     def __load_config(self, filename):
@@ -94,29 +95,29 @@ class TRexTrafficServer(TrafficServer):
                                          prefix=generator_config.name,
                                          limit_memory=generator_config.limit_memory,
                                          ifs=ifs)
-        try:
-            platform = """
-          platform     :
+        if generator_config.platform.master_thread_id and \
+           generator_config.platform.latency_thread_id:
+            try:
+                platform = """
+              platform     :
             master_thread_id  : {master_thread_id}
             latency_thread_id : {latency_thread_id}
             dual_if:""".format(master_thread_id=generator_config.platform.master_thread_id,
                                latency_thread_id=generator_config.platform.latency_thread_id)
-            result += platform
+                result += platform
 
-            for core in generator_config.platform.dual_if:
-                threads = ""
-                try:
-                    threads = ",".join([repr(thread) for thread in core.threads])
-                except TypeError:
-                    LOG.warn("No threads defined for socket %s", core.socket)
-                core_result = """
+                for core in generator_config.platform.dual_if:
+                    threads = ""
+                    try:
+                        threads = ",".join([repr(thread) for thread in core.threads])
+                    except TypeError:
+                        LOG.warn("No threads defined for socket %s", core.socket)
+                    core_result = """
                   - socket : {socket}
                     threads : [{threads}]""".format(socket=core.socket, threads=threads)
-                result += core_result
-        except (KeyError, AttributeError):
-            LOG.info(
-                "Generator profile 'platform' sub-properties are set but not filled in config file.\
-                TRex will use default values.")
+                    result += core_result
+            except (KeyError, AttributeError):
+                pass
         return result
 
     def check_config_updated(self, generator_config):

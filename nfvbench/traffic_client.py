@@ -341,6 +341,7 @@ class GeneratorConfig(object):
         else:
             self.cores = gen_config.get('cores', 1)
         self.mbuf_factor = config.mbuf_factor
+        self.hdrh = not config.disable_hdrh
         if gen_config.intf_speed:
             # interface speed is overriden from config
             self.intf_speed = bitmath.parse_string(gen_config.intf_speed.replace('ps', '')).bits

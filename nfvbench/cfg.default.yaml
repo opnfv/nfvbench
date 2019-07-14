@@ -303,6 +303,10 @@ cores:
 # mbuffer ratio to use for TRex (see TRex documentation for more details)
 mbuf_factor: 0.2
 
+# A switch to disable hdrh
+# hdrh is enabled by default and requires TRex v2.58 or higher
+disable_hdrh: false
+
 # -----------------------------------------------------------------------------
 # These variables are not likely to be changed
 

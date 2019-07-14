@@ -67,4 +67,4 @@ Finally, the correct iommu options and huge pages to be configured on the Linux 
 - enable intel_iommu and iommu pass through: "intel_iommu=on iommu=pt"
 - for Trex, pre-allocate 1024 huge pages of 2MB each (for a total of 2GB): "hugepagesz=2M hugepages=1024"
 
-More detailed instructions can be found in the DPDK documentation (https://media.readthedocs.org/pdf/dpdk/latest/dpdk.pdf).
+More detailed instructions can be found in the DPDK documentation (https://buildmedia.readthedocs.org/media/pdf/dpdk/latest/dpdk.pdf).

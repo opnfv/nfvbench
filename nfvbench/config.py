@@ -47,6 +47,12 @@ def config_loads(cfg_text, from_cfg=None, whitelist_keys=None):
     except TypeError:
         # empty string
         cfg = AttrDict()
+    except ValueError as e:
+        # In case of wrong path or file not readable or string not well formatted
+        LOG.error("String %s is not well formatted. Please verify your yaml/json string. "
+                  "If string is a file path, file was not found. Please use correct path and "
+                  "verify it is visible to container if you run nfvbench in container.", cfg_text)
+        raise Exception(e)
     if from_cfg:
         if not whitelist_keys:
             whitelist_keys = []

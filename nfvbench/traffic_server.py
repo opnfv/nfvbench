@@ -97,11 +97,10 @@ class TRexTrafficServer(TrafficServer):
                                          prefix=generator_config.name,
                                          limit_memory=generator_config.limit_memory,
                                          ifs=ifs)
-        if generator_config.platform.master_thread_id and \
-           generator_config.platform.latency_thread_id:
+        if self.__check_platform_config(generator_config):
             try:
                 platform = """
-              platform     :
+          platform     :
             master_thread_id  : {master_thread_id}
             latency_thread_id : {latency_thread_id}
             dual_if:""".format(master_thread_id=generator_config.platform.master_thread_id,
@@ -121,6 +120,13 @@ class TRexTrafficServer(TrafficServer):
             except (KeyError, AttributeError):
                 pass
         return result
+
+    def __check_platform_config(self, generator_config):
+        return hasattr(generator_config, 'platform') \
+               and hasattr(generator_config.platform, "master_thread_id") \
+               and generator_config.platform.master_thread_id is not None \
+               and hasattr(generator_config.platform, "latency_thread_id") \
+               and generator_config.platform.latency_thread_id is not None
 
     def check_config_updated(self, generator_config):
         existing_config = self.__load_config(filename='/etc/trex_cfg.yaml')

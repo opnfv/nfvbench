@@ -300,6 +300,9 @@ restart: false
 # if empty defaults to the one specified in generator_profile.cores
 cores:
 
+# Add cache size in packet generation
+cache_size:
+
 # mbuffer ratio to use for TRex (see TRex documentation for more details)
 mbuf_factor: 0.2
 

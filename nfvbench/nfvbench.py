@@ -87,7 +87,8 @@ class NFVBench(object):
         try:
             # recalc the running config based on the base config and options for this run
             self._update_config(opts)
-
+            if self.config.cache_size < 0:
+                self.config.cache_size = self.config.flow_count
             # check that an empty openrc file (no OpenStack) is only allowed
             # with EXT chain
             if not self.config.openrc_file and self.config.service_chain != ChainType.EXT:
@@ -432,6 +433,11 @@ def _parse_opts_from_cli():
                         action='store',
                         metavar='<vlan>',
                         help='Port to port or port to switch to port L2 loopback with VLAN id')
+
+    parser.add_argument('--cache-size', dest='cache_size',
+                        action='store',
+                        default='0',
+                        help='Specify the FE cache size (default: 0, flow-count if < 0)')
 
     opts, unknown_opts = parser.parse_known_args()
     return opts, unknown_opts

@@ -422,7 +422,8 @@ class TRex(AbstractTrafficGenerator):
                                                l4_type=CTRexVmInsFixHwCs.L4_TYPE_UDP))
         pad = max(0, frame_size - len(pkt_base)) * 'x'
 
-        return STLPktBuilder(pkt=pkt_base / pad, vm=STLScVmRaw(vm_param))
+        return STLPktBuilder(pkt=pkt_base / pad,
+                             vm=STLScVmRaw(vm_param, cache_size=int(self.config.cache_size)))
 
     def generate_streams(self, port, chain_id, stream_cfg, l2frame, latency=True,
                          e2e=False):

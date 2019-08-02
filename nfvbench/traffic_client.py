@@ -341,6 +341,7 @@ class GeneratorConfig(object):
         else:
             self.cores = gen_config.get('cores', 1)
         self.mbuf_factor = config.mbuf_factor
+        self.mbuf_64 = config.mbuf_64
         self.hdrh = not config.disable_hdrh
         if gen_config.intf_speed:
             # interface speed is overriden from config
@@ -356,8 +357,6 @@ class GeneratorConfig(object):
         self.interfaces = gen_config.interfaces
         if self.interfaces[0].port != 0 or self.interfaces[1].port != 1:
             raise TrafficClientException('Invalid port order/id in generator_profile.interfaces')
-        if hasattr(gen_config, 'platform'):
-            self.platform = gen_config.platform
         self.service_chain = config.service_chain
         self.service_chain_count = config.service_chain_count
         self.flow_count = config.flow_count

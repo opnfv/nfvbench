@@ -332,7 +332,10 @@ def _get_dummy_tg_config(chain_type, rate, scc=1, fc=10, step_ip='0.0.0.1',
         'mbuf_factor': None,
         'disable_hdrh': None,
         'mbuf_64': None,
-        'service_mode': False
+        'service_mode': False,
+        'no_flow_stats': False,
+        'no_latency_stats': False,
+        'no_latency_streams': False
 
     })
 

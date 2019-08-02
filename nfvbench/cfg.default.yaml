@@ -755,3 +755,18 @@ no_vswitch_access: false
 # Can be overriden by --service-mode
 # Should be left to the default value (false)
 service_mode: false
+
+# Disable extra flow stats (on high load traffic)
+# Can be overriden by --no-flow-stats
+# Should be left to the default value (false)
+no_flow_stats: false
+
+# Disable flow stats for latency traffic
+# Can be overriden by --no-latency-stats
+# Should be left to the default value (false)
+no_latency_stats: false
+
+# Disable latency measurements (no streams)
+# Can be overriden by --no-latency-stream
+# Should be left to the default value (false)
+no_latency_streams: false

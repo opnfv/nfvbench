@@ -444,6 +444,21 @@ def _parse_opts_from_cli():
                         default=False,
                         help='Enable T-Rex service mode for debugging only')
 
+    parser.add_argument('--no-flow-stats', dest='no_flow_stats',
+                        action='store_true',
+                        default=False,
+                        help='Disable extra flow stats (on high load traffic)')
+
+    parser.add_argument('--no-latency-stats', dest='no_latency_stats',
+                        action='store_true',
+                        default=False,
+                        help='Disable flow stats for latency traffic')
+
+    parser.add_argument('--no-latency-streams', dest='no_latency_streams',
+                        action='store_true',
+                        default=False,
+                        help='Disable latency measurements (no streams)')
+
     opts, unknown_opts = parser.parse_known_args()
     return opts, unknown_opts
 
@@ -583,6 +598,14 @@ def main():
             config.vxlan = True
         if opts.restart:
             config.restart = True
+        if opts.service_mode:
+            config.service_mode = True
+        if opts.no_flow_stats:
+            config.no_flow_stats = True
+        if opts.no_latency_stats:
+            config.no_latency_stats = True
+        if opts.no_latency_streams:
+            config.no_latency_streams = True
         # port to port loopback (direct or through switch)
         if opts.l2_loopback:
             config.l2_loopback = True

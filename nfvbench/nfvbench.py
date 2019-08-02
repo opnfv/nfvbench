@@ -444,6 +444,21 @@ def _parse_opts_from_cli():
                         default=False,
                         help='Enable T-Rex service mode for debugging only')
 
+    parser.add_argument('--no-flow-stats', dest='no_flow_stats',
+                        action='store_true',
+                        default=False,
+                        help='Disable extra flow stats (on high load traffic)')
+
+    parser.add_argument('--no-latency-stats', dest='no_latency_stats',
+                        action='store_true',
+                        default=False,
+                        help='Disable flow stats for latency traffic')
+
+    parser.add_argument('--no-latency-streams', dest='no_latency_streams',
+                        action='store_true',
+                        default=False,
+                        help='Disable latency measurements (no streams)')
+
     opts, unknown_opts = parser.parse_known_args()
     return opts, unknown_opts
 

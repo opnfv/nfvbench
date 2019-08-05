@@ -352,8 +352,7 @@ class ChainNetwork(object):
 
         :return: VNI ID for this network
         """
-        if 'vxlan' not in self.network['provider:network_type']:
-            raise ChainException('Trying to retrieve VNI for non VXLAN network')
+
         return self.network['provider:segmentation_id']
 
     def delete(self):

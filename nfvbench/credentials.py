@@ -168,12 +168,21 @@ class Credentials(object):
 
         # check if user has admin role in OpenStack project
         try:
-            # vX/users URL returns exception (HTTP 403) if user is not admin.
+            # /users URL returns exception (HTTP 403) if user is not admin.
+            # try first without the version in case session already has it in
             # Return HTTP 200 if user is admin
-            self.get_session().get('/v' + str(self.rc_identity_api_version) + '/users',
+            self.get_session().get('/users',
                                    endpoint_filter={'service_type': 'identity',
                                                     'interface': 'public',
                                                     'region_name': self.rc_region_name})
             self.is_admin = True
         except Exception as e:
-            LOG.warning("User is not admin, no permission to list user roles. Exception: %s", e)
+            try:
+                # vX/users URL returns exception (HTTP 403) if user is not admin.
+                self.get_session().get('/v' + str(self.rc_identity_api_version) + '/users',
+                                    endpoint_filter={'service_type': 'identity',
+                                                        'interface': 'public',
+                                                        'region_name': self.rc_region_name})
+                self.is_admin = True
+            except Exception as e:
+                LOG.warning("User is not admin, no permission to list user roles. Exception: %s", e)

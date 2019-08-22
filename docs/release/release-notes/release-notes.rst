@@ -4,6 +4,29 @@
 
 RELEASE NOTES
 +++++++++++++
+
+Release 3.5.1
+=============
+
+- NFVBENCH-147 Incorrect URL used for admin check in credentials
+- Release the validation check for VxLAN networks
+- NFVBENCH-145 Config file not found. No explicit error
+- NFVBENCH-144 Trex cannot take account NFVBench config (platform thread id 0)
+
+- NFVBENCH-140 Retrieve High Dynamic Range latency histograms with TRex v2.59
+- NFVBENCH-143 Trex cannot start due to invalid config (platform None)
+- NFVBENCH-141 Fix Openstack user admin role check
+- NFVBENCH-139 Fix master_thread_id and latency_thread_id property checking
+- NFVBENCH-95 Add HdrHistogram encodes returned by TRex to JSON results
+- NFVBENCH-138 Use yaml.safe_load() instead of unsafe yaml load
+- NFVBENCH-137 NFVbench generates wrong L4 checksums for VxLAN traffic
+
+Release 3.4.0
+=============
+
+- Add L3 traffic management with Neutron routers
+
+
 Release 3.3.0
 =============
 

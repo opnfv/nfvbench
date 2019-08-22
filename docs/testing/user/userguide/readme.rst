@@ -2,8 +2,34 @@
 .. SPDX-License-Identifier: CC-BY-4.0
 .. (c) Cisco Systems, Inc
 
-Features
-********
+NFVbench: A Network Performance Benchmarking Tool for NFVi Full Stacks
+**********************************************************************
+
+The NFVbench tool provides an automated way to measure the network performance for the most common data plane packet flows
+on any NFVi system viewed as a black box (NFVi Full Stack).
+An NFVi full stack exposes the following interfaces:
+- an OpenStack API for those NFVi platforms based on OpenStack
+- an interface to send and receive packets on the data plane (typically through top of rack switches
+  while simpler direct wiring to a looping device would also work)
+
+The NFVi full stack can be any functional OpenStack system that provides the above interfaces.
+NFVbench can also be used without OpenStack on any networking device that can handle L2 forwarding or L3 routing.
+
+NFVbench can be installed standalone (in the form of a single Docker container) and is fully functional without
+the need to install any other OPNFV tool.
+
+It is designed to be easy to install and easy to use by non experts (no need to be an expert in traffic generators and data plane
+performance benchmarking). NFVbench integrates with the open source traffic generator TRex and provides the following benefits when compared
+to using a traffic generator directly:
+
+- yaml configuration driven benchmark runs
+- CLI or REST front end
+- finds highest throughput based on drop rate requirement using an optimized binary search with very fast convergence time
+- supports multi-chaining or dense VNF throughput measurement (e.g. find the throughput of a compute node running 20 loopback VNFs)
+- detailed stats itemized per VNF chain in text or JSON format
+- takes care of configuring packet flows and streams (often hard to use and specific to each gtraffic generator)
+- takes care of bring up loopback VNFs/chains using Nova/Neutron/Glance OpenStack APIs
+- saves you the hassle of searching what to measure, how to measure and how to interpret resuls
 
 Data Plane Performance Measurement Features
 -------------------------------------------
@@ -20,13 +46,12 @@ NFVbench supports the following main measurement capabilities:
 - configurable traffic direction (single or bi-directional)
 - can support optional VLAN tagging (dot1q) or VxLAN overlays
 
-
 NDR is the highest throughput achieved without dropping packets.
 PDR is the highest throughput achieved without dropping more than a pre-set limit (called PDR threshold or allowance, expressed in %).
 
 Results of each run include the following data:
 
-- Aggregated achieved throughput in bps
+- Aggregated achieved bit rate throughput in bps
 - Aggregated achieved packet rate in pps (or fps)
 - Actual drop rate in %
 - Latency in usec (min, max, average in the current version)
@@ -101,6 +126,16 @@ In the case of VPP, VPP will act as a real L3 router, and the packets are routed
 Which forwarder and what Nova flavor to use can be selected in the NFVbench configuration. Be default the DPDK testpmd forwarder is used with 2 vCPU per VM.
 The configuration of these forwarders (such as MAC rewrite configuration or static route configuration) is managed by NFVbench.
 
+Importance of Dense VNF Measurement
+-----------------------------------
+Production deployments of NFVi stacks can require to run a large number of VMs per compute node in order to fully utilize all the
+hardware resources available in each of these compute nodes.
+Given that optimization of a compute node can be very different based on the number of VMs, it is therefore critical
+to do performance benchmarking at scale.
+NFVbench has been the first benchmarking tool to recognize this and to provide dense VNF dataplane benchmarking
+by staging multipe chains using OpenStack and configuring the traffic generator to split the traffic
+across all configured chains. This kind of measurement is very time consuming to do directly with traffic generators
+as it requires understanding how traffic is shaped in order to cover all chains in a balanced way.
 
 PVP Packet Path
 ^^^^^^^^^^^^^^^
@@ -119,8 +154,8 @@ The 2 VNFs will only run on the same compute node (PVVP intra-node):
 .. image:: images/nfvbench-pvvp.png
 
 
-Multi-Chaining (N*PVP or N*PVVP)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Dense VNF or Multi-Chaining (N*PVP or N*PVVP)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Multiple service chains can be setup by NFVbench without any limit on the concurrency (other than limits imposed by available resources on compute nodes).
 In the case of multiple service chains, NFVbench will instruct the traffic generator to use multiple L3 packet streams (frames directed to each path will
@@ -153,19 +188,11 @@ The PVVP packet path will use SR-IOV for the left and right networks and the vir
 
 .. image:: images/nfvbench-sriov-pvvp.png
 
-Or in the case of inter-node:
-
-.. image:: images/nfvbench-sriov-pvvp2.png
-
 This packet path is a good way to approximate VM to VM (V2V) performance (middle network) given the high efficiency of the left and right networks. The V2V throughput will likely be very close to the PVVP throughput while its latency will be very close to the difference between the SR-IOV PVVP latency and the SR-IOV PVP latency.
 
 It is possible to also force the middle network to use SR-IOV (in this version, the middle network is limited to use the same SR-IOV phys net):
 
 .. image:: images/nfvbench-all-sriov-pvvp.png
-
-The chain can also span across 2 nodes with the use of 2 SR-IOV ports in each node:
-
-.. image:: images/nfvbench-all-sriov-pvvp2.png
 
 
 Other Misc Packet Paths
@@ -191,7 +218,7 @@ NFVbench is agnostic of the virtual switch implementation and has been tested wi
 - ML2/ODL/VPP (OPNFV Fast Data Stack)
 
 
-
 Limitations
 ***********
-VxLAN: latency measurement and per chain stats is not available in the first VxLAN release
+VxLAN: latency measurement is not available in the current VxLAN release
+PVVP Inter-node (where the 2 VMs are running on diofferent compute nodes) is no longer supported

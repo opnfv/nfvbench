@@ -16,6 +16,24 @@
       "revId": "9ecf7badb2d10f0f05de980f7ede4e7fb0625d60",
       "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c3d13eb0_b9aef388",
+        "filename": "docs/release/release-notes/release-notes.rst",
+        "patchSetId": 1
+      },
+      "lineNbr": 11,
+      "author": {
+        "id": 5807
+      },
+      "writtenOn": "2019-08-22T09:20:29Z",
+      "side": 1,
+      "message": "yes, wanted to remove it but forgot",
+      "parentUuid": "c62696ae_4a825172",
+      "revId": "9ecf7badb2d10f0f05de980f7ede4e7fb0625d60",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": false
     }
   ]
 }

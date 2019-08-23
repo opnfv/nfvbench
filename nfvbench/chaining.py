@@ -1184,7 +1184,8 @@ class ChainManager(object):
         for chain in self.chains:
             instances.extend(chain.get_instances())
         initial_instance_count = len(instances)
-        max_retries = (self.config.check_traffic_time_sec +
+        # Give additional 10 seconds per VM
+        max_retries = (self.config.check_traffic_time_sec + (initial_instance_count - 1) * 10 +
                        self.config.generic_poll_sec - 1) / self.config.generic_poll_sec
         retry = 0
         while instances:

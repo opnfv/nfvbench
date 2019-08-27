@@ -1,7 +1,7 @@
 # docker file for creating a container that has nfvbench installed and ready to use
 FROM ubuntu:16.04
 
-ENV TREX_VER "v2.59"
+ENV TREX_VER "v2.61"
 ENV VM_IMAGE_VER "0.9"
 
 # Note: do not clone with --depth 1 as it will cause pbr to fail extracting the nfvbench version

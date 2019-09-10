@@ -1,4 +1,4 @@
 #!/bin/bash
 
 grubby --update-kernel=ALL --args="isolcpus=1 rcu_nocbs=1 nohz=on nohz_full=1 nmi_watchdog=0"
-grubby --update-kernel=ALL --args="default_hugepagesz=1G hugepagesz=1G hugepages=1"
+grubby --update-kernel=ALL --args="default_hugepagesz=1G hugepagesz=1G hugepages=2"

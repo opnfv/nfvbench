@@ -187,11 +187,12 @@ traffic_generator:
     # Leave empty if there is no VLAN tagging required, or specify the VLAN id to use
     # for all VxLAN tunneled traffic
     vtep_vlan:
-    # VxLAN only: local/source vteps IP addresses for port 0 and 1 ['10.1.1.230', '10.1.1.231']
+    # VxLAN and MPLS only: local/source vteps IP addresses for port 0 and 1 ['10.1.1.230', '10.1.1.231']
     src_vteps:
     # VxLAN only: remote IP address of the remote VTEPs that terminate all tunnels originating from local VTEPs
     dst_vtep:
-
+    # MPLS only: local/source vteps IP addresses for port 0 and 1 ['10.1.1.230', '10.1.1.231']
+    dst_peer_ips:
     # L2 ADDRESSING OF UDP PACKETS
     # Lists of dest MAC addresses to use on each traffic generator port (one dest MAC per chain)
     # Leave empty for PVP, PVVP, EXT with ARP
@@ -369,7 +370,7 @@ loop_vm_name: 'nfvbench-loop-vm'
 #        segmentation_id: 2001
 #        physical_network: phys_sriov1
 #
-# For multi-chaining and non shared network mode (VLAN, SRIOV, VxLAN):
+# For multi-chaining and non shared network mode (VLAN, SRIOV, VxLAN, MPLS):
 # - the segmentation_id field if provided must be a list of values (as many as chains)
 # - segmentation_id auto-indexing:
 #   the segmentation_id field can also be a single value that represents the base value from which
@@ -378,6 +379,9 @@ loop_vm_name: 'nfvbench-loop-vm'
 #   The ranges of all the networks must not overlap.
 # - the physical_network can be a single name (all VFs to be allocated on same physnet)
 #   of a list of physnet names to use different PFs
+# - mpls_transport_labels is used oonly when MPLS encapsulation is enabled (mpls: true)
+#   this parameter doesn't support auto-indexing becuase this is not a typical scenario
+#   expected the list of values in a range 256-1048575
 #
 # Example of 2-chain configuration:
 # internal_networks:
@@ -405,6 +409,7 @@ internal_networks:
         network_type: 'vlan'
         segmentation_id:
         physical_network:
+        mpls_transport_labels:
     right:
         name: 'nfvbench-rnet'
         subnet: 'nfvbench-rsubnet'
@@ -412,6 +417,7 @@ internal_networks:
         network_type: 'vlan'
         segmentation_id:
         physical_network:
+        mpls_transport_labels:
     middle:
         name: 'nfvbench-mnet'
         subnet: 'nfvbench-msubnet'
@@ -419,6 +425,7 @@ internal_networks:
         network_type: 'vlan'
         segmentation_id:
         physical_network:
+        mpls_transport_labels:
 
 # IDLE INTERFACES: PVP, PVVP and non shared net only.
 # By default each test VM will have 2 virtual interfaces for looping traffic.
@@ -436,7 +443,7 @@ idle_networks:
     # Prefix for all idle networks, the final name will append the chain ID and idle index
     # e.g. "nfvbench-idle-net.0.4" chain 0 idle index 4
     name: 'nfvbench-idle-net'
-    # Subnet name to use for all idle subnetworks 
+    # Subnet name to use for all idle subnetworks
     subnet: 'nfvbench-idle-subnet'
     # CIDR to use for all idle networks (value should not matter)
     cidr: '192.169.1.0/24'
@@ -537,7 +544,7 @@ use_sriov_middle_net: false
 # external_networks:
 #   left:  ['ext-lnet', 'ext-lnet2']
 #   right: ['ext-rnet', 'ext-rnet2']
-# 
+#
 external_networks:
     left:
     right:
@@ -579,13 +586,15 @@ edge_networks:
 # Use 'true' to enable VXLAN encapsulation support and sent by the traffic generator
 # When this option enabled internal networks 'network type' parameter value should be 'vxlan'
 vxlan: false
-
+# Use 'true' to enable MPLS encapsulation support and sent by the traffic generator
+# When this option enabled internal networks 'network type' parameter value should be 'mpls'
+mpls: false
 # Use 'true' to enable VLAN tagging of packets generated and sent by the traffic generator
 # Leave empty or set to false if you do not want the traffic generator to insert the VLAN tag (this is
 # needed for example if VLAN tagging is enabled on switch (access mode) or if you want to hook
 # directly to a NIC).
 # By default is set to true (which is the nominal use case with TOR and trunk mode to Trex ports)
-# If VxLAN is enabled, this option should be set to false (vlan tagging for encapsulated packets
+# If VxLAN or MPLS are enabled, this option should be set to false (vlan tagging for encapsulated packets
 # is not supported). Use the vtep_vlan option to enable vlan tagging for the VxLAN overlay network.
 vlan_tagging: true
 

@@ -26,6 +26,9 @@ from netaddr import IPNetwork
 from trex.stl.api import Ether
 from trex.stl.api import STLError
 from trex.stl.api import UDP
+# pylint: disable=wrong-import-order
+from scapy.contrib.mpls import MPLS  # flake8: noqa
+# pylint: enable=wrong-import-order
 # pylint: enable=import-error
 
 from .log import LOG
@@ -35,7 +38,6 @@ from .stats_collector import IntervalCollector
 from .stats_collector import IterationCollector
 from .traffic_gen import traffic_utils as utils
 from .utils import cast_integer
-
 
 class TrafficClientException(Exception):
     """Generic traffic client exception."""
@@ -158,6 +160,9 @@ class Device(object):
         self.vtep_vlan = None
         self.vtep_src_mac = None
         self.vxlan = False
+        self.mpls = False
+        self.inner_labels = None
+        self.outer_labels = None
         self.pci = generator_config.interfaces[port].pci
         self.mac = None
         self.dest_macs = None
@@ -241,9 +246,24 @@ class Device(object):
         LOG.info("Port %d: src_vtep %s, dst_vtep %s", self.port,
                  self.vtep_src_ip, self.vtep_dst_ip)
 
+    def set_mpls_peers(self, src_ip, dst_ip):
+        self.mpls = True
+        self.vtep_dst_ip = dst_ip
+        self.vtep_src_ip = src_ip
+        LOG.info("Port %d: src_mpls_vtep %s, mpls_peer_ip %s", self.port,
+                 self.vtep_src_ip, self.vtep_dst_ip)
+
     def set_vxlans(self, vnis):
         self.vnis = vnis
         LOG.info("Port %d: VNIs %s", self.port, self.vnis)
+
+    def set_mpls_inner_labels(self, labels):
+        self.inner_labels = labels
+        LOG.info("Port %d: MPLS Inner Labels %s", self.port, self.inner_labels)
+
+    def set_mpls_outer_labels(self, labels):
+        self.outer_labels = labels
+        LOG.info("Port %d: MPLS Outer Labels %s", self.port, self.outer_labels)
 
     def set_gw_ip(self, gateway_ip):
         self.gw_ip_block = IpBlock(gateway_ip,
@@ -296,11 +316,15 @@ class Device(object):
                 'vlan_tag': self.vlans[chain_idx] if self.vlans else None,
                 'vxlan': self.vxlan,
                 'vtep_vlan': self.vtep_vlan if self.vtep_vlan else None,
-                'vtep_src_mac': self.mac if self.vxlan is True else None,
-                'vtep_dst_mac': self.vtep_dst_mac if self.vxlan is True else None,
+                'vtep_src_mac': self.mac if (self.vxlan or self.mpls is True) else None,
+                'vtep_dst_mac': self.vtep_dst_mac if (self.vxlan or self.mpls is True) else None,
                 'vtep_dst_ip': self.vtep_dst_ip if self.vxlan is True else None,
                 'vtep_src_ip': self.vtep_src_ip if self.vxlan is True else None,
-                'net_vni': self.vnis[chain_idx] if self.vxlan is True else None
+                'net_vni': self.vnis[chain_idx] if self.vxlan is True else None,
+                'mpls': self.mpls,
+                'mpls_outer_label': self.outer_labels[chain_idx] if self.mpls is True else None,
+                'mpls_inner_label': self.inner_labels[chain_idx] if self.mpls is True else None
+
             })
             # after first chain, fall back to the flow count for all other chains
             cur_chain_flow_count = flows_per_chain
@@ -445,6 +469,28 @@ class GeneratorConfig(object):
                                          (vxlans, self.config.service_chain_count))
         self.devices[port_index].set_vxlans(vxlans)
 
+    def set_mpls_inner_labels(self, port_index, labels):
+        """Set the list of MPLS Labels to use indexed by the chain id on given port.
+
+        port_index: the port for which Labels must be set
+        Labels: a list of Labels lists indexed by chain id
+        """
+        if len(labels) != self.config.service_chain_count:
+            raise TrafficClientException('Inner MPLS list %s must have %d entries' %
+                                         (labels, self.config.service_chain_count))
+        self.devices[port_index].set_mpls_inner_labels(labels)
+
+    def set_mpls_outer_labels(self, port_index, labels):
+        """Set the list of MPLS Labels to use indexed by the chain id on given port.
+
+        port_index: the port for which Labels must be set
+        Labels: a list of Labels lists indexed by chain id
+        """
+        if len(labels) != self.config.service_chain_count:
+            raise TrafficClientException('Outer MPLS list %s must have %d entries' %
+                                         (labels, self.config.service_chain_count))
+        self.devices[port_index].set_mpls_outer_labels(labels)
+
     def set_vtep_vlan(self, port_index, vlan):
         """Set the vtep vlan to use indexed by the chain id on given port.
         port_index: the port for which VLAN must be set
@@ -453,6 +499,9 @@ class GeneratorConfig(object):
 
     def set_vxlan_endpoints(self, port_index, src_ip, dst_ip):
         self.devices[port_index].set_vxlan_endpoints(src_ip, dst_ip)
+
+    def set_mpls_peers(self, port_index, src_ip, dst_ip):
+        self.devices[port_index].set_mpls_peers(src_ip, dst_ip)
 
     @staticmethod
     def __match_generator_profile(traffic_generator, generator_profile):
@@ -607,6 +656,9 @@ class TrafficClient(object):
             get_mac_id = lambda packet: packet['binary'][60:66]
         elif self.config.vxlan:
             get_mac_id = lambda packet: packet['binary'][56:62]
+        elif self.config.mpls:
+            get_mac_id = lambda packet: packet['binary'][24:30]
+            # mpls_transport_label = lambda packet: packet['binary'][14:18]
         else:
             get_mac_id = lambda packet: packet['binary'][6:12]
         for it in range(retry_count):
@@ -624,11 +676,18 @@ class TrafficClient(object):
             for packet in self.gen.packet_list:
                 mac_id = get_mac_id(packet).decode('latin-1')
                 src_mac = ':'.join(["%02x" % ord(x) for x in mac_id])
-                if src_mac in mac_map and self.is_udp(packet):
-                    port, chain = mac_map[src_mac]
-                    LOG.info('Received packet from mac: %s (chain=%d, port=%d)',
-                             src_mac, chain, port)
-                    mac_map.pop(src_mac, None)
+                if self.config.mpls:
+                    if src_mac in mac_map and self.is_mpls(packet):
+                        port, chain = mac_map[src_mac]
+                        LOG.info('Received mpls packet from mac: %s (chain=%d, port=%d)',
+                                 src_mac, chain, port)
+                        mac_map.pop(src_mac, None)
+                else:
+                    if src_mac in mac_map and self.is_udp(packet):
+                        port, chain = mac_map[src_mac]
+                        LOG.info('Received udp packet from mac: %s (chain=%d, port=%d)',
+                                 src_mac, chain, port)
+                        mac_map.pop(src_mac, None)
 
                 if not mac_map:
                     LOG.info('End-to-end connectivity established')
@@ -645,12 +704,16 @@ class TrafficClient(object):
         pkt = Ether(packet['binary'])
         return UDP in pkt
 
+    def is_mpls(self, packet):
+        pkt = Ether(packet['binary'])
+        return MPLS in pkt
+
     def ensure_arp_successful(self):
         """Resolve all IP using ARP and throw an exception in case of failure."""
         dest_macs = self.gen.resolve_arp()
         if dest_macs:
             # all dest macs are discovered, saved them into the generator config
-            if self.config.vxlan:
+            if self.config.vxlan or self.config.mpls:
                 self.generator_config.set_vtep_dest_macs(0, dest_macs[0])
                 self.generator_config.set_vtep_dest_macs(1, dest_macs[1])
             else:
@@ -676,6 +739,10 @@ class TrafficClient(object):
                 self.run_config['rates'][idx] = {'rate_pps': self.__convert_rates(rate)['rate_pps']}
 
         self.gen.clear_streamblock()
+
+        if not self.config.vxlan and not self.config.mpls:
+            self.config.no_latency_streams = True
+
         if self.config.no_latency_streams:
             LOG.info("Latency streams are disabled")
         self.gen.create_traffic(frame_size, self.run_config['rates'], bidirectional,

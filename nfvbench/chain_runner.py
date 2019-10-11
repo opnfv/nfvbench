@@ -96,6 +96,22 @@ class ChainRunner(object):
             gen_config.set_vxlan_endpoints(1, src_vteps[1], dst_vtep)
             self.config['vxlan_gen_config'] = gen_config
 
+        if config.mpls:
+            # MPLS VPN is discovered from the networks
+            src_vteps = gen_config.gen_config.src_vteps
+            dst_peer_ips = gen_config.gen_config.dst_peer_ips
+            gen_config.set_mpls_inner_labels(0, self.chain_manager.get_chain_mpls_inner_labels(0))
+            gen_config.set_mpls_inner_labels(1, self.chain_manager.get_chain_mpls_inner_labels(1))
+            outer_mpls_labels_left = self.config.internal_networks.left.mpls_transport_labels
+            outer_mpls_labels_right = self.config.internal_networks.right.mpls_transport_labels
+            if outer_mpls_labels_left or outer_mpls_labels_right:
+                gen_config.set_mpls_outer_labels(0, outer_mpls_labels_left)
+                gen_config.set_mpls_outer_labels(1, outer_mpls_labels_right)
+            # Configuring source an remote VTEPs on TREx interfaces
+            gen_config.set_mpls_peers(0, src_vteps[0], dst_peer_ips[0])
+            gen_config.set_mpls_peers(1, src_vteps[1], dst_peer_ips[1])
+            self.config['mpls_gen_config'] = gen_config
+
         # get an instance of the stats manager
         self.stats_manager = StatsManager(self)
         LOG.info('ChainRunner initialized')
@@ -103,9 +119,10 @@ class ChainRunner(object):
     def __setup_traffic(self):
         self.traffic_client.setup()
         if not self.config.no_traffic:
-            # ARP is needed for EXT chain or VxLAN overlay unless disabled explicitly
-            if (self.config.service_chain == ChainType.EXT or
-                    self.config.vxlan or self.config.l3_router) and not self.config.no_arp:
+            # ARP is needed for EXT chain or VxLAN overlay or MPLS unless disabled explicitly
+            if (self.config.service_chain == ChainType.EXT or self.config.mpls or
+                    self.config.vxlan or self.config.l3_router) \
+                    and not self.config.no_arp:
                 self.traffic_client.ensure_arp_successful()
             self.traffic_client.ensure_end_to_end()
 
@@ -166,10 +183,9 @@ class ChainRunner(object):
 
         LOG.info('Starting %dx%s benchmark...', self.config.service_chain_count, self.chain_name)
         self.stats_manager.create_worker()
-        if self.config.vxlan:
+        if self.config.vxlan or self.config.mpls:
             # Configure vxlan tunnels
             self.stats_manager.worker.config_interfaces()
-
         self.__setup_traffic()
 
         results[self.chain_name] = {'result': self.__get_chain_result()}

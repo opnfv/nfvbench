@@ -113,8 +113,8 @@ def get_intel_pci(nic_slot=None, nic_ports=None):
 
     if nic_slot and nic_ports:
         dmidecode = subprocess.check_output(['dmidecode', '-t', 'slot'])
-        regex = r"(?<=SlotID:%s).*?(....:..:..\..)" % nic_slot
-        match = re.search(regex, dmidecode, flags=re.DOTALL)
+        regex = r"(?<=SlotID:{}).*?(....:..:..\..)".format(nic_slot)
+        match = re.search(regex, dmidecode.decode('utf-8'), flags=re.DOTALL)
         if not match:
             return None
 

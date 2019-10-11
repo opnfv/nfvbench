@@ -25,6 +25,7 @@ Table of Content
    examples
    advanced
    pvpl3
+   mpls
    extchains
    fluentd
    sriov

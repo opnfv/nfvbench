@@ -17,11 +17,13 @@
 class Encaps(object):
     VLAN = "VLAN"
     VxLAN = "VxLAN"
+    MPLS = "MPLS"
     NO_ENCAPS = "NONE"
 
     encaps_mapping = {
         'VLAN': VLAN,
         'VXLAN': VxLAN,
+        'MPLS': MPLS,
         'NONE': NO_ENCAPS
     }
 

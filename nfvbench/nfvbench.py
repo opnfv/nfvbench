@@ -233,11 +233,14 @@ class NFVBench(object):
             raise Exception('vif_multiqueue_size (%d) must be in [1..8]' %
                             config.vif_multiqueue_size)
 
-        # VxLAN sanity checks
-        if config.vxlan:
+        # VxLAN and MPLS sanity checks
+        if config.vxlan or config.mpls:
             if config.vlan_tagging:
                 config.vlan_tagging = False
-                LOG.info('VxLAN: vlan_tagging forced to False '
+                config.no_latency_streams = True
+                config.no_latency_stats = True
+                config.no_flow_stats = True
+                LOG.info('VxLAN or MPLS: vlan_tagging forced to False '
                          '(inner VLAN tagging must be disabled)')
 
         self.config_plugin.validate_config(config, self.specs.openstack)
@@ -358,6 +361,11 @@ def _parse_opts_from_cli():
                         default=None,
                         action='store_true',
                         help='Enable VxLan encapsulation')
+
+    parser.add_argument('--mpls', dest='mpls',
+                        default=None,
+                        action='store_true',
+                        help='Enable MPLS encapsulation')
 
     parser.add_argument('--no-cleanup', dest='no_cleanup',
                         default=None,
@@ -602,6 +610,8 @@ def main():
             config.compute_nodes = opts.hypervisor
         if opts.vxlan:
             config.vxlan = True
+        if opts.mpls:
+            config.mpls = True
         if opts.restart:
             config.restart = True
         if opts.service_mode:

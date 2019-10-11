@@ -359,6 +359,11 @@ def _parse_opts_from_cli():
                         action='store_true',
                         help='Enable VxLan encapsulation')
 
+    parser.add_argument('--mpls', dest='mpls',
+                        default=None,
+                        action='store_true',
+                        help='Enable MPLS encapsulation')
+
     parser.add_argument('--no-cleanup', dest='no_cleanup',
                         default=None,
                         action='store_true',
@@ -602,6 +607,8 @@ def main():
             config.compute_nodes = opts.hypervisor
         if opts.vxlan:
             config.vxlan = True
+        if opts.mpls:
+            config.mpls = True
         if opts.restart:
             config.restart = True
         if opts.service_mode:

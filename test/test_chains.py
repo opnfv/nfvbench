@@ -72,6 +72,7 @@ def _get_chain_config(sc=ChainType.PVP, scc=1, shared_net=True, rate='1Mpps'):
     config.no_flow_stats = False
     config.no_latency_stats = False
     config.no_latency_streams = False
+    config.loop_vm_arp = True
     return config
 
 def test_chain_runner_ext_no_openstack():

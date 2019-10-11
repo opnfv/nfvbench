@@ -370,6 +370,15 @@ class ChainNetwork(object):
 
         return self.network['provider:segmentation_id']
 
+    def get_mpls_inner_label(self):
+        """
+        Extract MPLS VPN Label for this network.
+
+        :return: MPLS VPN Label for this network
+        """
+
+        return self.network['provider:segmentation_id']
+
     def delete(self):
         """Delete this network."""
         if not self.reuse and self.network:
@@ -927,6 +936,20 @@ class Chain(object):
             port_index = -1
         return self.networks[port_index].get_vxlan()
 
+    def get_mpls_inner_label(self, port_index):
+        """Get the MPLS VPN Label on a given port.
+
+        port_index: left port is 0, right port is 1
+        return: the vxlan_id or None if there is no vxlan
+        """
+        # for port 1 we need to return the VLAN of the last network in the chain
+        # The networks array contains 2 networks for PVP [left, right]
+        # and 3 networks in the case of PVVP [left.middle,right]
+        if port_index:
+            # this will pick the last item in array
+            port_index = -1
+        return self.networks[port_index].get_mpls_inner_label()
+
     def get_dest_mac(self, port_index):
         """Get the dest MAC on a given port.
 
@@ -1244,8 +1267,7 @@ class ChainManager(object):
         for chain in self.chains:
             instances.extend(chain.get_instances())
         initial_instance_count = len(instances)
-        # Give additional 10 seconds per VM
-        max_retries = (self.config.check_traffic_time_sec + (initial_instance_count - 1) * 10 +
+        max_retries = (self.config.check_traffic_time_sec +
                        self.config.generic_poll_sec - 1) / self.config.generic_poll_sec
         retry = 0
         while instances:
@@ -1421,6 +1443,18 @@ class ChainManager(object):
                     for chain_index in range(self.chain_count)]
         # no openstack
         raise ChainException('VxLAN is only supported with OpenStack and with admin user')
+
+    def get_chain_mpls_inner_labels(self, port_index):
+        """Get the list of per chain MPLS VPN Labels on a given port.
+
+        port_index: left port is 0, right port is 1
+        return: a VNIs ID list indexed by the chain index or None if no vlan tagging
+        """
+        if self.chains and self.is_admin:
+            return [self.chains[chain_index].get_mpls_inner_label(port_index)
+                    for chain_index in range(self.chain_count)]
+        # no openstack
+        raise ChainException('MPLS is only supported with OpenStack and with admin user')
 
     def get_dest_macs(self, port_index):
         """Get the list of per chain dest MACs on a given port.

@@ -20,6 +20,9 @@ import time
 import traceback
 
 from itertools import count
+# pylint: disable=import-error
+from scapy.contrib.mpls import MPLS  # flake8: noqa
+# pylint: enable=import-error
 from nfvbench.log import LOG
 from nfvbench.traffic_server import TRexTrafficServer
 from nfvbench.utils import cast_integer
@@ -363,6 +366,17 @@ class TRex(AbstractTrafficGenerator):
                 op="random")
             vm_param = [vxlan_udp_src_fv,
                         STLVmWrFlowVar(fv_name="vxlan_udp_src", pkt_offset="UDP.sport")]
+        elif stream_cfg['mpls'] is True:
+            encap_level = '0'
+            pkt_base = Ether(src=stream_cfg['vtep_src_mac'], dst=stream_cfg['vtep_dst_mac'])
+            if stream_cfg['vtep_vlan'] is not None:
+                pkt_base /= Dot1Q(vlan=stream_cfg['vtep_vlan'])
+            if stream_cfg['mpls_outer_label'] is not None:
+                pkt_base /= MPLS(label=stream_cfg['mpls_outer_label'], cos=1, s=0, ttl=255)
+            if stream_cfg['mpls_inner_label'] is not None:
+                pkt_base /= MPLS(label=stream_cfg['mpls_inner_label'], cos=1, s=1, ttl=255)
+            #  Flow stats and MPLS labels randomization TBD
+            pkt_base /= Ether(src=stream_cfg['mac_src'], dst=stream_cfg['mac_dst'])
         else:
             encap_level = '0'
             pkt_base = Ether(src=stream_cfg['mac_src'], dst=stream_cfg['mac_dst'])
@@ -443,7 +457,7 @@ class TRex(AbstractTrafficGenerator):
         if l2frame == 'IMIX':
             for ratio, l2_frame_size in zip(IMIX_RATIOS, IMIX_L2_SIZES):
                 pkt = self._create_pkt(stream_cfg, l2_frame_size)
-                if e2e:
+                if e2e or stream_cfg['mpls']:
                     streams.append(STLStream(packet=pkt,
                                              mode=STLTXCont(pps=ratio)))
                 else:
@@ -466,8 +480,10 @@ class TRex(AbstractTrafficGenerator):
         else:
             l2frame_size = int(l2frame)
             pkt = self._create_pkt(stream_cfg, l2frame_size)
-            if e2e:
+            if e2e or stream_cfg['mpls']:
                 streams.append(STLStream(packet=pkt,
+                                         # Flow stats is disabled for MPLS now
+                                         # flow_stats=STLFlowStats(pg_id=pg_id),
                                          mode=STLTXCont()))
             else:
                 if stream_cfg['vxlan'] is True:
@@ -648,7 +664,7 @@ class TRex(AbstractTrafficGenerator):
             dst_macs = [None] * chain_count
             dst_macs_count = 0
             # the index in the list is the chain id
-            if self.config.vxlan:
+            if self.config.vxlan or self.config.mpls:
                 arps = [
                     ServiceARP(ctx,
                                src_ip=device.vtep_src_ip,

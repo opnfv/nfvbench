@@ -46,12 +46,13 @@ class TrafficClientException(Exception):
 class TrafficRunner(object):
     """Serialize various steps required to run traffic."""
 
-    def __init__(self, client, duration_sec, interval_sec=0):
+    def __init__(self, client, duration_sec, interval_sec=0, service_mode=False):
         """Create a traffic runner."""
         self.client = client
         self.start_time = None
         self.duration_sec = duration_sec
         self.interval_sec = interval_sec
+        self.service_mode = service_mode
 
     def run(self):
         """Clear stats and instruct the traffic generator to start generating traffic."""
@@ -59,6 +60,10 @@ class TrafficRunner(object):
             return None
         LOG.info('Running traffic generator')
         self.client.gen.clear_stats()
+        # Debug use only : new '--service-mode' option available for the NFVBench command line.
+        # A read-only mode TRex console would be able to capture the generated traffic.
+        self.client.gen.set_service_mode(enabled=self.service_mode)
+        LOG.info('Service mode is %sabled', 'en' if self.service_mode else 'dis')
         self.client.gen.start_traffic()
         self.start_time = time.time()
         return self.poll_stats()
@@ -486,7 +491,8 @@ class TrafficClient(object):
         self.notifier = notifier
         self.interval_collector = None
         self.iteration_collector = None
-        self.runner = TrafficRunner(self, self.config.duration_sec, self.config.interval_sec)
+        self.runner = TrafficRunner(self, self.config.duration_sec, self.config.interval_sec,
+                                    self.config.service_mode)
         self.config.frame_sizes = self._get_frame_sizes()
         self.run_config = {
             'l2frame_size': None,

@@ -433,6 +433,11 @@ def _parse_opts_from_cli():
                         metavar='<vlan>',
                         help='Port to port or port to switch to port L2 loopback with VLAN id')
 
+    parser.add_argument('--service-mode', dest='service_mode',
+                        action='store_true',
+                        default=False,
+                        help='Enable T-Rex service mode for debugging only')
+
     opts, unknown_opts = parser.parse_known_args()
     return opts, unknown_opts
 

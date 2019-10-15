@@ -330,7 +330,8 @@ def _get_dummy_tg_config(chain_type, rate, scc=1, fc=10, step_ip='0.0.0.1',
         'l2_loopback': False,
         'cores': None,
         'mbuf_factor': None,
-        'disable_hdrh': None
+        'disable_hdrh': None,
+        'service_mode': False
 
     })
 

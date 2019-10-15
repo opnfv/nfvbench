@@ -677,3 +677,9 @@ user_label:
 # Can be overriden by --no-vswitch-access
 # Should be left to the default value (false)
 no_vswitch_access: false
+
+
+# Enable service mode for trafic capture from TRex console (for debugging purpose)
+# Can be overriden by --service-mode
+# Should be left to the default value (false)
+service_mode: false

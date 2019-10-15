@@ -687,7 +687,10 @@ class TRex(AbstractTrafficGenerator):
                           chain_count)
                 break
 
-        self.client.set_service_mode(ports=self.port_handle, enabled=False)
+        # if the capture from the TRex console was started before the arp request step,
+        # it keeps 'service_mode' enabled, otherwise, it disables the 'service_mode'
+        if not self.config.service_mode:
+            self.client.set_service_mode(ports=self.port_handle, enabled=False)
         if len(arp_dest_macs) == len(self.port_handle):
             return arp_dest_macs
         return None
@@ -829,7 +832,10 @@ class TRex(AbstractTrafficGenerator):
         if self.capture_id:
             self.client.stop_capture(capture_id=self.capture_id['id'])
             self.capture_id = None
-            self.client.set_service_mode(ports=self.port_handle, enabled=False)
+            # if the capture from TRex console was started before the connectivity step,
+            # it keeps 'service_mode' enabled, otherwise, it disables the 'service_mode'
+            if not self.config.service_mode:
+                self.client.set_service_mode(ports=self.port_handle, enabled=False)
 
     def cleanup(self):
         """Cleanup Trex driver."""
@@ -840,3 +846,7 @@ class TRex(AbstractTrafficGenerator):
             except STLError:
                 # TRex does not like a reset while in disconnected state
                 pass
+
+    def set_service_mode(self, enabled=True):
+        """Enable/disable the 'service_mode'."""
+        self.client.set_service_mode(ports=self.port_handle, enabled=enabled)

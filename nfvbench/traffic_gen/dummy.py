@@ -201,6 +201,9 @@ class DummyTG(AbstractTrafficGenerator):
     def set_mode(self):
         pass
 
+    def set_service_mode(self, enabled=True):
+        pass
+
     def resolve_arp(self):
         """Resolve ARP sucessfully."""
         def get_macs(port, scc):

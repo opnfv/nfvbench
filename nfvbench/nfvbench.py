@@ -439,6 +439,11 @@ def _parse_opts_from_cli():
                         default='0',
                         help='Specify the FE cache size (default: 0, flow-count if < 0)')
 
+    parser.add_argument('--service-mode', dest='service_mode',
+                        action='store_true',
+                        default=False,
+                        help='Enable T-Rex service mode for debugging only')
+
     opts, unknown_opts = parser.parse_known_args()
     return opts, unknown_opts
 

@@ -482,10 +482,15 @@ class TRex(AbstractTrafficGenerator):
                 pkt = self._create_pkt(stream_cfg, 68)
 
         if latency:
-            # TRex limitation: VXLAN skip is not supported for latency stream
-            streams.append(STLStream(packet=pkt,
-                                     flow_stats=STLFlowLatencyStats(pg_id=lat_pg_id),
-                                     mode=STLTXCont(pps=self.LATENCY_PPS)))
+            if stream_cfg['vxlan'] is True:
+                streams.append(STLStream(packet=pkt,
+                                         flow_stats=STLFlowLatencyStats(pg_id=lat_pg_id,
+                                                                        vxlan=True),
+                                         mode=STLTXCont(pps=self.LATENCY_PPS)))
+            else:
+                streams.append(STLStream(packet=pkt,
+                                         flow_stats=STLFlowLatencyStats(pg_id=lat_pg_id),
+                                         mode=STLTXCont(pps=self.LATENCY_PPS)))
         return streams
 
     @timeout(5)

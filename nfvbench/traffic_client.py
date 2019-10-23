@@ -673,12 +673,7 @@ class TrafficClient(object):
                 self.run_config['rates'][idx] = {'rate_pps': self.__convert_rates(rate)['rate_pps']}
 
         self.gen.clear_streamblock()
-        if not self.config.vxlan:
-            self.gen.create_traffic(frame_size, self.run_config['rates'], bidirectional,
-                                    latency=True)
-        else:
-            self.gen.create_traffic(frame_size, self.run_config['rates'], bidirectional,
-                                    latency=False)
+        self.gen.create_traffic(frame_size, self.run_config['rates'], bidirectional, latency=True)
 
     def _modify_load(self, load):
         self.current_total_rate = {'rate_percent': str(load)}

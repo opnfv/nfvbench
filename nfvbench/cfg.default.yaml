@@ -83,6 +83,11 @@ flavor:
 # test VM will only use the first 2 queues.
 vif_multiqueue_size: 1
 
+# Increase number of buffers allocated for VPP VM forwarder. May be needed in scenarios with large
+# number of interfaces and worker threads, or a lot of physical interfaces with multiple RSS queues.
+# Value is per CPU socket. Default is 16384.
+num_mbufs: 16384
+
 # Name of the availability zone to use for the test VMs
 # Must be one of the zones listed by 'nova availability-zone-list'
 # availability_zone: 'nova'
@@ -444,6 +449,63 @@ idle_networks:
     # For example, for 4 PVP chains and 8 idle
     # interfaces per VM, NFVbench will use 32 consecutive values of segmentation ID
     # starting from the value provided.
+    segmentation_id:
+    # physnet name to use for all idle interfaces
+    physical_network:
+
+# MANAGEMENT INTERFACE
+# By default each test VM will have 2 virtual interfaces for looping traffic.
+# If use_management_port is true, additional virtual interface can be
+# added at VM creation time, this interface will be used for VM management over SSH.
+# This will be helpful for debug (forwarder config, capture traffic...)
+# or to emulate VNF with management interface
+use_management_port: false
+
+# If a network with given name already exists it will be reused.
+# Otherwise a new network is created for management interface.
+# If use_management_port is false, the options below will be ignored
+# and no management interface will be added.
+management_network:
+    name: 'nfvbench-management-net'
+    # Subnet name to use for management subnetwork
+    subnet: 'nfvbench-management-subnet'
+    # CIDR to use for management network
+    cidr: '192.168.0.0/24'
+    gateway: '192.168.0.254'
+    # Type of network associated to the management virtual interface (vlan or vxlan)
+    network_type: 'vlan'
+    # segmentation ID to use for the network attached to the management virtual interface
+    # vlan: leave empty to let neutron pick the segmentation ID
+    # vxlan: must specify the starting VNI value to be used (cannot be empty)
+    segmentation_id:
+    # physnet name to use for all idle interfaces
+    physical_network:
+
+# Floating IP for management interface
+# If use_floating_ip is true, floating IP will be set on management interface port
+# One floating IP by loop VM will be used (floating ips are often limited,
+# use them on limited context mainly for debug). If there are 10 PVP chains, this will require 10
+# floating IPs. If 10 PVVP chains, it will require 20 floating IPs
+use_floating_ip: false
+
+# If a network with given name already exists it will be reused.
+# Set same name as management_network if you want to use a floating IP from this network
+# Otherwise set name, subnet and CIDR information from your floating IP pool network
+# Floating network used to set floating IP on management port.
+# Only 1 floating network will be used for all VMs and chains (shared network).
+# If use_floating_ip is false, the options below will be ignored
+# and no floating IP will be added.
+floating_network:
+    name: 'nfvbench-floating-net'
+    # Subnet name to use for floating subnetwork
+    subnet: 'nfvbench-floating-subnet'
+    # CIDR to use for floating network
+    cidr: '192.168.0.0/24'
+    # Type of network associated to the management virtual interface (vlan or vxlan)
+    network_type: 'vlan'
+    # segmentation ID to use for the network attached to the management virtual interface
+    # vlan: leave empty to let neutron pick the segmentation ID
+    # vxlan: must specify the starting VNI value to be used (cannot be empty)
     segmentation_id:
     # physnet name to use for all idle interfaces
     physical_network:

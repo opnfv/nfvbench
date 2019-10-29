@@ -182,6 +182,21 @@ class ChainVnfPort(object):
         """Get the IP address for this port."""
         return self.port['fixed_ips'][0]['ip_address']
 
+    def set_floating_ip(self, chain_network):
+        # create and add floating ip to port
+        try:
+            floating_ip = self.manager.neutron_client.create_floatingip({
+                'floatingip': {
+                    'floating_network_id': chain_network.get_uuid(),
+                    'port_id': self.port['id'],
+                }
+            })['floatingip']
+            LOG.info('Floating IP %s created and associated on port %s',
+                     floating_ip['floating_ip_address'], self.name)
+            return floating_ip['floating_ip_address']
+        except Exception:
+            LOG.info('Failed to created and associated floating ip on port %s (ignored)', self.name)
+
     def delete(self):
         """Delete this port instance."""
         if self.reuse or not self.port:
@@ -397,6 +412,7 @@ class ChainVnf(object):
         # For example if 7 idle interfaces are requested, the corresp. ports will be
         # at index 2 to 8
         self.ports = []
+        self.management_port = None
         self.routers = []
         self.status = None
         self.instance = None
@@ -465,8 +481,21 @@ class ChainVnf(object):
             'vnf_gateway2_cidr': vnf_gateway2_cidr,
             'tg_mac1': tg_mac1,
             'tg_mac2': tg_mac2,
-            'vif_mq_size': config.vif_multiqueue_size
+            'vif_mq_size': config.vif_multiqueue_size,
+            'num_mbufs': config.num_mbufs
         }
+        if self.manager.config.use_management_port:
+            mgmt_ip = self.management_port.port['fixed_ips'][0]['ip_address']
+            mgmt_mask = self.manager.config.management_network.cidr[-3:]
+            vm_config['intf_mgmt_cidr'] = mgmt_ip + mgmt_mask
+            vm_config['intf_mgmt_ip_gw'] = self.manager.config.management_network.gateway
+            vm_config['intf_mac_mgmt'] = self.management_port.port['mac_address']
+        else:
+            # Interface management config left empty to avoid error in VM spawn
+            # if nfvbench config has values for management network but use_management_port=false
+            vm_config['intf_mgmt_cidr'] = ''
+            vm_config['intf_mgmt_ip_gw'] = ''
+            vm_config['intf_mac_mgmt'] = ''
         return content.format(**vm_config)
 
     def _get_vnic_type(self, port_index):
@@ -575,17 +604,36 @@ class ChainVnf(object):
                 self.instance = instance
                 LOG.info('Reusing existing instance %s on %s',
                          self.name, self.get_hypervisor_name())
+        # create management port if needed
+        if self.manager.config.use_management_port:
+            self.management_port = ChainVnfPort(self.name + '-mgmt',
+                                                self,
+                                                ChainNetwork(self.manager,
+                                                             self.manager.config.management_network,
+                                                             None, False),
+                                                'normal')
+            if self.manager.config.use_floating_ip:
+                floating_network = ChainNetwork(self.manager,
+                                                self.manager.config.floating_network,
+                                                None, False)
+                ip = self.management_port.set_floating_ip(floating_network)
+            else:
+                ip = self.management_port.port['fixed_ips'][0]['ip_address']
+            LOG.info("Management interface will be active using IP: %s, "
+                     "and you can connect over SSH with login: nfvbench and password: nfvbench", ip)
         # create or reuse/discover 2 ports per instance
         if self.manager.config.l3_router:
-            self.ports = [ChainVnfPort(self.name + '-' + str(index),
-                                       self,
-                                       networks[index + 2],
-                                       self._get_vnic_type(index)) for index in [0, 1]]
+            for index in [0, 1]:
+                self.ports.append(ChainVnfPort(self.name + '-' + str(index),
+                                               self,
+                                               networks[index + 2],
+                                               self._get_vnic_type(index)))
         else:
-            self.ports = [ChainVnfPort(self.name + '-' + str(index),
-                                       self,
-                                       networks[index],
-                                       self._get_vnic_type(index)) for index in [0, 1]]
+            for index in [0, 1]:
+                self.ports.append(ChainVnfPort(self.name + '-' + str(index),
+                                               self,
+                                               networks[index],
+                                               self._get_vnic_type(index)))
 
         # create idle networks and ports only if instance is not reused
         # if reused, we do not care about idle networks/ports
@@ -627,8 +675,10 @@ class ChainVnf(object):
     def create_vnf(self, remote_mac_pair):
         """Create the VNF instance if it does not already exist."""
         if self.instance is None:
-            port_ids = [{'port-id': vnf_port.port['id']}
-                        for vnf_port in self.ports]
+            port_ids = []
+            if self.manager.config.use_management_port:
+                port_ids.append({'port-id': self.management_port.port['id']})
+            port_ids.extend([{'port-id': vnf_port.port['id']} for vnf_port in self.ports])
             # add idle ports
             for idle_port in self.idle_ports:
                 port_ids.append({'port-id': idle_port.port['id']})

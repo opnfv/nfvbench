@@ -10,6 +10,8 @@ numactl-libs:
 numactl-devel:
 vpp:
 vpp-plugins:
+vpp-config:
 kernel-firmware:
 kernel-headers:
 kernel-devel:
+openssh-server:

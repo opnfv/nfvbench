@@ -104,16 +104,25 @@ class NetworkCleaner(object):
             LOG.info('Discovering ports...')
             all_ports = self.neutron_client.list_ports()['ports']
             self.ports = [port for port in all_ports if port['network_id'] in net_ids]
+            LOG.info('Discovering floating ips...')
+            all_floating_ips = self.neutron_client.list_floatingips()['floatingips']
+            self.floating_ips = [floating_ip for floating_ip in all_floating_ips if
+                                 floating_ip['floating_network_id'] in net_ids and "nfvbench" in
+                                 floating_ip['description']]
         else:
             self.ports = []
+            self.floating_ips = []
 
     def get_resource_list(self):
         res_list = [["Network", net['name'], net['id']] for net in self.networks]
         res_list.extend([["Port", port['name'], port['id']] for port in self.ports])
+        res_list.extend(
+            [["Floating IP", floating_ip['description'], floating_ip['id']] for floating_ip in
+             self.floating_ips])
         return res_list
 
     def get_cleaner_code(self):
-        return "networks and ports"
+        return "networks, ports and floating ips"
 
     def clean_needed(self, clean_options):
         if clean_options is None:
@@ -129,7 +138,12 @@ class NetworkCleaner(object):
                     self.neutron_client.delete_port(port['id'])
                 except Exception:
                     LOG.exception("Port deletion failed")
-
+            for floating_ip in self.floating_ips:
+                LOG.info("Deleting floating ip %s...", floating_ip['id'])
+                try:
+                    self.neutron_client.delete_floatingip(floating_ip['id'])
+                except Exception:
+                    LOG.exception("Floating IP deletion failed")
             # associated subnets are automatically deleted by neutron
             for net in self.networks:
                 LOG.info("Deleting network %s...", net['name'])
@@ -255,6 +269,8 @@ class Cleaner(object):
         self.nova_client = Client(2, session=session)
         network_names = [inet['name'] for inet in config.internal_networks.values()]
         network_names.extend([inet['name'] for inet in config.edge_networks.values()])
+        network_names.extend(config.management_network['name'])
+        network_names.extend(config.floating_network['name'])
         router_names = [rtr['router_name'] for rtr in config.edge_networks.values()]
         # add idle networks as well
         if config.idle_networks.name:

@@ -98,6 +98,26 @@ get_pci_address() {
     return 0
 }
 
+# Set VM MANAGEMENT port up and running
+if [ $INTF_MGMT_CIDR ] && [ $INTF_MGMT_IP_GW ]; then
+    ip addr add $INTF_MGMT_CIDR dev eth0
+    ip link set eth0 up
+    ip route add default via $INTF_MGMT_IP_GW dev eth0
+else
+    echo "ERROR: VM management IP Addresses missing in $NFVBENCH_CONF"
+fi
+
+# Set dynamically interfaces mac values, if VM is spawn without using NFVBench
+# and management interface is used on eth0
+if [ -z "$INTF_MAC1" ] && [ -z "$INTF_MAC2" ]; then
+    INTF_MAC1=$(ip l show eth1 | grep -o -Ei '([a-fA-F0-9:]{17}|[a-fA-F0-9]{12}$)' | head -1)
+    INTF_MAC2=$(ip l show eth2 | grep -o -Ei '([a-fA-F0-9:]{17}|[a-fA-F0-9]{12}$)' | head -1)
+else
+    echo "ERROR: VM MAC Addresses missing in $NFVBENCH_CONF"
+    logger "NFVBENCHVM ERROR: VM MAC Addresses missing in $NFVBENCH_CONF"
+fi
+
+
 # Sometimes the interfaces on the loopback VM will use different drivers, e.g.
 # one from vswitch which is virtio based, one is from SRIOV VF. In this case,
 # we have to make sure the forwarder uses them in the right order, which is
@@ -150,6 +170,7 @@ if [ $PCI_ADDRESS_1 ] && [ $PCI_ADDRESS_2 ]; then
         sed -i "s/{{PCI_ADDRESS_2}}/$PCI_ADDRESS_2/g" /etc/vpp/startup.conf
         sed -i "s/{{WORKER_CORES}}/$WORKER_CORES/g" /etc/vpp/startup.conf
         sed -i "s/{{VIF_MQ_SIZE}}/${VIF_MQ_SIZE}/g" /etc/vpp/startup.conf
+        sed -i "s/{{NUM_MBUFS}}/${NUM_MBUFS}/g" /etc/vpp/startup.conf
         service vpp start
         sleep 10
 
@@ -175,3 +196,10 @@ else
     echo "$INTF_MAC2: $PCI_ADDRESS_2"
     logger "NFVBENCHVM ERROR: Cannot find PCI Address from MAC"
 fi
+
+# Set SSH config
+logger $(cat /etc/ssh/sshd_config | grep "PasswordAuthentication")
+sed -i 's/PasswordAuthentication no/#PasswordAuthentication no/g' /etc/ssh/sshd_config
+sed -i 's/#PasswordAuthentication yes/PasswordAuthentication yes/g' /etc/ssh/sshd_config
+logger $(cat /etc/ssh/sshd_config | grep "PasswordAuthentication")
+service sshd restart

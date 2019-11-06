@@ -1,0 +1,140 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "60086db0_3ce2d3f4",
+        "filename": "nfvbench/cfg.default.yaml",
+        "patchSetId": 3
+      },
+      "lineNbr": 456,
+      "author": {
+        "id": 5807
+      },
+      "writtenOn": "2019-11-06T16:19:42Z",
+      "side": 1,
+      "message": "The shared net property only applies to the data plane interfaces while I understand you will use the same management network for all VMs (shared), but these 2 should be independent.\n(ie we should be able to use non shared network for data plane and shared network for mgmt).",
+      "revId": "a5e1ab41fd347fe52483512dbfce9d9ad4ae4911",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "df15337d_71f97de8",
+        "filename": "nfvbench/cfg.default.yaml",
+        "patchSetId": 3
+      },
+      "lineNbr": 459,
+      "author": {
+        "id": 5807
+      },
+      "writtenOn": "2019-11-06T16:19:42Z",
+      "side": 1,
+      "message": "Can you mention here the use case (in what conditions is this useful)\nI can only see 2 reasons for this, is to be able to ssh to the VM to debug, and second to emulate a typical VNF that will generally always have a mgmt port in addition to fwding ports.\nWe also need to document the user/password to use for the ssh in the case of a test VM - this info can also be displayed on the console while nfvbench initializes along with the floating IP to be used for each VM (LOG.info)",
+      "revId": "a5e1ab41fd347fe52483512dbfce9d9ad4ae4911",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5e7c8c5c_721d0364",
+        "filename": "nfvbench/cfg.default.yaml",
+        "patchSetId": 3
+      },
+      "lineNbr": 464,
+      "author": {
+        "id": 5807
+      },
+      "writtenOn": "2019-11-06T16:19:42Z",
+      "side": 1,
+      "message": "Add that the network will be reused if one of the same name already exists.",
+      "revId": "a5e1ab41fd347fe52483512dbfce9d9ad4ae4911",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c28ffde1_7f928d78",
+        "filename": "nfvbench/cfg.default.yaml",
+        "patchSetId": 3
+      },
+      "lineNbr": 482,
+      "author": {
+        "id": 5807
+      },
+      "writtenOn": "2019-11-06T16:19:42Z",
+      "side": 1,
+      "message": "clarify here if it is one floating IP per VM and per chain, and in the case of PVVP is it 2 floating IP per chain (I assume yes)\n\nthe only drawback of floating ip is that people usually have very small pool and it is therefore not usable to use floating IP with large number of chains.\nOne potential enhancement is to allow floating IP only on the first chain since in most cases this is useful to debug what is going on in the VM (can be done later if needed).\nHere must state that the user must have sufficient floating IP as there is one or 2 needed per chain.",
+      "revId": "a5e1ab41fd347fe52483512dbfce9d9ad4ae4911",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "591024c7_15a0404e",
+        "filename": "nfvbench/cfg.default.yaml",
+        "patchSetId": 3
+      },
+      "lineNbr": 501,
+      "author": {
+        "id": 5807
+      },
+      "writtenOn": "2019-11-06T16:19:42Z",
+      "side": 1,
+      "message": "Not sure if you really need a floating network?\nOpenstack allows to assign floating IP on VMs that connect to any network (here it would be management_network)",
+      "revId": "a5e1ab41fd347fe52483512dbfce9d9ad4ae4911",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0131dff1_8a428a37",
+        "filename": "nfvbench/chaining.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 487,
+      "author": {
+        "id": 5807
+      },
+      "writtenOn": "2019-11-06T16:19:42Z",
+      "side": 1,
+      "message": "-3 this will not work for all cases (e.g. \"/8\")",
+      "revId": "a5e1ab41fd347fe52483512dbfce9d9ad4ae4911",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ce83df2a_2cc9e490",
+        "filename": "nfvbenchvm/dib/elements/nfvbenchvm/static/etc/rc.d/rc.local",
+        "patchSetId": 3
+      },
+      "lineNbr": 107,
+      "author": {
+        "id": 5807
+      },
+      "writtenOn": "2019-11-06T16:19:42Z",
+      "side": 1,
+      "message": "both variables can be empty in case of management port disabled, so this should not be logged as an error.\nAnother potential issue is that here you assume the mgmt port is always eth0 bug this is not guaranteed. For ex if you create 3 ports with openstack APIs, the firsty one is not necessarily mapped to eth0, so we may have for ex:\nport0 -\u003e eth1\nport1 -\u003e eth0\nport3 -\u003e eth2\nThe only way to be sure is to match on the MAC address (ie nfvbench will note down the MAC for each port and note it in the vmconfig which MAC corresponds to which logical port).\nThat is why we have INTF_MAC1 and INTF_MAC2 so we know exactly which VM port corresponds to which neutron port.",
+      "revId": "a5e1ab41fd347fe52483512dbfce9d9ad4ae4911",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6e540eb6_0b4bdc7d",
+        "filename": "nfvbenchvm/dib/elements/nfvbenchvm/static/etc/rc.d/rc.local",
+        "patchSetId": 3
+      },
+      "lineNbr": 110,
+      "author": {
+        "id": 5807
+      },
+      "writtenOn": "2019-11-06T16:19:42Z",
+      "side": 1,
+      "message": "Is \"test VM spawned without NFVbench\" a new use case we need to support?",
+      "revId": "a5e1ab41fd347fe52483512dbfce9d9ad4ae4911",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": true
+    }
+  ]
+}

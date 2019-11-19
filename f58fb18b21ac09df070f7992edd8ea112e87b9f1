@@ -1,0 +1,123 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "eb5b24c6_5cba3d3d",
+        "filename": "nfvbench/cfg.default.yaml",
+        "patchSetId": 4
+      },
+      "lineNbr": 487,
+      "author": {
+        "id": 5807
+      },
+      "writtenOn": "2019-11-19T16:00:34Z",
+      "side": 1,
+      "message": "Add that it will be 1 floating ip per VM. If there are 10 PVP chains, this will require 10 floating IPs. If 10 PVVP chains, it will require 20 floating IPs.",
+      "revId": "f58fb18b21ac09df070f7992edd8ea112e87b9f1",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1e046b58_ab3f2b14",
+        "filename": "nfvbench/cfg.default.yaml",
+        "patchSetId": 4
+      },
+      "lineNbr": 495,
+      "author": {
+        "id": 5807
+      },
+      "writtenOn": "2019-11-19T16:00:34Z",
+      "side": 1,
+      "message": "Add that there will be only 1 floating ip network at most for any number of chains as all chains will share the same floating ip network",
+      "revId": "f58fb18b21ac09df070f7992edd8ea112e87b9f1",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b7021852_983b041c",
+        "filename": "nfvbench/chaining.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 489,
+      "author": {
+        "id": 5807
+      },
+      "writtenOn": "2019-11-19T16:00:34Z",
+      "side": 1,
+      "message": "still unresolved\n-3 this will not work for all cases (e.g. \"/8\")",
+      "revId": "f58fb18b21ac09df070f7992edd8ea112e87b9f1",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "712de11f_1824da97",
+        "filename": "nfvbench/chaining.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 618,
+      "author": {
+        "id": 5807
+      },
+      "writtenOn": "2019-11-19T16:00:34Z",
+      "side": 1,
+      "message": "There are 2 issues I can see here:\nThis new network floating_network must be saved as a class instance variable, so it can be cleaned up in the delete().\nSecondly, in the case of multi chaining you probably want to share the same floating ip network by all chains, so this ChainNetwork instance should be created and saved in the context of the ChainManager instead.\nSee as an example how shared networks are created in ChainManager.shared_networks (see ChainManager.__init__).\nI would suggest moving this creation code in ChainManager.__init__ and save it there as self.floating_ip_network. The in each VnfChain, you simply use self.manager.floating_ip_network",
+      "revId": "f58fb18b21ac09df070f7992edd8ea112e87b9f1",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8637ef55_fc4a1491",
+        "filename": "nfvbench/chaining.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 794,
+      "author": {
+        "id": 5807
+      },
+      "writtenOn": "2019-11-19T16:00:34Z",
+      "side": 1,
+      "message": "must add code to delete all resources associated to floating ip:\nself.management_Port\nfloating ip\n\nAlso these must be added to the --cleanup and --force-cleanup code",
+      "revId": "f58fb18b21ac09df070f7992edd8ea112e87b9f1",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "56c84d89_6faadbf0",
+        "filename": "nfvbench/chaining.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 1126,
+      "author": {
+        "id": 5807
+      },
+      "writtenOn": "2019-11-19T16:00:34Z",
+      "side": 1,
+      "message": "Create the shared floating ip network here instead and save to self.floating_ip_network",
+      "revId": "f58fb18b21ac09df070f7992edd8ea112e87b9f1",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e6fcfb53_64be8354",
+        "filename": "nfvbench/chaining.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 1483,
+      "author": {
+        "id": 5807
+      },
+      "writtenOn": "2019-11-19T16:00:34Z",
+      "side": 1,
+      "message": "must add cleanup for self.floating_ip_network here\n\nAlso see cleaner.py NetworkCleaner class",
+      "revId": "f58fb18b21ac09df070f7992edd8ea112e87b9f1",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": true
+    }
+  ]
+}

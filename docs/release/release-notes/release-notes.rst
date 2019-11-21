@@ -5,6 +5,15 @@
 RELEASE NOTES
 +++++++++++++
 
+Release 3.6.2
+=============
+NFVBENCH-152 Add service_mode method for debugging purpose
+NFVBENCH-150 Add support for VXLAN latency
+NFVBENCH-146 Add cache_size option
+NFVBENCH-151 Allocate hugepages on two NUMAs in nfvbenchvm
+NFVBENCH-149 Negative latency exception during NDR/PDR search
+NFVBENCH-148 Increase the waiting time based on # of instances
+
 Release 3.5.1
 =============
 

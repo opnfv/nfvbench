@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "d9928883_2c2bc497",
+        "filename": "nfvbench/nfvbench.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 77,
+      "author": {
+        "id": 5807
+      },
+      "writtenOn": "2019-12-02T07:02:07Z",
+      "side": 1,
+      "message": "you need to add the 3 extra config args with default value set to False in cfg.default.yaml otherwise queries coming from REST will fail due to missing args in config.",
+      "revId": "0d4f0f0d27d8770e0b70f4867c99a3c81913adc3",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e9c940e4_5677adde",
+        "filename": "nfvbench/nfvbench.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 600,
+      "author": {
+        "id": 5807
+      },
+      "writtenOn": "2019-12-02T07:02:07Z",
+      "side": 1,
+      "message": "Likewise, you need to copy over the cli args to config one by one - in case -c \u003cconfig-file\u003e is not used.\nIf -c \u003cconfig-file\u003e is used, this arg copy to config is done in config_load (L565).",
+      "revId": "0d4f0f0d27d8770e0b70f4867c99a3c81913adc3",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": true
+    }
+  ]
+}

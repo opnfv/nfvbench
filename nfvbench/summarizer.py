@@ -47,7 +47,7 @@ def _annotate_chain_stats(chain_stats, nodrop_marker='=>'):
     In the case of shared net, some columns in packets array can have ''.
     Some columns cab also be None which means the data is not available.
     """
-    for stats in chain_stats.values():
+    for stats in list(chain_stats.values()):
         packets = stats['packets']
         count = len(packets)
         if count > 1:
@@ -97,7 +97,7 @@ class Formatter(object):
     def standard(data):
         if isinstance(data, int):
             return Formatter.int(data)
-        elif isinstance(data, float):
+        if isinstance(data, float):
             return Formatter.float(4)(data)
         return Formatter.fixed(data)
 
@@ -130,7 +130,7 @@ class Formatter(object):
     def percentage(data):
         if data is None:
             return ''
-        elif math.isnan(data):
+        if math.isnan(data):
             return '-'
         return Formatter.suffix('%')(Formatter.float(4)(data))
 
@@ -139,7 +139,7 @@ class Table(object):
     """ASCII readable table class."""
 
     def __init__(self, header):
-        header_row, self.formatters = zip(*header)
+        header_row, self.formatters = list(zip(*header))
         self.data = [header_row]
         self.columns = len(header_row)
 
@@ -195,7 +195,7 @@ class Summarizer(object):
 
     def _put_dict(self, data):
         with self._create_block(False):
-            for key, value in data.iteritems():
+            for key, value in list(data.items()):
                 if isinstance(value, dict):
                     self._put(key + ':')
                     self._put_dict(value)
@@ -297,7 +297,7 @@ class NFVBenchSummarizer(Summarizer):
                     if network_benchmark['versions']:
                         self._put('Versions:')
                         with self._create_block():
-                            for component, version in network_benchmark['versions'].iteritems():
+                            for component, version in list(network_benchmark['versions'].items()):
                                 self._put(component + ':', version)
 
                 if self.config['ndr_run'] or self.config['pdr_run']:
@@ -308,7 +308,7 @@ class NFVBenchSummarizer(Summarizer):
                         if self.config['pdr_run']:
                             self._put('PDR:', self.config['measurement']['PDR'])
                 self._put('Service chain:')
-                for result in network_benchmark['service_chain'].iteritems():
+                for result in list(network_benchmark['service_chain'].items()):
                     with self._create_block():
                         self.__chain_summarize(*result)
 
@@ -325,13 +325,13 @@ class NFVBenchSummarizer(Summarizer):
         self._put('Bidirectional:', traffic_benchmark['bidirectional'])
         self._put('Flow count:', traffic_benchmark['flow_count'])
         self._put('Service chains count:', traffic_benchmark['service_chain_count'])
-        self._put('Compute nodes:', traffic_benchmark['compute_nodes'].keys())
+        self._put('Compute nodes:', list(traffic_benchmark['compute_nodes'].keys()))
 
         self.__record_header_put('profile', traffic_benchmark['profile'])
         self.__record_header_put('bidirectional', traffic_benchmark['bidirectional'])
         self.__record_header_put('flow_count', traffic_benchmark['flow_count'])
         self.__record_header_put('sc_count', traffic_benchmark['service_chain_count'])
-        self.__record_header_put('compute_nodes', traffic_benchmark['compute_nodes'].keys())
+        self.__record_header_put('compute_nodes', list(traffic_benchmark['compute_nodes'].keys()))
         with self._create_block(False):
             self._put()
             if not self.config['no_traffic']:
@@ -345,7 +345,7 @@ class NFVBenchSummarizer(Summarizer):
                     except KeyError:
                         pass
 
-            for entry in traffic_benchmark['result'].iteritems():
+            for entry in list(traffic_benchmark['result'].items()):
                 if 'warning' in entry:
                     continue
                 self.__chain_analysis_summarize(*entry)
@@ -391,7 +391,7 @@ class NFVBenchSummarizer(Summarizer):
             summary_table = Table(self.ndr_pdr_header)
 
         if self.config['ndr_run']:
-            for frame_size, analysis in traffic_result.iteritems():
+            for frame_size, analysis in list(traffic_result.items()):
                 if frame_size == 'warning':
                     continue
                 summary_table.add_row([
@@ -414,7 +414,7 @@ class NFVBenchSummarizer(Summarizer):
                     'max_delay_usec': analysis['ndr']['stats']['overall']['max_delay_usec']
                 }})
         if self.config['pdr_run']:
-            for frame_size, analysis in traffic_result.iteritems():
+            for frame_size, analysis in list(traffic_result.items()):
                 if frame_size == 'warning':
                     continue
                 summary_table.add_row([
@@ -437,7 +437,7 @@ class NFVBenchSummarizer(Summarizer):
                     'max_delay_usec': analysis['pdr']['stats']['overall']['max_delay_usec']
                 }})
         if self.config['single_run']:
-            for frame_size, analysis in traffic_result.iteritems():
+            for frame_size, analysis in list(traffic_result.items()):
                 summary_table.add_row([
                     frame_size,
                     analysis['stats']['overall']['drop_rate_percent'],

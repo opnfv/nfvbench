@@ -24,7 +24,7 @@ except ImportError:
 import keystoneauth1
 import novaclient
 
-from log import LOG
+from .log import LOG
 
 
 class Compute(object):

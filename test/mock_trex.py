@@ -30,8 +30,6 @@ except ImportError:
     class STLDummy(Exception):
         """Dummy class."""
 
-        pass
-
     trex_lib_mod = ModuleType('trex')
     sys.modules['trex'] = trex_lib_mod
     stl_lib_mod = ModuleType('trex.stl')
@@ -77,4 +75,3 @@ except ImportError:
 
 def no_op():
     """Empty function."""
-    pass

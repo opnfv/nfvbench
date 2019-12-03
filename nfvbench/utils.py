@@ -23,7 +23,7 @@ import errno
 import fcntl
 from functools import wraps
 import json
-from log import LOG
+from .log import LOG
 
 
 class TimeoutError(Exception):
@@ -74,7 +74,7 @@ def save_json_result(result, json_file, std_json_path, service_chain, service_ch
 
 def byteify(data, ignore_dicts=False):
     # if this is a unicode string, return its string representation
-    if isinstance(data, unicode):
+    if isinstance(data, str):
         return data.encode('utf-8')
     # if this is a list of values, return list of byteified values
     if isinstance(data, list):
@@ -83,7 +83,7 @@ def byteify(data, ignore_dicts=False):
     # but only if we haven't already byteified it
     if isinstance(data, dict) and not ignore_dicts:
         return {byteify(key, ignore_dicts=ignore_dicts): byteify(value, ignore_dicts=ignore_dicts)
-                for key, value in data.iteritems()}
+                for key, value in list(data.items())}
     # if it's anything else, return it in its original form
     return data
 

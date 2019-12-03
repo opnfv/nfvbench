@@ -13,8 +13,8 @@
 #    under the License.
 
 from nfvbench.log import LOG
-from traffic_base import AbstractTrafficGenerator
-import traffic_utils as utils
+from .traffic_base import AbstractTrafficGenerator
+from . import traffic_utils as utils
 
 
 class DummyTG(AbstractTrafficGenerator):
@@ -176,8 +176,8 @@ class DummyTG(AbstractTrafficGenerator):
     def fetch_capture_packets(self):
         def _get_packet_capture(mac):
             # convert text to binary
-            src_mac = mac.replace(':', '').decode('hex')
-            return {'binary': 'SSSSSS' + src_mac}
+            src_mac = bytearray.fromhex(mac.replace(':', '')).decode()
+            return {'binary': bytes('SSSSSS' + src_mac, 'ascii')}
 
         # for packet capture, generate 2*scc random packets
         # normally we should generate packets coming from the right dest macs

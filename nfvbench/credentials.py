@@ -21,7 +21,7 @@ import getpass
 from keystoneauth1.identity import v2
 from keystoneauth1.identity import v3
 from keystoneauth1 import session
-from log import LOG
+from .log import LOG
 
 
 class Credentials(object):

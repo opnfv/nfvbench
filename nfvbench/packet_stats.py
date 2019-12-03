@@ -21,7 +21,7 @@ PacketPathStatsManager manages all packet path stats for all chains.
 
 import copy
 
-from traffic_gen.traffic_base import Latency
+from .traffic_gen.traffic_base import Latency
 
 class InterfaceStats(object):
     """A class to hold the RX and TX counters for a virtual or physical interface.

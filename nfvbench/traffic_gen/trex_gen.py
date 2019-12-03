@@ -25,12 +25,6 @@ from nfvbench.traffic_server import TRexTrafficServer
 from nfvbench.utils import cast_integer
 from nfvbench.utils import timeout
 from nfvbench.utils import TimeoutError
-from traffic_base import AbstractTrafficGenerator
-from traffic_base import TrafficGeneratorException
-import traffic_utils as utils
-from traffic_utils import IMIX_AVG_L2_FRAME_SIZE
-from traffic_utils import IMIX_L2_SIZES
-from traffic_utils import IMIX_RATIOS
 
 # pylint: disable=import-error
 from trex.common.services.trex_service_arp import ServiceARP
@@ -57,8 +51,14 @@ from trex.stl.api import ThreeBytesField
 from trex.stl.api import UDP
 from trex.stl.api import XByteField
 
-
 # pylint: enable=import-error
+
+from .traffic_base import AbstractTrafficGenerator
+from .traffic_base import TrafficGeneratorException
+from . import traffic_utils as utils
+from .traffic_utils import IMIX_AVG_L2_FRAME_SIZE
+from .traffic_utils import IMIX_L2_SIZES
+from .traffic_utils import IMIX_RATIOS
 
 class VXLAN(Packet):
     """VxLAN class."""
@@ -511,7 +511,7 @@ class TRex(AbstractTrafficGenerator):
     def __connect_after_start(self):
         # after start, Trex may take a bit of time to initialize
         # so we need to retry a few times
-        for it in xrange(self.config.generic_retry_count):
+        for it in range(self.config.generic_retry_count):
             try:
                 time.sleep(1)
                 self.client.connect()
@@ -519,7 +519,7 @@ class TRex(AbstractTrafficGenerator):
             except Exception as ex:
                 if it == (self.config.generic_retry_count - 1):
                     raise
-                LOG.info("Retrying connection to TRex (%s)...", ex.message)
+                LOG.info("Retrying connection to TRex (%s)...", ex.msg)
 
     def connect(self):
         """Connect to the TRex server."""
@@ -584,7 +584,7 @@ class TRex(AbstractTrafficGenerator):
             if os.path.isfile(logpath):
                 # Wait for TRex to finish writing error message
                 last_size = 0
-                for _ in xrange(self.config.generic_retry_count):
+                for _ in range(self.config.generic_retry_count):
                     size = os.path.getsize(logpath)
                     if size == last_size:
                         # probably not writing anymore
@@ -609,7 +609,7 @@ class TRex(AbstractTrafficGenerator):
         LOG.info("Restarting TRex ...")
         self.__stop_server()
         # Wait for server stopped
-        for _ in xrange(self.config.generic_retry_count):
+        for _ in range(self.config.generic_retry_count):
             time.sleep(1)
             if not self.client.is_connected():
                 LOG.info("TRex is stopped...")
@@ -625,7 +625,7 @@ class TRex(AbstractTrafficGenerator):
                     self.client.release(ports=ports)
                 self.client.server_shutdown()
             except STLError as e:
-                LOG.warn('Unable to stop TRex. Error: %s', e)
+                LOG.warning('Unable to stop TRex. Error: %s', e)
         else:
             LOG.info('Using remote TRex. Unable to stop TRex')
 
@@ -690,12 +690,12 @@ class TRex(AbstractTrafficGenerator):
                     arp_dest_macs[port] = dst_macs
                     LOG.info('ARP resolved successfully for port %s', port)
                     break
-                else:
-                    retry = attempt + 1
-                    LOG.info('Retrying ARP for: %s (retry %d/%d)',
-                             unresolved, retry, self.config.generic_retry_count)
-                    if retry < self.config.generic_retry_count:
-                        time.sleep(self.config.generic_poll_sec)
+
+                retry = attempt + 1
+                LOG.info('Retrying ARP for: %s (retry %d/%d)',
+                         unresolved, retry, self.config.generic_retry_count)
+                if retry < self.config.generic_retry_count:
+                    time.sleep(self.config.generic_poll_sec)
             else:
                 LOG.error('ARP timed out for port %s (resolved %d out of %d)',
                           port,

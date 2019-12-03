@@ -310,7 +310,7 @@ cores:
 # https://trex-tgn.cisco.com/trex/doc/trex_stateless.html#_tutorial_field_engine_significantly_improve_performance
 # If cache_size = 0 (or empty): no cache will be used by TRex (default)
 # If cache_size < 0: cache_size will be set to flow count value
-cache_size:
+cache_size: 0
 # The cache size is actually limited by the number of 64B mbufs configured in the trex platform configuration (see Trex manual 6.2.2. Memory section configuration)
 # Trex will use 1 x 64B mbuf per pre-built cached packet, assuming 1 pre-built cached packet per flow, it means for very large number of flows, the number of configured mbuf_64 will need to be set accordingly.
 mbuf_64:

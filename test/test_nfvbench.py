@@ -13,8 +13,6 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 #
-from mock_trex import no_op
-
 import json
 import logging
 import sys
@@ -34,6 +32,7 @@ from nfvbench.traffic_client import IpBlock
 from nfvbench.traffic_client import TrafficClient
 import nfvbench.traffic_gen.traffic_utils as traffic_utils
 
+from .mock_trex import no_op
 
 # just to get rid of the unused function warning
 no_op()

@@ -114,7 +114,7 @@ class FluentLogHandler(logging.Handler):
     def __get_highest_level(self):
         if self.__error_counter > 0:
             return logging.ERROR
-        elif self.__warning_counter > 0:
+        if self.__warning_counter > 0:
             return logging.WARNING
         return logging.INFO
 
@@ -122,7 +122,7 @@ class FluentLogHandler(logging.Handler):
         highest_level = self.__get_highest_level()
         if highest_level == logging.INFO:
             return "GOOD RUN"
-        elif highest_level == logging.WARNING:
+        if highest_level == logging.WARNING:
             return "RUN WITH WARNINGS"
         return "RUN WITH ERRORS"
 

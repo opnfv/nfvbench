@@ -54,10 +54,10 @@ from neutronclient.neutron import client as neutronclient
 from novaclient.client import Client
 
 from attrdict import AttrDict
-from chain_router import ChainRouter
-import compute
-from log import LOG
-from specs import ChainType
+from .chain_router import ChainRouter
+from . import compute
+from .log import LOG
+from .specs import ChainType
 # Left and right index for network and port lists
 LEFT = 0
 RIGHT = 1
@@ -76,9 +76,6 @@ BOOT_SCRIPT_PATHNAME = os.path.join(os.path.dirname(os.path.abspath(__file__)),
 
 class ChainException(Exception):
     """Exception while operating the chains."""
-
-    pass
-
 
 class NetworkEncaps(object):
     """Network encapsulation."""
@@ -706,8 +703,8 @@ class ChainVnf(object):
                     # here we MUST wait until this instance is resolved otherwise subsequent
                     # VNF creation can be placed in other hypervisors!
                     config = self.manager.config
-                    max_retries = (config.check_traffic_time_sec +
-                                   config.generic_poll_sec - 1) / config.generic_poll_sec
+                    max_retries = int((config.check_traffic_time_sec +
+                                       config.generic_poll_sec - 1) / config.generic_poll_sec)
                     retry = 0
                     for retry in range(max_retries):
                         status = self.get_status()
@@ -1380,7 +1377,7 @@ class ChainManager(object):
         return: the hypervisor where the matching port runs or None if not found
         """
         # _existing_ports is a dict of list of ports indexed by network id
-        for port_list in self.get_existing_ports().values():
+        for port_list in list(self.get_existing_ports().values()):
             for port in port_list:
                 try:
                     if port['mac_address'] == mac:

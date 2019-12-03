@@ -16,7 +16,7 @@
 from attrdict import AttrDict
 import yaml
 
-from log import LOG
+from .log import LOG
 
 def config_load(file_name, from_cfg=None, whitelist_keys=None):
     """Load a yaml file into a config dict, merge with from_cfg if not None
@@ -64,7 +64,7 @@ def config_loads(cfg_text, from_cfg=None, whitelist_keys=None):
 def _validate_config(subset, superset, whitelist_keys):
     def get_err_config(subset, superset):
         result = {}
-        for k, v in subset.items():
+        for k, v in list(subset.items()):
             if k not in whitelist_keys:
                 if k not in superset:
                     result.update({k: v})

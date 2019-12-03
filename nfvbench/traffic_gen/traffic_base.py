@@ -16,7 +16,7 @@ import abc
 import sys
 
 from nfvbench.log import LOG
-import traffic_utils
+from . import traffic_utils
 
 
 class Latency(object):
@@ -27,7 +27,7 @@ class Latency(object):
 
         latency_list: aggregate all latency values from list if not None
         """
-        self.min_usec = sys.maxint
+        self.min_usec = sys.maxsize
         self.max_usec = 0
         self.avg_usec = 0
         self.hdrh = None
@@ -42,14 +42,11 @@ class Latency(object):
 
     def available(self):
         """Return True if latency information is available."""
-        return self.min_usec != sys.maxint
+        return self.min_usec != sys.maxsize
 
 
 class TrafficGeneratorException(Exception):
     """Exception for traffic generator."""
-
-    pass
-
 
 class AbstractTrafficGenerator(object):
 
@@ -106,7 +103,6 @@ class AbstractTrafficGenerator(object):
 
     def clear_streamblock(self):
         """Clear all streams from the traffic generator."""
-        pass
 
     @abc.abstractmethod
     def resolve_arp(self):
@@ -116,7 +112,6 @@ class AbstractTrafficGenerator(object):
                 else a dict of list of dest macs indexed by port#
                 the dest macs in the list are indexed by the chain id
         """
-        pass
 
     @abc.abstractmethod
     def get_macs(self):
@@ -124,7 +119,6 @@ class AbstractTrafficGenerator(object):
 
         return: a list of MAC addresses indexed by the port#
         """
-        pass
 
     @abc.abstractmethod
     def get_port_speed_gbps(self):
@@ -132,4 +126,3 @@ class AbstractTrafficGenerator(object):
 
         return: a list of speed in Gbps indexed by the port#
         """
-        pass

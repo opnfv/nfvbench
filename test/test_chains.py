@@ -15,11 +15,11 @@
 #
 """Test Chaining functions."""
 
-from mock_trex import no_op
-
 from mock import MagicMock
 from mock import patch
 import pytest
+
+from .mock_trex import no_op
 
 from nfvbench.chain_runner import ChainRunner
 from nfvbench.chaining import ChainException
@@ -39,7 +39,6 @@ from nfvbench.summarizer import _annotate_chain_stats
 from nfvbench.traffic_client import TrafficClient
 from nfvbench.traffic_gen.traffic_base import Latency
 from nfvbench.traffic_gen.trex_gen import TRex
-
 
 # just to get rid of the unused function warning
 no_op()
@@ -157,7 +156,7 @@ def _test_pvp_chain_no_admin_no_config_values(config, cred, mock_glance, mock_ne
     runner.close()
 
 def test_pvp_chain_runner_no_admin_no_config_values():
-    """Test PVP chain runner."""
+    """Test PVP/mock chain runner."""
     cred = MagicMock(spec=nfvbench.credentials.Credentials)
     cred.is_admin = False
     for shared_net in [True, False]:
@@ -260,7 +259,7 @@ def _check_nfvbench_openstack(sc=ChainType.PVP, l2_loopback=False):
         nfvb = NFVBench(config, openstack_spec, config_plugin, factory)
         res = nfvb.run({}, 'pytest')
         if res['status'] != 'OK':
-            print res
+            print(res)
         assert res['status'] == 'OK'
 
 

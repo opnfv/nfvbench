@@ -15,7 +15,7 @@
 #
 
 import json
-import Queue
+import queue
 from threading import Thread
 import uuid
 
@@ -23,13 +23,13 @@ from flask import Flask
 from flask import jsonify
 from flask import request
 
-from summarizer import NFVBenchSummarizer
+from .summarizer import NFVBenchSummarizer
 
-from log import LOG
-from utils import byteify
-from utils import RunLock
+from .log import LOG
+from .utils import byteify
+from .utils import RunLock
 
-from __init__ import __version__
+from .__init__ import __version__
 
 STATUS_OK = 'OK'
 STATUS_ERROR = 'ERROR'
@@ -57,7 +57,7 @@ def get_uuid():
 
 class Ctx(object):
     MAXLEN = 5
-    run_queue = Queue.Queue()
+    run_queue = queue.Queue()
     busy = False
     result = None
     results = {}
@@ -102,15 +102,14 @@ class Ctx(object):
             except KeyError:
                 return None
 
-            if Ctx.result and request_id == Ctx.result['request_id']:
+            if Ctx.result and request_id == Ctx.results['request_id']:
                 Ctx.result = None
 
             return res
-        else:
-            res = Ctx.result
-            if res:
-                Ctx.result = None
-            return res
+        res = Ctx.result
+        if res:
+            Ctx.result = None
+        return res
 
     @staticmethod
     def is_busy():
@@ -159,20 +158,18 @@ def setup_flask():
                 return jsonify(res)
             # result for given request_id not found
             return jsonify(result_json(STATUS_NOT_FOUND, not_found_msg, request_id))
-        else:
-            if Ctx.is_busy():
-                # task still pending, return with request_id
-                return jsonify(result_json(STATUS_PENDING,
-                                           pending_msg,
-                                           Ctx.get_current_request_id()))
+        if Ctx.is_busy():
+            # task still pending, return with request_id
+            return jsonify(result_json(STATUS_PENDING,
+                                       pending_msg,
+                                       Ctx.get_current_request_id()))
 
-            res = Ctx.get_result()
-            if res:
-                return jsonify(res)
-            return jsonify(not_busy_json)
+        res = Ctx.get_result()
+        if res:
+            return jsonify(res)
+        return jsonify(not_busy_json)
 
     return app
-
 
 class WebServer(object):
     """This class takes care of the web server. Caller should simply create an instance
@@ -200,7 +197,7 @@ class WebServer(object):
             # print config
             try:
                 # remove unfilled values as we do not want them to override default values with None
-                config = {k: v for k, v in config.items() if v is not None}
+                config = {k: v for k, v in list(config.items()) if v is not None}
                 with RunLock():
                     if self.fluent_logger:
                         self.fluent_logger.start_new_run()

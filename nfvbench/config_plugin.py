@@ -18,18 +18,14 @@
 This module is used to override the configuration with platform specific constraints and extensions
 """
 import abc
-import specs
+from . import specs
 
 
-class ConfigPluginBase(object):
+class ConfigPluginBase(object, metaclass=abc.ABCMeta):
     """Base class for config plugins."""
-
-    __metaclass__ = abc.ABCMeta
 
     class InitializationFailure(Exception):
         """Used in case of any init failure."""
-
-        pass
 
     def __init__(self, config):
         """Save configuration."""
@@ -97,7 +93,6 @@ class ConfigPlugin(ConfigPluginBase):
 
     def validate_config(self, config, openstack_spec):
         """Nothing to validate by default."""
-        pass
 
     def prepare_results_config(self, cfg):
         """Nothing to add the results by default."""

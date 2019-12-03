@@ -16,7 +16,7 @@ import os
 import subprocess
 import yaml
 
-from log import LOG
+from .log import LOG
 
 
 class TrafficServerException(Exception):
@@ -71,7 +71,7 @@ class TRexTrafficServer(TrafficServer):
                 try:
                     result = yaml.safe_load(stream)
                 except yaml.YAMLError as exc:
-                    print exc
+                    print(exc)
         return result
 
     def __save_config(self, generator_config, filename):
@@ -119,7 +119,7 @@ class TRexTrafficServer(TrafficServer):
                     try:
                         threads = ",".join([repr(thread) for thread in core.threads])
                     except TypeError:
-                        LOG.warn("No threads defined for socket %s", core.socket)
+                        LOG.warning("No threads defined for socket %s", core.socket)
                     core_result = """
                   - socket : {socket}
                     threads : [{threads}]""".format(socket=core.socket, threads=threads)

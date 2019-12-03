@@ -43,7 +43,6 @@ class BasicWorker(object):
         Specialized workers can insert their own interface stats inside each existing packet path
         stats for every chain.
         """
-        pass
 
     def update_interface_stats(self, diff=False):
         """Update all interface stats.
@@ -53,4 +52,3 @@ class BasicWorker(object):
         Make sure that the interface stats inserted in insert_interface_stats() are updated
         with proper values
         """
-        pass

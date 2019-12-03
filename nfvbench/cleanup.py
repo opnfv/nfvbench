@@ -22,8 +22,8 @@ from novaclient.client import Client
 from novaclient.exceptions import NotFound
 from tabulate import tabulate
 
-import credentials as credentials
-from log import LOG
+from . import credentials
+from .log import LOG
 
 
 class ComputeCleaner(object):
@@ -300,20 +300,20 @@ class Cleaner(object):
         LOG.info("NFVbench will delete resources shown...")
         clean_options = None
         if prompt:
-            answer = raw_input("Do you want to delete all ressources? (y/n) ")
+            answer = input("Do you want to delete all ressources? (y/n) ")
             if answer.lower() != 'y':
-                print "What kind of resources do you want to delete?"
+                print("What kind of resources do you want to delete?")
                 all_option = ""
                 all_option_codes = []
                 for cleaner in self.cleaners:
                     code = cleaner.get_cleaner_code()
-                    print "%s: %s" % (code[0], code)
+                    print(("%s: %s" % (code[0], code)))
                     all_option += code[0]
                     all_option_codes.append(code)
-                print "a: all resources - a shortcut for '%s'" % all_option
+                print(("a: all resources - a shortcut for '%s'" % all_option))
                 all_option_codes.append("all resources")
-                print "q: quit"
-                answer_res = raw_input(":").lower()
+                print("q: quit")
+                answer_res = input(":").lower()
                 # Check only first character because answer_res can be "flavor" and it is != all
                 if answer_res[0] == "a":
                     clean_options = all_option

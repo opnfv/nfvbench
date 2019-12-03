@@ -27,20 +27,20 @@ from attrdict import AttrDict
 import pbr.version
 from pkg_resources import resource_string
 
-from __init__ import __version__
-from chain_runner import ChainRunner
-from cleanup import Cleaner
-from config import config_load
-from config import config_loads
-import credentials as credentials
-from fluentd import FluentLogHandler
-import log
-from log import LOG
-from nfvbenchd import WebServer
-from specs import ChainType
-from specs import Specs
-from summarizer import NFVBenchSummarizer
-import utils
+from .__init__ import __version__
+from .chain_runner import ChainRunner
+from .cleanup import Cleaner
+from .config import config_load
+from .config import config_loads
+from . import credentials
+from .fluentd import FluentLogHandler
+from . import log
+from .log import LOG
+from .nfvbenchd import WebServer
+from .specs import ChainType
+from .specs import Specs
+from .summarizer import NFVBenchSummarizer
+from . import utils
 
 fluent_logger = None
 
@@ -87,7 +87,7 @@ class NFVBench(object):
         try:
             # recalc the running config based on the base config and options for this run
             self._update_config(opts)
-            if self.config.cache_size < 0:
+            if int(self.config.cache_size) < 0:
                 self.config.cache_size = self.config.flow_count
             # check that an empty openrc file (no OpenStack) is only allowed
             # with EXT chain
@@ -538,7 +538,7 @@ def main():
         log.set_level(debug=opts.debug)
 
         if opts.version:
-            print pbr.version.VersionInfo('nfvbench').version_string_with_vcs()
+            print((pbr.version.VersionInfo('nfvbench').version_string_with_vcs()))
             sys.exit(0)
 
         if opts.summary:
@@ -546,12 +546,12 @@ def main():
                 result = json.load(json_data)
                 if opts.user_label:
                     result['config']['user_label'] = opts.user_label
-                print NFVBenchSummarizer(result, fluent_logger)
+                print((NFVBenchSummarizer(result, fluent_logger)))
             sys.exit(0)
 
         # show default config in text/yaml format
         if opts.show_default_config:
-            print default_cfg
+            print((default_cfg.decode("utf-8")))
             sys.exit(0)
 
         config.name = ''
@@ -633,7 +633,7 @@ def main():
 
         # show running config in json format
         if opts.show_config:
-            print json.dumps(config, sort_keys=True, indent=4)
+            print((json.dumps(config, sort_keys=True, indent=4)))
             sys.exit(0)
 
         # update the config in the config plugin as it might have changed
@@ -670,7 +670,7 @@ def main():
                     raise Exception(err_msg)
 
                 # remove unfilled values
-                opts = {k: v for k, v in vars(opts).iteritems() if v is not None}
+                opts = {k: v for k, v in list(vars(opts).items()) if v is not None}
                 # get CLI args
                 params = ' '.join(str(e) for e in sys.argv[1:])
                 result = nfvbench_instance.run(opts, params)
@@ -686,7 +686,7 @@ def main():
             'status': NFVBench.STATUS_ERROR,
             'error_message': traceback.format_exc()
         })
-        print str(exc)
+        print((str(exc)))
     finally:
         if fluent_logger:
             # only send a summary record if there was an actual nfvbench run or

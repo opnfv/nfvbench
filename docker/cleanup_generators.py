@@ -40,8 +40,8 @@ def remove_unused_libs(path, files):
             else:
                 os.remove(f)
         except OSError:
-            print "Skipped file:"
-            print f
+            print("Skipped file:")
+            print(f)
             continue
 
 
@@ -65,14 +65,14 @@ if __name__ == "__main__":
     versions = os.listdir(TREX_OPT)
     for version in versions:
         trex_path = os.path.join(TREX_OPT, version)
-        print 'Cleaning TRex', version
+        print('Cleaning TRex', version)
         try:
             size_before = get_dir_size(trex_path)
             remove_unused_libs(trex_path, TREX_UNUSED)
             size_after = get_dir_size(trex_path)
-            print '==== Saved Space ===='
-            print size_before - size_after
+            print('==== Saved Space ====')
+            print(size_before - size_after)
         except OSError:
             import traceback
-            print traceback.print_exc()
-            print 'Cleanup was not finished.'
+            print(traceback.print_exc())
+            print('Cleanup was not finished.')

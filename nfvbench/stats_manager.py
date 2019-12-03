@@ -15,9 +15,9 @@
 #
 import time
 
-from log import LOG
-from packet_stats import PacketPathStatsManager
-from stats_collector import IntervalCollector
+from .log import LOG
+from .packet_stats import PacketPathStatsManager
+from .stats_collector import IntervalCollector
 
 
 class StatsManager(object):

@@ -21,7 +21,7 @@ PacketPathStatsManager manages all packet path stats for all chains.
 
 import copy
 
-from traffic_gen.traffic_base import Latency
+from .traffic_gen.traffic_base import Latency
 
 class InterfaceStats(object):
     """A class to hold the RX and TX counters for a virtual or physical interface.
@@ -292,7 +292,7 @@ class PacketPathStatsManager(object):
             chains['total'] = agg_pps.get_stats(reverse)
 
         for index, pps in enumerate(self.pps_list):
-            chains[index] = pps.get_stats(reverse)
+            chains[str(index)] = pps.get_stats(reverse)
         return {'interfaces': self._get_if_agg_name(reverse),
                 'chains': chains}
 
@@ -307,11 +307,11 @@ class PacketPathStatsManager(object):
             'Forward': {
                 'interfaces': ['Port0', 'vhost0', 'Port1'],
                 'chains': {
-                    0: {'packets': [2000054, 1999996, 1999996],
+                    '0': {'packets': [2000054, 1999996, 1999996],
                         'min_usec': 10,
                         'max_usec': 187,
                         'avg_usec': 45},
-                    1: {...},
+                    '1': {...},
                     'total': {...}
                 }
             },

@@ -9,8 +9,7 @@ The NFVbench tool provides an automated way to measure the network performance f
 on any NFVi system viewed as a black box (NFVi Full Stack).
 An NFVi full stack exposes the following interfaces:
 - an OpenStack API for those NFVi platforms based on OpenStack
-- an interface to send and receive packets on the data plane (typically through top of rack switches
-  while simpler direct wiring to a looping device would also work)
+- an interface to send and receive packets on the data plane (typically through top of rack switches while simpler direct wiring to a looping device would also work)
 
 The NFVi full stack can be any functional OpenStack system that provides the above interfaces.
 NFVbench can also be used without OpenStack on any networking device that can handle L2 forwarding or L3 routing.

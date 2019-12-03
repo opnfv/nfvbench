@@ -15,8 +15,8 @@
 #
 """Factory for creating worker and config plugin instances."""
 
-import chain_workers as workers
-from config_plugin import ConfigPlugin
+from . import chain_workers as workers
+from .config_plugin import ConfigPlugin
 
 
 class BasicFactory(object):

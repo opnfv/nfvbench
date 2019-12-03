@@ -24,7 +24,7 @@ except ImportError:
 import keystoneauth1
 import novaclient
 
-from log import LOG
+from .log import LOG
 
 
 class Compute(object):
@@ -50,7 +50,7 @@ class Compute(object):
         retry = 0
         try:
             # check image is file/url based.
-            with open(image_file) as f_image:
+            with open(image_file, 'rb') as f_image:
                 img = self.glance_client.images.create(name=str(final_image_name),
                                                        disk_format="qcow2",
                                                        container_format="bare",

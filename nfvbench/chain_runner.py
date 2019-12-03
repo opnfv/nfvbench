@@ -23,11 +23,11 @@ The ChainRunner class is in charge of coordinating:
 
 from collections import OrderedDict
 
-from chaining import ChainManager
-from log import LOG
-from specs import ChainType
-from stats_manager import StatsManager
-from traffic_client import TrafficClient
+from .chaining import ChainManager
+from .log import LOG
+from .specs import ChainType
+from .stats_manager import StatsManager
+from .traffic_client import TrafficClient
 
 
 class ChainRunner(object):

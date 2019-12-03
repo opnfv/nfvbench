@@ -28,20 +28,17 @@ from trex.stl.api import STLError
 from trex.stl.api import UDP
 # pylint: enable=import-error
 
-from log import LOG
-from packet_stats import InterfaceStats
-from packet_stats import PacketPathStats
-from stats_collector import IntervalCollector
-from stats_collector import IterationCollector
-import traffic_gen.traffic_utils as utils
-from utils import cast_integer
+from .log import LOG
+from .packet_stats import InterfaceStats
+from .packet_stats import PacketPathStats
+from .stats_collector import IntervalCollector
+from .stats_collector import IterationCollector
+from .traffic_gen import traffic_utils as utils
+from .utils import cast_integer
 
 
 class TrafficClientException(Exception):
     """Generic traffic client exception."""
-
-    pass
-
 
 class TrafficRunner(object):
     """Serialize various steps required to run traffic."""
@@ -204,7 +201,7 @@ class Device(object):
         - VM macs discovered using openstack API
         - dest MACs provisioned in config file
         """
-        self.vtep_dst_mac = map(str, dest_macs)
+        self.vtep_dst_mac = list(map(str, dest_macs))
 
     def set_dest_macs(self, dest_macs):
         """Set the list of dest MACs indexed by the chain id.
@@ -213,7 +210,7 @@ class Device(object):
         - VM macs discovered using openstack API
         - dest MACs provisioned in config file
         """
-        self.dest_macs = map(str, dest_macs)
+        self.dest_macs = list(map(str, dest_macs))
 
     def get_dest_macs(self):
         """Get the list of dest macs for this device.
@@ -269,14 +266,14 @@ class Device(object):
         #   calculated as (total_flows + chain_count - 1) / chain_count
         # - the first chain will have the remainder
         # example 11 flows and 3 chains => 3, 4, 4
-        flows_per_chain = (self.flow_count + self.chain_count - 1) / self.chain_count
-        cur_chain_flow_count = self.flow_count - flows_per_chain * (self.chain_count - 1)
+        flows_per_chain = int((self.flow_count + self.chain_count - 1) / self.chain_count)
+        cur_chain_flow_count = int(self.flow_count - flows_per_chain * (self.chain_count - 1))
         peer = self.get_peer_device()
         self.ip_block.reset_reservation()
         peer.ip_block.reset_reservation()
         dest_macs = self.get_dest_macs()
 
-        for chain_idx in xrange(self.chain_count):
+        for chain_idx in range(self.chain_count):
             src_ip_first, src_ip_last = self.ip_block.reserve_ip_range(cur_chain_flow_count)
             dst_ip_first, dst_ip_last = peer.ip_block.reserve_ip_range(cur_chain_flow_count)
 
@@ -317,7 +314,7 @@ class Device(object):
     @staticmethod
     def int_to_ip(nvalue):
         """Convert an IP address from numeric to string."""
-        return socket.inet_ntoa(struct.pack("!I", nvalue))
+        return socket.inet_ntoa(struct.pack("!I", int(nvalue)))
 
 
 class GeneratorConfig(object):
@@ -420,7 +417,7 @@ class GeneratorConfig(object):
             raise TrafficClientException('Dest MAC list %s must have %d entries' %
                                          (dest_macs, self.config.service_chain_count))
         self.devices[port_index].set_vtep_dst_mac(dest_macs)
-        LOG.info('Port %d: vtep dst MAC %s', port_index, set([str(mac) for mac in dest_macs]))
+        LOG.info('Port %d: vtep dst MAC %s', port_index, {str(mac) for mac in dest_macs})
 
     def get_dest_macs(self):
         """Return the list of dest macs indexed by port."""
@@ -512,10 +509,10 @@ class TrafficClient(object):
     def _get_generator(self):
         tool = self.tool.lower()
         if tool == 'trex':
-            from traffic_gen import trex_gen
+            from .traffic_gen import trex_gen
             return trex_gen.TRex(self)
         if tool == 'dummy':
-            from traffic_gen import dummy
+            from .traffic_gen import dummy
             return dummy.DummyTG(self)
         raise TrafficClientException('Unsupported generator tool name:' + self.tool)
 
@@ -533,7 +530,7 @@ class TrafficClient(object):
         if len(matching_profiles) > 1:
             raise TrafficClientException('Multiple traffic profiles with name: ' +
                                          traffic_profile_name)
-        elif not matching_profiles:
+        if not matching_profiles:
             raise TrafficClientException('Cannot find traffic profile: ' + traffic_profile_name)
         return matching_profiles[0].l2frame_size
 
@@ -593,8 +590,8 @@ class TrafficClient(object):
         self.gen.create_traffic('64', [rate_pps, rate_pps], bidirectional=True, latency=False,
                                 e2e=True)
         # ensures enough traffic is coming back
-        retry_count = (self.config.check_traffic_time_sec +
-                       self.config.generic_poll_sec - 1) / self.config.generic_poll_sec
+        retry_count = int((self.config.check_traffic_time_sec +
+                           self.config.generic_poll_sec - 1) / self.config.generic_poll_sec)
 
         # we expect to see packets coming from 2 unique MAC per chain
         # because there can be flooding in the case of shared net
@@ -612,7 +609,7 @@ class TrafficClient(object):
             get_mac_id = lambda packet: packet['binary'][56:62]
         else:
             get_mac_id = lambda packet: packet['binary'][6:12]
-        for it in xrange(retry_count):
+        for it in range(retry_count):
             self.gen.clear_stats()
             self.gen.start_traffic()
             self.gen.start_capture()
@@ -625,7 +622,7 @@ class TrafficClient(object):
             self.gen.fetch_capture_packets()
             self.gen.stop_capture()
             for packet in self.gen.packet_list:
-                mac_id = get_mac_id(packet)
+                mac_id = get_mac_id(packet).decode('latin-1')
                 src_mac = ':'.join(["%02x" % ord(x) for x in mac_id])
                 if src_mac in mac_map and self.is_udp(packet):
                     port, chain = mac_map[src_mac]
@@ -741,29 +738,29 @@ class TrafficClient(object):
         """Collect final stats for previous run."""
         stats = self.gen.get_stats()
         retDict = {'total_tx_rate': stats['total_tx_rate']}
-        for port in self.PORTS:
-            retDict[port] = {'tx': {}, 'rx': {}}
 
         tx_keys = ['total_pkts', 'total_pkt_bytes', 'pkt_rate', 'pkt_bit_rate']
         rx_keys = tx_keys + ['dropped_pkts']
 
         for port in self.PORTS:
+            port_stats = {'tx': {}, 'rx': {}}
             for key in tx_keys:
-                retDict[port]['tx'][key] = int(stats[port]['tx'][key])
+                port_stats['tx'][key] = int(stats[port]['tx'][key])
             for key in rx_keys:
                 try:
-                    retDict[port]['rx'][key] = int(stats[port]['rx'][key])
+                    port_stats['rx'][key] = int(stats[port]['rx'][key])
                 except ValueError:
-                    retDict[port]['rx'][key] = 0
-            retDict[port]['rx']['avg_delay_usec'] = cast_integer(
+                    port_stats['rx'][key] = 0
+            port_stats['rx']['avg_delay_usec'] = cast_integer(
                 stats[port]['rx']['avg_delay_usec'])
-            retDict[port]['rx']['min_delay_usec'] = cast_integer(
+            port_stats['rx']['min_delay_usec'] = cast_integer(
                 stats[port]['rx']['min_delay_usec'])
-            retDict[port]['rx']['max_delay_usec'] = cast_integer(
+            port_stats['rx']['max_delay_usec'] = cast_integer(
                 stats[port]['rx']['max_delay_usec'])
-            retDict[port]['drop_rate_percent'] = self.__get_dropped_rate(retDict[port])
+            port_stats['drop_rate_percent'] = self.__get_dropped_rate(port_stats)
+            retDict[str(port)] = port_stats
 
-        ports = sorted(retDict.keys())
+        ports = sorted(list(retDict.keys()), key=str)
         if self.run_config['bidirectional']:
             retDict['overall'] = {'tx': {}, 'rx': {}}
             for key in tx_keys:
@@ -804,6 +801,7 @@ class TrafficClient(object):
 
     def __format_output_stats(self, stats):
         for key in self.PORTS + ['overall']:
+            key = str(key)
             interface = stats[key]
             stats[key] = {
                 'tx_pkts': interface['tx']['total_pkts'],
@@ -818,7 +816,7 @@ class TrafficClient(object):
         return stats
 
     def __targets_found(self, rate, targets, results):
-        for tag, target in targets.iteritems():
+        for tag, target in list(targets.items()):
             LOG.info('Found %s (%s) load: %s', tag, target, rate)
             self.__ndr_pdr_found(tag, rate)
             results[tag]['timestamp_sec'] = time.time()
@@ -854,7 +852,7 @@ class TrafficClient(object):
         # Split target dicts based on the avg drop rate
         left_targets = {}
         right_targets = {}
-        for tag, target in targets.iteritems():
+        for tag, target in list(targets.items()):
             if stats['overall']['drop_rate_percent'] <= target:
                 # record the best possible rate found for this target
                 results[tag] = rates
@@ -987,8 +985,8 @@ class TrafficClient(object):
         # because we want each direction to have the far end RX rates,
         # use the far end index (1-idx) to retrieve the RX rates
         for idx, key in enumerate(["direction-forward", "direction-reverse"]):
-            tx_rate = results["stats"][idx]["tx"]["total_pkts"] / self.config.duration_sec
-            rx_rate = results["stats"][1 - idx]["rx"]["total_pkts"] / self.config.duration_sec
+            tx_rate = results["stats"][str(idx)]["tx"]["total_pkts"] / self.config.duration_sec
+            rx_rate = results["stats"][str(1 - idx)]["rx"]["total_pkts"] / self.config.duration_sec
             r[key] = {
                 "orig": self.__convert_rates(self.run_config['rates'][idx]),
                 "tx": self.__convert_rates({'rate_pps': tx_rate}),
@@ -999,7 +997,7 @@ class TrafficClient(object):
         for direction in ['orig', 'tx', 'rx']:
             total[direction] = {}
             for unit in ['rate_percent', 'rate_bps', 'rate_pps']:
-                total[direction][unit] = sum([float(x[direction][unit]) for x in r.values()])
+                total[direction][unit] = sum([float(x[direction][unit]) for x in list(r.values())])
 
         r['direction-total'] = total
         return r

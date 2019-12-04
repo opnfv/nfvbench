@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "05b6cdfa_8ae7be01",
+        "filename": "nfvbench/cleanup.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 303,
+      "author": {
+        "id": 7141
+      },
+      "writtenOn": "2019-12-04T09:18:52Z",
+      "side": 1,
+      "message": "Good catch. The change was done by \u00272to3\u0027, which interestingly insists of including eval() in the line",
+      "parentUuid": "b627f80d_0d7abc1a",
+      "revId": "85ad6716018d621a22617c4d10875e6e5def2352",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "7d66dc52_0d35996b",
         "filename": "nfvbench/nfvbenchd.py",
         "patchSetId": 2
@@ -30,6 +48,24 @@
       "writtenOn": "2019-12-03T22:37:04Z",
       "side": 1,
       "message": "Looks wrong to me. Double check?",
+      "revId": "85ad6716018d621a22617c4d10875e6e5def2352",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c401e812_9e4ffe41",
+        "filename": "nfvbench/nfvbenchd.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 105,
+      "author": {
+        "id": 7141
+      },
+      "writtenOn": "2019-12-04T09:18:52Z",
+      "side": 1,
+      "message": "Indeed wrong. I was a little quick trying to \"fix\" a pylint error. Reverting to existing solution with a pylint ignore as a temporary solution.",
+      "parentUuid": "7d66dc52_0d35996b",
       "revId": "85ad6716018d621a22617c4d10875e6e5def2352",
       "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
       "unresolved": true

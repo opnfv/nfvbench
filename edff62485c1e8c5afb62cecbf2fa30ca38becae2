@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1df49dbe_97fb3f06",
+        "filename": "nfvbench/traffic_client.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 740,
+      "author": {
+        "id": 5807
+      },
+      "writtenOn": "2019-12-07T18:32:23Z",
+      "side": 1,
+      "message": "We will need to change the type of the \"port\" key here because python3 json.dumps cannot sort mixed key types.\nThis issue is reproducible when you pass --json to the cli and will cause an exception at the end of the run during json.dump(sort_keys\u003dTrue...)\n\nSee https://bugs.python.org/issue25457json dump fails for mixed-type keys when sort_keys is specified\n\ncurrent version (python 2.7):\n\u0027stats\u0027: {0: {\u0027drop_rate_percent\u0027: 0.0,},\n          1: {},\n          \u0027overall\u0027: {}}\n\nnew version (python 3):                             \n\u0027stats\u0027: {\u00270\u0027: {\u0027drop_rate_percent\u0027: 0.0,},\n          \u00271\u0027: {},\n          \u0027overall\u0027: {}}\n \n                                 \nHere is the complete diff to fix this:\n$ diff traffic_client.py /tmp\n741,742d740\n\u003c         for port in self.PORTS:\n\u003c             retDict[port] \u003d {\u0027tx\u0027: {}, \u0027rx\u0027: {}}\n747a746\n\u003e             port_stats \u003d {\u0027tx\u0027: {}, \u0027rx\u0027: {}}\n749c748\n\u003c                 retDict[port][\u0027tx\u0027][key] \u003d int(stats[port][\u0027tx\u0027][key])\n---\n\u003e                 port_stats[\u0027tx\u0027][key] \u003d int(stats[port][\u0027tx\u0027][key])\n752c751\n\u003c                     retDict[port][\u0027rx\u0027][key] \u003d int(stats[port][\u0027rx\u0027][key])\n---\n\u003e                     port_stats[\u0027rx\u0027][key] \u003d int(stats[port][\u0027rx\u0027][key])\n754,755c753,754\n\u003c                     retDict[port][\u0027rx\u0027][key] \u003d 0\n\u003c             retDict[port][\u0027rx\u0027][\u0027avg_delay_usec\u0027] \u003d cast_integer(\n---\n\u003e                     port_stats[\u0027rx\u0027][key] \u003d 0\n\u003e             port_stats[\u0027rx\u0027][\u0027avg_delay_usec\u0027] \u003d cast_integer(\n757c756\n\u003c             retDict[port][\u0027rx\u0027][\u0027min_delay_usec\u0027] \u003d cast_integer(\n---\n\u003e             port_stats[\u0027rx\u0027][\u0027min_delay_usec\u0027] \u003d cast_integer(\n759c758\n\u003c             retDict[port][\u0027rx\u0027][\u0027max_delay_usec\u0027] \u003d cast_integer(\n---\n\u003e             port_stats[\u0027rx\u0027][\u0027max_delay_usec\u0027] \u003d cast_integer(\n761c760,761\n\u003c             retDict[port][\u0027drop_rate_percent\u0027] \u003d self.__get_dropped_rate(retDict[port])\n---\n\u003e             port_stats[\u0027drop_rate_percent\u0027] \u003d self.__get_dropped_rate(port_stats)\n\u003e             retDict[str(port)] \u003d port_stats\n803a804\n\u003e             key \u003d str(key)\n987,988c988,989\n\u003c             tx_rate \u003d results[\"stats\"][idx][\"tx\"][\"total_pkts\"] / self.config.duration_sec\n\u003c             rx_rate \u003d results[\"stats\"][1 - idx][\"rx\"][\"total_pkts\"] / self.config.duration_sec\n---\n\u003e             tx_rate \u003d results[\"stats\"][str(idx)][\"tx\"][\"total_pkts\"] / self.config.duration_sec\n\u003e             rx_rate \u003d results[\"stats\"][str(1 - idx)][\"rx\"][\"total_pkts\"] / self.config.duration_sec",
+      "revId": "edff62485c1e8c5afb62cecbf2fa30ca38becae2",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": true
+    }
+  ]
+}

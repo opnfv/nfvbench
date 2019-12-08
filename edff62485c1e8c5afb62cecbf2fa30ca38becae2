@@ -19,6 +19,74 @@
     },
     {
       "key": {
+        "uuid": "a0cdad50_c3e57a52",
+        "filename": "nfvbench/packet_stats.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 295,
+      "author": {
+        "id": 5807
+      },
+      "writtenOn": "2019-12-08T20:28:43Z",
+      "side": 1,
+      "message": "Here again we can no longer mix key types in same dict.\nMust use str(index) as key\n\nTo repro issue, run any multi-chain benchmark with N\u003e1\n2019-12-08 20:00:58,865 INFO ...traffic generating ended.\n2019-12-08 20:00:58,872 INFO Service chain \u0027PVP\u0027 run completed.\n2019-12-08 20:00:58,873 INFO Clean up skipped.\n2019-12-08 20:00:58,918 ERROR {\u0027status\u0027: \u0027ERROR\u0027, \u0027error_message\u0027: \u0027Traceback (most recent call last):\\n  File \"/nfvbench/nfvbench/nfvbench.py\", line 682, in main\\n    nfvbench_instance.prepare_summary(result[\\\u0027result\\\u0027])\\n  File \"/nfvbench/nfvbench/nfvbench.py\", line 157, in prepare_summary\\n    summary \u003d NFVBenchSummarizer(result, fluent_logger)\\n  File \"/nfvbench/nfvbench/summarizer.py\", line 265, in __init__\\n    self.__summarize()\\n  File \"/nfvbench/nfvbench/summarizer.py\", line 313, in __summarize\\n    self.__chain_summarize(*result)\\n  File \"/nfvbench/nfvbench/summarizer.py\", line 321, in __chain_summarize\\n    self.__traffic_summarize(chain_benchmark[\\\u0027result\\\u0027])\\n  File \"/nfvbench/nfvbench/summarizer.py\", line 351, in __traffic_summarize\\n    self.__chain_analysis_summarize(*entry)\\n  File \"/nfvbench/nfvbench/summarizer.py\", line 384, in __chain_analysis_summarize\\n    self._put_table(self._get_chain_table(analysis[\\\u0027packet_path_stats\\\u0027][dir]))\\n  File \"/nfvbench/nfvbench/summarizer.py\", line 512, in _get_chain_table\\n    for chain in sorted(chains.keys()):\\nTypeError: \\\u0027\u003c\\\u0027 not supported between instances of \\\u0027int\\\u0027 and \\\u0027str\\\u0027\\n\u0027}\n\u0027\u003c\u0027 not supported between instances of \u0027int\u0027 and \u0027str\u0027",
+      "revId": "edff62485c1e8c5afb62cecbf2fa30ca38becae2",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "011829c0_032a9d45",
+        "filename": "nfvbench/packet_stats.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 314,
+      "author": {
+        "id": 5807
+      },
+      "writtenOn": "2019-12-08T20:28:43Z",
+      "side": 1,
+      "message": "update comment to put \u00270\u0027 and \u00271\u0027",
+      "revId": "edff62485c1e8c5afb62cecbf2fa30ca38becae2",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7cca83bd_fccc555b",
+        "filename": "nfvbench/summarizer.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 492,
+      "author": {
+        "id": 5807
+      },
+      "writtenOn": "2019-12-08T20:28:43Z",
+      "side": 1,
+      "message": "update comment to use \u00270\u0027 and \u00271\u0027",
+      "revId": "edff62485c1e8c5afb62cecbf2fa30ca38becae2",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e111896d_a25d5875",
+        "filename": "nfvbench/summarizer.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 512,
+      "author": {
+        "id": 5807
+      },
+      "writtenOn": "2019-12-08T20:28:43Z",
+      "side": 1,
+      "message": "need to define a variable\nchain_key \u003d str(chain)\nto use as key in the loop",
+      "revId": "edff62485c1e8c5afb62cecbf2fa30ca38becae2",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "1df49dbe_97fb3f06",
         "filename": "nfvbench/traffic_client.py",
         "patchSetId": 3

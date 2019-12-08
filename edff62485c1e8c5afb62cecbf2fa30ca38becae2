@@ -2,6 +2,23 @@
   "comments": [
     {
       "key": {
+        "uuid": "19f6a897_8d9d02b2",
+        "filename": "nfvbench/compute.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 53,
+      "author": {
+        "id": 5807
+      },
+      "writtenOn": "2019-12-08T19:52:14Z",
+      "side": 1,
+      "message": "This open requires specifying \"rb\" mode explicitly.\nOtherwise the code reads the file in utf-8 mode and throws:\n2019-12-08 18:31:35,594 ERROR Traceback (most recent call last):\n  File \"/nfvbench/nfvbench/compute.py\", line 58, in upload_image_via_url\n    self.glance_client.images.upload(img.id, image_data\u003df_image)\n  File \"/usr/local/lib/python3.6/dist-packages/wrapt/wrappers.py\", line 603, in __call__\n    args, kwargs)\n  File \"/usr/local/lib/python3.6/dist-packages/glanceclient/common/utils.py\", line 535, in inner\n    return RequestIdProxy(wrapped(*args, **kwargs))\n  File \"/usr/local/lib/python3.6/dist-packages/glanceclient/v2/images.py\", line 231, in upload\n    resp, body \u003d self.http_client.put(url, headers\u003dhdrs, data\u003dbody)\n  File \"/usr/local/lib/python3.6/dist-packages/keystoneauth1/adapter.py\", line 395, in put\n    return self.request(url, \u0027PUT\u0027, **kwargs)\n  File \"/usr/local/lib/python3.6/dist-packages/glanceclient/common/http.py\", line 328, in request\n    **kwargs)\n  File \"/usr/local/lib/python3.6/dist-packages/keystoneauth1/adapter.py\", line 248, in request\n    return self.session.request(url, method, **kwargs)\n  File \"/usr/local/lib/python3.6/dist-packages/keystoneauth1/session.py\", line 913, in request\n    resp \u003d send(**kwargs)\n  File \"/usr/local/lib/python3.6/dist-packages/keystoneauth1/session.py\", line 1004, in _send_request\n    resp \u003d self.session.request(method, url, **kwargs)\n  File \"/usr/local/lib/python3.6/dist-packages/requests/sessions.py\", line 533, in request\n    resp \u003d self.send(prep, **send_kwargs)\n  File \"/usr/local/lib/python3.6/dist-packages/requests/sessions.py\", line 646, in send\n    r \u003d adapter.send(request, **kwargs)\n  File \"/usr/local/lib/python3.6/dist-packages/requests/adapters.py\", line 469, in send\n    for i in request.body:\n  File \"/usr/local/lib/python3.6/dist-packages/glanceclient/common/http.py\", line 65, in _chunk_body\n    chunk \u003d body.read(CHUNKSIZE)\n  File \"/usr/lib/python3.6/encodings/ascii.py\", line 26, in decode\n    return codecs.ascii_decode(input, self.errors)[0]\nUnicodeDecodeError: \u0027ascii\u0027 codec can\u0027t decode byte 0xfb in position 3: ordinal not in range(128)",
+      "revId": "edff62485c1e8c5afb62cecbf2fa30ca38becae2",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "1df49dbe_97fb3f06",
         "filename": "nfvbench/traffic_client.py",
         "patchSetId": 3

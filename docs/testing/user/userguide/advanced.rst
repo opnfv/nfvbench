@@ -263,6 +263,24 @@ These can also be written in CIDR notation to represent the subnet.
 The corresponding ``step`` is used for ranging the IP addresses from the `ip_addrs``, ``tg_gateway_ip_addrs`` and ``gateway_ip_addrs`` base addresses.
 0.0.0.1 is the default step for all IP ranges. In ``ip_addrs``, 'random' can be configured which tells NFVBench to generate random src/dst IP pairs in the traffic stream.
 
+UDP ports can be controlled with the following NFVbench configuration options:
+
+.. code-block:: bash
+
+    udp_src_port: ['1024', '65000']
+    udp_dst_port: 53
+    udp_port_step: 1
+
+``udp_src_port`` and ``udp_dst_port`` are the UDP port value used by the traffic generators.
+These can be written for unique port or range ports for all flow.
+
+The corresponding ``udp_port_step`` is used for ranging the UDP port.
+1 is the default step for all UDP ranges, 'random' can be configured which tells NFVBench to generate random src/dst UDP pairs in the traffic stream.
+
+NB:
+    Use of UDP range will increase possible values of flows (based on ip src/dst and port src/dst tuple).
+    NFVBench will calculate the least common multiple for this tuple to adapt flows generation to ``flow_count`` parameter.
+
 
 Traffic Configuration via CLI
 -----------------------------

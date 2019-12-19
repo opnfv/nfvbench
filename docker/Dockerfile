@@ -2,7 +2,7 @@
 FROM ubuntu:16.04
 
 ENV TREX_VER "v2.61"
-ENV VM_IMAGE_VER "0.11"
+ENV VM_IMAGE_VER "0.12"
 ENV PYTHONIOENCODING "utf8"
 
 # Note: do not clone with --depth 1 as it will cause pbr to fail extracting the nfvbench version

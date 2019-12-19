@@ -387,19 +387,28 @@ class TRex(AbstractTrafficGenerator):
         udp_args = {}
         if stream_cfg['udp_src_port']:
             udp_args['sport'] = int(stream_cfg['udp_src_port'])
+            udp_args['sport_step'] = int(stream_cfg['udp_port_step'])
+            udp_args['sport_max'] = int(stream_cfg['udp_src_port_max'])
         if stream_cfg['udp_dst_port']:
             udp_args['dport'] = int(stream_cfg['udp_dst_port'])
-        pkt_base /= IP() / UDP(**udp_args)
+            udp_args['dport_step'] = int(stream_cfg['udp_port_step'])
+            udp_args['dport_max'] = int(stream_cfg['udp_dst_port_max'])
 
+        pkt_base /= IP(src=stream_cfg['ip_src_addr'], dst=stream_cfg['ip_dst_addr']) / \
+                    UDP(dport=udp_args['dport'], sport=udp_args['sport'])
+        if stream_cfg['ip_src_static'] is True:
+            src_max_ip_value = stream_cfg['ip_src_addr']
+        else:
+            src_max_ip_value = stream_cfg['ip_src_addr_max']
         if stream_cfg['ip_addrs_step'] == 'random':
-            src_fv = STLVmFlowVarRepeatableRandom(
+            src_fv_ip = STLVmFlowVarRepeatableRandom(
                 name="ip_src",
                 min_value=stream_cfg['ip_src_addr'],
-                max_value=stream_cfg['ip_src_addr_max'],
+                max_value=src_max_ip_value,
                 size=4,
                 seed=random.randint(0, 32767),
                 limit=stream_cfg['ip_src_count'])
-            dst_fv = STLVmFlowVarRepeatableRandom(
+            dst_fv_ip = STLVmFlowVarRepeatableRandom(
                 name="ip_dst",
                 min_value=stream_cfg['ip_dst_addr'],
                 max_value=stream_cfg['ip_dst_addr_max'],
@@ -407,14 +416,14 @@ class TRex(AbstractTrafficGenerator):
                 seed=random.randint(0, 32767),
                 limit=stream_cfg['ip_dst_count'])
         else:
-            src_fv = STLVmFlowVar(
+            src_fv_ip = STLVmFlowVar(
                 name="ip_src",
                 min_value=stream_cfg['ip_src_addr'],
-                max_value=stream_cfg['ip_src_addr'],
+                max_value=src_max_ip_value,
                 size=4,
                 op="inc",
                 step=stream_cfg['ip_addrs_step'])
-            dst_fv = STLVmFlowVar(
+            dst_fv_ip = STLVmFlowVar(
                 name="ip_dst",
                 min_value=stream_cfg['ip_dst_addr'],
                 max_value=stream_cfg['ip_dst_addr_max'],
@@ -422,18 +431,49 @@ class TRex(AbstractTrafficGenerator):
                 op="inc",
                 step=stream_cfg['ip_addrs_step'])
 
-        vm_param.extend([
-            src_fv,
+        if stream_cfg['udp_port_step'] == 'random':
+            src_fv_port = STLVmFlowVarRepeatableRandom(
+                name="p_src",
+                min_value=udp_args['sport'],
+                max_value=udp_args['sport_max'],
+                size=2,
+                seed=random.randint(0, 32767),
+                limit=udp_args['udp_src_count'])
+            dst_fv_port = STLVmFlowVarRepeatableRandom(
+                name="p_dst",
+                min_value=udp_args['dport'],
+                max_value=udp_args['dport_max'],
+                size=2,
+                seed=random.randint(0, 32767),
+                limit=stream_cfg['udp_dst_count'])
+        else:
+            src_fv_port = STLVmFlowVar(
+                name="p_src",
+                min_value=udp_args['sport'],
+                max_value=udp_args['sport_max'],
+                size=2,
+                op="inc",
+                step=udp_args['sport_step'])
+            dst_fv_port = STLVmFlowVar(
+                name="p_dst",
+                min_value=udp_args['dport'],
+                max_value=udp_args['dport_max'],
+                size=2,
+                op="inc",
+                step=udp_args['dport_step'])
+        vm_param = [
+            src_fv_ip,
             STLVmWrFlowVar(fv_name="ip_src", pkt_offset="IP:{}.src".format(encap_level)),
-            dst_fv,
-            STLVmWrFlowVar(fv_name="ip_dst", pkt_offset="IP:{}.dst".format(encap_level))
-        ])
-
-        for encap in range(int(encap_level), -1, -1):
-            # Fixing the checksums for all encap levels
-            vm_param.append(STLVmFixChecksumHw(l3_offset="IP:{}".format(encap),
-                                               l4_offset="UDP:{}".format(encap),
-                                               l4_type=CTRexVmInsFixHwCs.L4_TYPE_UDP))
+            src_fv_port,
+            STLVmWrFlowVar(fv_name="p_src", pkt_offset="UDP:{}.sport".format(encap_level)),
+            dst_fv_ip,
+            STLVmWrFlowVar(fv_name="ip_dst", pkt_offset="IP:{}.dst".format(encap_level)),
+            dst_fv_port,
+            STLVmWrFlowVar(fv_name="p_dst", pkt_offset="UDP:{}.dport".format(encap_level)),
+            STLVmFixChecksumHw(l3_offset="IP:{}".format(encap_level),
+                               l4_offset="UDP:{}".format(encap_level),
+                               l4_type=CTRexVmInsFixHwCs.L4_TYPE_UDP)
+        ]
         pad = max(0, frame_size - len(pkt_base)) * 'x'
 
         return STLPktBuilder(pkt=pkt_base / pad,
@@ -849,8 +889,8 @@ class TRex(AbstractTrafficGenerator):
         bpf_filter = "ether dst %s or ether dst %s" % (src_mac_list[0], src_mac_list[1])
         # ports must be set in service in order to enable capture
         self.client.set_service_mode(ports=self.port_handle)
-        self.capture_id = self.client.start_capture(rx_ports=self.port_handle,
-                                                    bpf_filter=bpf_filter)
+        self.capture_id = self.client.start_capture \
+            (rx_ports=self.port_handle, bpf_filter=bpf_filter)
 
     def fetch_capture_packets(self):
         """Fetch capture packets in capture mode."""

@@ -13,14 +13,15 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 #
-import json
-import logging
-import sys
-
-from attrdict import AttrDict
 from mock import patch
 import pytest
 
+from .mock_trex import no_op
+
+import json
+import logging
+import sys
+from attrdict import AttrDict
 from nfvbench.config import config_loads
 from nfvbench.credentials import Credentials
 from nfvbench.fluentd import FluentLogHandler
@@ -32,7 +33,6 @@ from nfvbench.traffic_client import IpBlock
 from nfvbench.traffic_client import TrafficClient
 import nfvbench.traffic_gen.traffic_utils as traffic_utils
 
-from .mock_trex import no_op
 
 # just to get rid of the unused function warning
 no_op()
@@ -173,6 +173,63 @@ def test_ip_block():
     with pytest.raises(IndexError):
         ipb.get_ip(256)
 
+    ipb = IpBlock('10.0.0.0', '0.0.0.2', 128)
+    assert ipb.get_ip() == '10.0.0.0'
+    assert ipb.get_ip(1) == '10.0.0.2'
+    assert ipb.get_ip(127) == '10.0.0.254'
+    with pytest.raises(IndexError):
+        ipb.get_ip(128)
+
+    ipb = IpBlock('10.0.0.0', '0.0.0.4', 64)
+    assert ipb.get_ip() == '10.0.0.0'
+    assert ipb.get_ip(1) == '10.0.0.4'
+    assert ipb.get_ip(63) == '10.0.0.252'
+    with pytest.raises(IndexError):
+        ipb.get_ip(64)
+
+    ipb = IpBlock('10.0.0.0', '0.0.0.10', 1)
+    assert ipb.get_ip() == '10.0.0.0'
+    with pytest.raises(IndexError):
+        ipb.get_ip(1)
+
+
+def test_lcm():
+    assert Device.lcm(10, 2) == 10
+    assert Device.lcm(1, 256) == 256
+    assert Device.lcm(10, 256) == 1280
+    assert Device.lcm(Device.lcm(10, 2), Device.lcm(1, 256))
+    with pytest.raises(TypeError):
+        Device.lcm(0, 0)
+
+
+def test_check_ipsize():
+    assert Device.check_ipsize(256, 1) == 256
+    assert Device.check_ipsize(256, 3) == 86
+    assert Device.check_ipsize(256, 4) == 64
+    assert Device.check_ipsize(16, 10) == 2
+    assert Device.check_ipsize(1, 10) == 1
+    with pytest.raises(ZeroDivisionError):
+        Device.check_ipsize(256, 0)
+
+
+def test_reserve_ip_range():
+    ipb = IpBlock('10.0.0.0', '0.0.0.1', 256)
+    src_ip_first, src_ip_last = ipb.reserve_ip_range(256, False)
+    assert src_ip_first == "10.0.0.0"
+    assert src_ip_last == "10.0.0.255"
+    ipb = IpBlock('20.0.0.0', '0.0.0.1', 2)
+    src_ip_first, src_ip_last = ipb.reserve_ip_range(2, False)
+    assert src_ip_first == "20.0.0.0"
+    assert src_ip_last == "20.0.0.1"
+    ipb = IpBlock('30.0.0.0', '0.0.0.1', 2)
+    src_ip_first, src_ip_last = ipb.reserve_ip_range(256, True)
+    assert src_ip_first == "30.0.0.0"
+    assert src_ip_last == "30.0.0.1"
+    ipb = IpBlock('40.0.0.0', '0.0.0.1', 2)
+    with pytest.raises(IndexError):
+        ipb.reserve_ip_range(256, False)
+
+
 def check_stream_configs(gen_config):
     """Verify that the range for each chain have adjacent IP ranges without holes between chains."""
     config = gen_config.config
@@ -201,6 +258,78 @@ def _check_device_flow_config(step_ip):
 def test_device_flow_config():
     _check_device_flow_config('0.0.0.1')
     _check_device_flow_config('0.0.0.2')
+
+
+def check_udp_stream_configs(gen_config, expected):
+    """Verify that the range for each chain have adjacent UDP ports without holes between chains."""
+    config = gen_config.config
+    stream_configs = gen_config.devices[0].get_stream_configs()
+    for index in range(config['service_chain_count']):
+        stream_cfg = stream_configs[index]
+        assert stream_cfg['ip_src_addr'] == expected['ip_src_addr']
+        assert stream_cfg['ip_src_addr_max'] == expected['ip_src_addr_max']
+        assert stream_cfg['ip_dst_addr'] == expected['ip_dst_addr']
+        assert stream_cfg['ip_dst_addr_max'] == expected['ip_dst_addr_max']
+        assert stream_cfg['udp_src_port'] == expected['udp_src_port']
+        assert stream_cfg['udp_src_port_max'] == expected['udp_src_port_max']
+        assert stream_cfg['udp_src_count'] == expected['udp_src_count']
+        assert stream_cfg['udp_dst_port'] == expected['udp_dst_port']
+        assert stream_cfg['udp_dst_port_max'] == expected['udp_dst_port_max']
+        assert stream_cfg['udp_dst_count'] == expected['udp_dst_count']
+
+
+def _check_device_udp_flow_config(param, expected):
+    config = _get_dummy_tg_config('PVP', '1Mpps',
+                                  ip_src_static=param['ip_src_static'],
+                                  fc=param['flow_count'],
+                                  ip0=param['ip_src_addr'],
+                                  ip1=param['ip_dst_addr'],
+                                  src_udp=param['udp_src_port'],
+                                  dst_udp=param['udp_dst_port'])
+    gen_config = GeneratorConfig(config)
+    check_udp_stream_configs(gen_config, expected)
+
+
+def test_device_udp_flow_config():
+    param = {'ip_src_static': True,
+             'ip_src_addr': '110.0.0.0/32',
+             'ip_dst_addr': '120.0.0.0/32',
+             'udp_src_port': 53,
+             'udp_dst_port': 53,
+             'flow_count': 2}
+    expected = {'ip_src_addr': '110.0.0.0',
+                'ip_src_addr_max': '110.0.0.0',
+                'ip_dst_addr': '120.0.0.0',
+                'ip_dst_addr_max': '120.0.0.0',
+                'udp_src_port': 53,
+                'udp_src_port_max': 53,
+                'udp_src_count': 1,
+                'udp_dst_port': 53,
+                'udp_dst_port_max': 53,
+                'udp_dst_count': 1}
+    _check_device_udp_flow_config(param, expected)
+    # Overwrite the udp_src_port value to define a large range of ports
+    # instead of a single port, in order to check if the imposed
+    # flow count is respected. Notice that udp range >> flow count.
+    param['udp_src_port'] = [53, 1024]
+    param['flow_count'] = 10
+    expected['udp_src_port_max'] = 57
+    expected['udp_src_count'] = 5
+    _check_device_udp_flow_config(param, expected)
+    # Re affect the default udp_src_port values and
+    # overwrite the ip_dst_addr value to define a large range of addresses
+    # instead of a single one, in order to check if the imposed
+    # flow count is respected. Notice that the netmask allows a very larger
+    # range of possible addresses than the flow count value.
+    param['udp_src_port'] = 53
+    expected['udp_src_port_max'] = 53
+    expected['udp_src_count'] = 1
+    param['ip_src_static'] = False
+    param['ip_dst_addr'] = '120.0.0.0/24'
+    expected['ip_dst_addr'] = '120.0.0.0'
+    expected['ip_dst_addr_max'] = '120.0.0.4'
+    _check_device_udp_flow_config(param, expected)
+
 
 def test_config():
     refcfg = {1: 100, 2: {21: 100, 22: 200}, 3: None}
@@ -290,7 +419,8 @@ def assert_ndr_pdr(stats, ndr, ndr_dr, pdr, pdr_dr):
     assert_equivalence(pdr_dr, stats['pdr']['stats']['overall']['drop_percentage'])
 
 def _get_dummy_tg_config(chain_type, rate, scc=1, fc=10, step_ip='0.0.0.1',
-                         ip0='10.0.0.0/8', ip1='20.0.0.0/8'):
+                         ip0='10.0.0.0/8', ip1='20.0.0.0/8',
+                         step_udp=1, src_udp=None, dst_udp=None, ip_src_static=True):
     return AttrDict({
         'traffic_generator': {'host_name': 'nfvbench_tg',
                               'default_profile': 'dummy',
@@ -302,14 +432,16 @@ def _get_dummy_tg_config(chain_type, rate, scc=1, fc=10, step_ip='0.0.0.1',
                                                                     {'port': 1, 'pci': '0.0'}]}],
                               'ip_addrs_step': step_ip,
                               'ip_addrs': [ip0, ip1],
+                              'ip_src_static': ip_src_static,
                               'tg_gateway_ip_addrs': ['1.1.0.100', '2.2.0.100'],
                               'tg_gateway_ip_addrs_step': step_ip,
                               'gateway_ip_addrs': ['1.1.0.2', '2.2.0.2'],
                               'gateway_ip_addrs_step': step_ip,
                               'mac_addrs_left': None,
                               'mac_addrs_right': None,
-                              'udp_src_port': None,
-                              'udp_dst_port': None},
+                              'udp_src_port': src_udp,
+                              'udp_dst_port': dst_udp,
+                              'udp_port_step': step_udp},
         'traffic': {'profile': 'profile_64',
                     'bidirectional': True},
         'traffic_profile': [{'name': 'profile_64', 'l2frame_size': ['64']}],

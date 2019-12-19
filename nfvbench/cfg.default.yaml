@@ -163,6 +163,12 @@ traffic_generator:
     # `ip_addrs_step`: step for generating IP sequence. Use "random" for random patterns, default is 0.0.0.1.
     ip_addrs: ['10.0.0.0/8', '20.0.0.0/8']
     ip_addrs_step: 0.0.0.1
+
+    #'ip_src_static': an attribute to precise the state of source IP during the generation of traffic, It indicates whether
+    #                the IP source variate or remain constant. Use True for constant IP and  False for varying IPs.
+    #                default value is  True
+    ip_src_static: True
+
     # `tg_gateway_ip_addrs` base IP for traffic generator ports in the left and right networks to the VNFs
     #                       chain count consecutive IP addresses spaced by tg_gateway_ip_addrs_step will be used
     # `tg_gateway_ip_addrs__step`: step for generating traffic generator gateway sequences. default is 0.0.0.1
@@ -177,10 +183,24 @@ traffic_generator:
     # `gateway_ip_addrs_step`: step for generating router gateway sequences. default is 0.0.0.1
     gateway_ip_addrs: ['1.1.0.2', '2.2.0.2']
     gateway_ip_addrs_step: 0.0.0.1
+
+    # UDP DEFINED VARIABLES
+    # TRex pick default UDP port (53) but the range of UDP source and destination ports are also
+    # defined from configuration file by using the following attributes:
+    #
     # `udp_src_port`: the source port for sending UDP traffic, default is picked by TRex (53)
     # `udp_dst_port`: the destination port for sending UDP traffic, default is picked by TRex (53)
+    # `udp_port_step`: the step between two generated ports, default is equal to '1'
+    #
+    # NOTICE:
+    # Following TRex functionalities, incrementation and decrementation of source port and destination
+    # port values occur simultaneously.
+    # So, in order to reach the highest possible number of packets, it's recommended that the range of source ports
+    # minus the range of destination ports should be different of 1
+    # i.e:  |range[source_port] - range[destination_port]| = 1
     udp_src_port:
     udp_dst_port:
+    udp_port_step: '1'
 
     # VxLAN only: optionally specify what VLAN tag to use for the VxLAN overlay
     # This is used if the vxlan tunnels are running on a specific VLAN.

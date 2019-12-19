@@ -15,6 +15,7 @@
 """Interface to the traffic generator clients including NDR/PDR binary search."""
 
 from datetime import datetime
+from math import gcd
 import socket
 import struct
 import time
@@ -126,21 +127,41 @@ class IpBlock(object):
             raise IndexError('Index out of bounds: %d (max=%d)' % (index, self.max_available))
         return Device.int_to_ip(self.base_ip_int + index * self.step)
 
-    def reserve_ip_range(self, count):
-        """Reserve a range of count consecutive IP addresses spaced by step."""
-        if self.next_free + count > self.max_available:
+    def reserve_ip_range(self, count, force_ip_reservation=False):
+        """Reserve a range of count consecutive IP addresses spaced by step.
+        force_ip_reservation parameter allows to continue the calculation of IPs when
+        the 2 sides (ports) have different size and the flow is greater than
+        the size as well.
+        """
+        if self.next_free + count > self.max_available and force_ip_reservation is False:
             raise IndexError('No more IP addresses next free=%d max_available=%d requested=%d' %
                              (self.next_free,
                               self.max_available,
                               count))
-        first_ip = self.get_ip(self.next_free)
-        last_ip = self.get_ip(self.next_free + count - 1)
-        self.next_free += count
+        if self.next_free + count > self.max_available and force_ip_reservation is True:
+            first_ip = self.get_ip(self.next_free)
+            last_ip = self.get_ip(self.next_free + self.max_available - 1)
+            self.next_free += self.max_available
+        else:
+            first_ip = self.get_ip(self.next_free)
+            last_ip = self.get_ip(self.next_free + count - 1)
+            self.next_free += count
         return (first_ip, last_ip)
 
     def reset_reservation(self):
         """Reset all reservations and restart with a completely unused IP block."""
         self.next_free = 0
+
+
+class UdpPorts(object):
+
+    def __init__(self, src_min, src_max, dst_min, dst_max, step):
+
+        self.src_min = src_min
+        self.src_max = src_max
+        self.dst_min = dst_min
+        self.dst_max = dst_max
+        self.step = step
 
 
 class Device(object):
@@ -154,7 +175,11 @@ class Device(object):
         """Create a new device for a given port."""
         self.generator_config = generator_config
         self.chain_count = generator_config.service_chain_count
-        self.flow_count = generator_config.flow_count / 2
+        if generator_config.bidirectional:
+            self.flow_count = generator_config.flow_count / 2
+        else:
+            self.flow_count = generator_config.flow_count
+
         self.port = port
         self.switch_port = generator_config.interfaces[port].get('switch_port', None)
         self.vtep_vlan = None
@@ -175,10 +200,58 @@ class Device(object):
         self.vnis = None
         self.vlans = None
         self.ip_addrs = generator_config.ip_addrs[port]
-        subnet = IPNetwork(self.ip_addrs)
-        self.ip = subnet.ip.format()
+        self.ip_src_static = generator_config.ip_src_static
         self.ip_addrs_step = generator_config.ip_addrs_step
-        self.ip_block = IpBlock(self.ip, self.ip_addrs_step, self.flow_count)
+        if self.ip_addrs_step == 'random':
+            # Set step to 1 to calculate the IP range size (see check_ip_size below)
+            step = '0.0.0.1'
+        else:
+            step = self.ip_addrs_step
+        self.ip_size = self.check_ipsize(IPNetwork(self.ip_addrs).size, Device.ip_to_int(step))
+        self.ip = str(IPNetwork(self.ip_addrs).network)
+        ip_addrs_left = generator_config.ip_addrs[0]
+        ip_addrs_right = generator_config.ip_addrs[1]
+        self.ip_addrs_size = {
+            'left': self.check_ipsize(IPNetwork(ip_addrs_left).size, Device.ip_to_int(step)),
+            'right': self.check_ipsize(IPNetwork(ip_addrs_right).size, Device.ip_to_int(step))}
+        udp_src_port = generator_config.gen_config.udp_src_port
+        if udp_src_port is None:
+            udp_src_port = 53
+        udp_dst_port = generator_config.gen_config.udp_dst_port
+        if udp_dst_port is None:
+            udp_dst_port = 53
+        src_max, src_min = self.define_udp_range(udp_src_port, 'udp_src_port')
+        dst_max, dst_min = self.define_udp_range(udp_dst_port, 'udp_dst_port')
+        udp_src_range = int(src_max) - int(src_min) + 1
+        udp_dst_range = int(dst_max) - int(dst_min) + 1
+        lcm_port = self.lcm(udp_src_range, udp_dst_range)
+        if self.ip_src_static is True:
+            lcm_ip = self.lcm(1, min(self.ip_addrs_size['left'], self.ip_addrs_size['right']))
+        else:
+            lcm_ip = self.lcm(self.ip_addrs_size['left'], self.ip_addrs_size['right'])
+        flow_max = self.lcm(lcm_port, lcm_ip)
+        if self.flow_count > flow_max:
+            raise TrafficClientException('Trying to set unachievable traffic (%d > %d)' %
+                                         (self.flow_count, flow_max))
+
+        # manage udp range regarding flow count value
+        # UDP dst range is greater than FC => range will be limited to min + FC
+        if self.flow_count <= udp_dst_range:
+            dst_max = int(dst_min) + self.flow_count - 1
+        # UDP src range is greater than FC => range will be limited to min + FC
+        if self.flow_count <= udp_src_range:
+            src_max = int(src_min) + self.flow_count - 1
+        # Define IP block limit regarding flow count
+        if self.flow_count <= self.ip_size:
+            self.ip_block = IpBlock(self.ip, step, self.flow_count)
+        else:
+            self.ip_block = IpBlock(self.ip, step, self.ip_size)
+
+        if generator_config.gen_config.udp_port_step == 'random':
+            step = 1
+        else:
+            step = generator_config.gen_config.udp_port_step
+        self.udp_ports = UdpPorts(src_min, src_max, dst_min, dst_max, step)
         self.gw_ip_block = IpBlock(generator_config.gateway_ips[port],
                                    generator_config.gateway_ip_addrs_step,
                                    self.chain_count)
@@ -186,8 +259,40 @@ class Device(object):
         self.tg_gw_ip_block = IpBlock(self.tg_gateway_ip_addrs,
                                       generator_config.tg_gateway_ip_addrs_step,
                                       self.chain_count)
-        self.udp_src_port = generator_config.udp_src_port
-        self.udp_dst_port = generator_config.udp_dst_port
+
+    @staticmethod
+    def define_udp_range(udp_port, property_name):
+        if isinstance(udp_port, int):
+            min = udp_port
+            max = min
+        elif isinstance(udp_port, tuple):
+            min = udp_port[0]
+            max = udp_port[1]
+        else:
+            raise TrafficClientException('Invalid %s property value (53 or [\'53\',\'1024\'])'
+                                         % property_name)
+        return max, min
+
+    @staticmethod
+    def lcm(a, b):
+        """Calculate the maximum possible value for both IP and ports,
+        eventually for maximum possible flux."""
+        if a != 0 and b != 0:
+            lcm_value = a * b // gcd(a, b)
+            return lcm_value
+        raise TypeError(" IP size or port range can't be zero !")
+
+    @staticmethod
+    def check_ipsize(ip_size, step):
+        """Check and set the available IPs, considering the step."""
+        try:
+            if ip_size % step == 0:
+                value = int(ip_size / step)
+            else:
+                value = int((ip_size / step)) + 1
+            return value
+        except ZeroDivisionError:
+            raise ZeroDivisionError("step can't be zero !")
 
     def set_mac(self, mac):
         """Set the local MAC for this port device."""
@@ -288,14 +393,27 @@ class Device(object):
         # example 11 flows and 3 chains => 3, 4, 4
         flows_per_chain = int((self.flow_count + self.chain_count - 1) / self.chain_count)
         cur_chain_flow_count = int(self.flow_count - flows_per_chain * (self.chain_count - 1))
+        force_ip_reservation = False
+        # use case example of this parameter:
+        # - static IP addresses (source & destination), netmask = /30
+        # - 4 varying UDP source ports | 1 UDP destination port
+        # - Flow count = 8
+        # --> parameter 'reserve_ip_range' should have flag 'force_ip_reservation'
+        # in order to assign the maximum available IP on each iteration
+        if self.ip_size < cur_chain_flow_count \
+                or self.ip_addrs_size['left'] != self.ip_addrs_size['right']:
+            force_ip_reservation = True
+
         peer = self.get_peer_device()
         self.ip_block.reset_reservation()
         peer.ip_block.reset_reservation()
         dest_macs = self.get_dest_macs()
 
         for chain_idx in range(self.chain_count):
-            src_ip_first, src_ip_last = self.ip_block.reserve_ip_range(cur_chain_flow_count)
-            dst_ip_first, dst_ip_last = peer.ip_block.reserve_ip_range(cur_chain_flow_count)
+            src_ip_first, src_ip_last = self.ip_block.reserve_ip_range\
+            (cur_chain_flow_count, force_ip_reservation)
+            dst_ip_first, dst_ip_last = peer.ip_block.reserve_ip_range\
+            (cur_chain_flow_count, force_ip_reservation)
 
             configs.append({
                 'count': cur_chain_flow_count,
@@ -308,8 +426,14 @@ class Device(object):
                 'ip_dst_addr_max': dst_ip_last,
                 'ip_dst_count': cur_chain_flow_count,
                 'ip_addrs_step': self.ip_addrs_step,
-                'udp_src_port': self.udp_src_port,
-                'udp_dst_port': self.udp_dst_port,
+                'ip_src_static': self.ip_src_static,
+                'udp_src_port': self.udp_ports.src_min,
+                'udp_src_port_max': self.udp_ports.src_max,
+                'udp_src_count': int(self.udp_ports.src_max) - int(self.udp_ports.src_min) + 1,
+                'udp_dst_port': self.udp_ports.dst_min,
+                'udp_dst_port_max': self.udp_ports.dst_max,
+                'udp_dst_count': int(self.udp_ports.dst_max) - int(self.udp_ports.dst_min) + 1,
+                'udp_port_step': self.udp_ports.step,
                 'mac_discovery_gw': self.get_gw_ip(chain_idx),
                 'ip_src_tg_gw': self.tg_gw_ip_block.get_ip(chain_idx),
                 'ip_dst_tg_gw': peer.tg_gw_ip_block.get_ip(chain_idx),
@@ -387,7 +511,7 @@ class GeneratorConfig(object):
         self.service_chain_count = config.service_chain_count
         self.flow_count = config.flow_count
         self.host_name = gen_config.host_name
-
+        self.bidirectional = config.traffic.bidirectional
         self.tg_gateway_ip_addrs = gen_config.tg_gateway_ip_addrs
         self.ip_addrs = gen_config.ip_addrs
         self.ip_addrs_step = gen_config.ip_addrs_step or self.DEFAULT_SRC_DST_IP_STEP
@@ -395,8 +519,7 @@ class GeneratorConfig(object):
             gen_config.tg_gateway_ip_addrs_step or self.DEFAULT_IP_STEP
         self.gateway_ip_addrs_step = gen_config.gateway_ip_addrs_step or self.DEFAULT_IP_STEP
         self.gateway_ips = gen_config.gateway_ip_addrs
-        self.udp_src_port = gen_config.udp_src_port
-        self.udp_dst_port = gen_config.udp_dst_port
+        self.ip_src_static = gen_config.ip_src_static
         self.vteps = gen_config.get('vteps')
         self.devices = [Device(port, self) for port in [0, 1]]
         # This should normally always be [0, 1]

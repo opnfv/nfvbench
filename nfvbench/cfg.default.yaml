@@ -610,6 +610,11 @@ vlans: []
 #       (see mac_addrs_left and mac_addrs_right)
 no_arp: false
 
+# Loop VM (VPP forwarder) can use ARP to discover next hop mac address
+# False (default): do not send ARP but use static config devices macs instead (TRex gratuitous ARP are not interpreted by VPP)
+# True: ARP requests are sent to find out next hop MAC addresses (for instance SDN-GW)
+loop_vm_arp: false
+
 # Traffic Profiles
 # You can add here more profiles as needed
 # `l2frame_size` can be specified in any none zero integer value to represent the size in bytes

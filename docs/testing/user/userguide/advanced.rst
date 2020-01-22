@@ -292,6 +292,7 @@ MAC Addresses
 NFVbench will dicover the MAC addresses to use for generated frames using:
 - either OpenStack discovery (find the MAC of an existing VM) in the case of PVP and PVVP service chains
 - or using dynamic ARP discovery (find MAC from IP) in the case of external chains.
+- In case of L3 chain with SDN-GW or router between traffic generator and loop VM ARP is needed to discover SDN-GW mac addresses, use ``--loop-vm-arp`` flag or ``loop_vm_arp: true`` in config file.
 
 Status and Cleanup of NFVbench Resources
 ----------------------------------------

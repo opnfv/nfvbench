@@ -105,7 +105,8 @@ class ChainRunner(object):
         if not self.config.no_traffic:
             # ARP is needed for EXT chain or VxLAN overlay unless disabled explicitly
             if (self.config.service_chain == ChainType.EXT or
-                    self.config.vxlan or self.config.l3_router) and not self.config.no_arp:
+                    self.config.vxlan or self.config.l3_router or self.config.loop_vm_arp)\
+                    and not self.config.no_arp:
                 self.traffic_client.ensure_arp_successful()
             self.traffic_client.ensure_end_to_end()
 

@@ -30,7 +30,7 @@ set -e
 gs_url=artifacts.opnfv.org/nfvbench/images
 
 # image version number
-__version__=0.11
+__version__=0.12
 image_name=nfvbenchvm_centos-$__version__
 
 # if image exists skip building

@@ -456,8 +456,12 @@ class ChainVnf(object):
         else:
             tg_gateway1_ip = devices[LEFT].tg_gateway_ip_addrs
             tg_gateway2_ip = devices[RIGHT].tg_gateway_ip_addrs
-            tg_mac1 = remote_mac_pair[0]
-            tg_mac2 = remote_mac_pair[1]
+            if not config.loop_vm_arp:
+                tg_mac1 = remote_mac_pair[0]
+                tg_mac2 = remote_mac_pair[1]
+            else:
+                tg_mac1 = ""
+                tg_mac2 = ""
 
             g1cidr = devices[LEFT].get_gw_ip(
                 self.chain.chain_id) + self.__get_network_mask(

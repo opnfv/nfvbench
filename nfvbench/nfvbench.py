@@ -343,6 +343,12 @@ def _parse_opts_from_cli():
                         help='Do not use ARP to find MAC addresses, '
                              'instead use values in config file')
 
+    parser.add_argument('--loop-vm-arp', dest='loop_vm_arp',
+                        default=None,
+                        action='store_true',
+                        help='Use ARP to find MAC addresses '
+                             'instead of using values from TRex ports (VPP forwarder only)')
+
     parser.add_argument('--no-vswitch-access', dest='no_vswitch_access',
                         default=None,
                         action='store_true',

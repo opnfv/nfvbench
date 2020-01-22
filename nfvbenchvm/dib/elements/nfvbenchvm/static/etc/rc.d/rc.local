@@ -211,12 +211,22 @@ if [ $PCI_ADDRESS_1 ] && [ $PCI_ADDRESS_2 ]; then
         INTFS=`vppctl show int | grep Ethernet | xargs`
         INTF_1=`echo $INTFS | awk '{ print $1 }'`
         INTF_2=`echo $INTFS | awk '{ print $4 }'`
+        if [ -z "${TG_MAC1}" ]; then
+            # vm.conf does not support lines commented with #, so
+            # we need to remove the line to set the static ARP entry.
+            sed -i "/{{TG_MAC1}}/d" /etc/vpp/vm.conf
+        else
+            sed -i "s/{{TG_MAC1}}/${TG_MAC1}/g" /etc/vpp/vm.conf
+        fi
+        if [ -z "${TG_MAC2}" ]; then
+            sed -i "/{{TG_MAC2}}/d" /etc/vpp/vm.conf
+        else
+            sed -i "s/{{TG_MAC2}}/${TG_MAC2}/g" /etc/vpp/vm.conf
+        fi
         sed -i "s/{{INTF_1}}/${INTF_1//\//\/}/g" /etc/vpp/vm.conf
         sed -i "s/{{INTF_2}}/${INTF_2//\//\/}/g" /etc/vpp/vm.conf
         sed -i "s/{{VNF_GATEWAY1_CIDR}}/${VNF_GATEWAY1_CIDR//\//\/}/g" /etc/vpp/vm.conf
         sed -i "s/{{VNF_GATEWAY2_CIDR}}/${VNF_GATEWAY2_CIDR//\//\/}/g" /etc/vpp/vm.conf
-        sed -i "s/{{TG_MAC1}}/${TG_MAC1}/g" /etc/vpp/vm.conf
-        sed -i "s/{{TG_MAC2}}/${TG_MAC2}/g" /etc/vpp/vm.conf
         sed -i "s/{{TG_NET1}}/${TG_NET1//\//\/}/g" /etc/vpp/vm.conf
         sed -i "s/{{TG_NET2}}/${TG_NET2//\//\/}/g" /etc/vpp/vm.conf
         sed -i "s/{{TG_GATEWAY1_IP}}/${TG_GATEWAY1_IP}/g" /etc/vpp/vm.conf

@@ -1,0 +1,157 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "b2f134f5_4d45e9cb",
+        "filename": "nfvbench/cfg.default.yaml",
+        "patchSetId": 9
+      },
+      "lineNbr": 194,
+      "author": {
+        "id": 5807
+      },
+      "writtenOn": "2020-01-28T19:18:20Z",
+      "side": 1,
+      "message": "fix the copy/paste comment. Should probably be required if mpls?\nnow we start to add more and more protocol specific fields, in that case maybe we should start to prefix them to make it more readable and easy to use.\nmpls_dst_peer_ips\nadd in comment if there is any constraint for the values compared to src_vteps?\nfor ex should the list always have exactly 2 IP addresses?\nshould the IP addresses be related in any way with src_vteps (same subnet on each port or different subnet for both ports?)",
+      "revId": "fcc4d5da7dfba1219407afc629d2983abe992470",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b10e74e8_328d648e",
+        "filename": "nfvbench/cfg.default.yaml",
+        "patchSetId": 9
+      },
+      "lineNbr": 382,
+      "author": {
+        "id": 5807
+      },
+      "writtenOn": "2020-01-28T19:18:20Z",
+      "side": 1,
+      "message": "\"oonly\"\nspecify how many values are expected? Is it one label per chain?\nDoes it support auto-indexing?\nprovide example of values",
+      "revId": "fcc4d5da7dfba1219407afc629d2983abe992470",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7525dfb5_2f5c734b",
+        "filename": "nfvbench/cfg.default.yaml",
+        "patchSetId": 9
+      },
+      "lineNbr": 590,
+      "author": {
+        "id": 5807
+      },
+      "writtenOn": "2020-01-28T19:18:20Z",
+      "side": 1,
+      "message": "When this option is enabled\nSpecify whether this option is exclusive of vxlan or of other options?",
+      "revId": "fcc4d5da7dfba1219407afc629d2983abe992470",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6ba3a9cb_205e18ae",
+        "filename": "nfvbench/chain_runner.py",
+        "patchSetId": 9
+      },
+      "lineNbr": 187,
+      "author": {
+        "id": 5807
+      },
+      "writtenOn": "2020-01-28T19:18:20Z",
+      "side": 1,
+      "message": "vxlan or mpls tunnels",
+      "revId": "fcc4d5da7dfba1219407afc629d2983abe992470",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f88175fe_8514d7e2",
+        "filename": "nfvbench/chaining.py",
+        "patchSetId": 9
+      },
+      "lineNbr": 375,
+      "author": {
+        "id": 5807
+      },
+      "writtenOn": "2020-01-28T19:18:20Z",
+      "side": 1,
+      "message": "Here 2 terns are used: inner label and vpn label\nare they the same?\ncan we use one terminology?",
+      "revId": "fcc4d5da7dfba1219407afc629d2983abe992470",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f49038ab_e9588095",
+        "filename": "nfvbench/chaining.py",
+        "patchSetId": 9
+      },
+      "lineNbr": 943,
+      "author": {
+        "id": 5807
+      },
+      "writtenOn": "2020-01-28T19:18:20Z",
+      "side": 1,
+      "message": "fix copy/paste",
+      "revId": "fcc4d5da7dfba1219407afc629d2983abe992470",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a9cdc4b2_d7f01bfa",
+        "filename": "nfvbench/chaining.py",
+        "patchSetId": 9
+      },
+      "lineNbr": 1271,
+      "author": {
+        "id": 5807
+      },
+      "writtenOn": "2020-01-28T19:18:20Z",
+      "side": 1,
+      "message": "(instance_count - 1) *10 is removed\nis that a merge error or intentional?",
+      "revId": "fcc4d5da7dfba1219407afc629d2983abe992470",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "acded66c_605d7260",
+        "filename": "nfvbench/nfvbench.py",
+        "patchSetId": 9
+      },
+      "lineNbr": 605,
+      "author": {
+        "id": 5807
+      },
+      "writtenOn": "2020-01-28T19:18:20Z",
+      "side": 1,
+      "message": "we should verify exclusive options and this is best done in the NFVBench initializer to cover both CLI and REST queries",
+      "revId": "fcc4d5da7dfba1219407afc629d2983abe992470",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0f1acbd4_53fdfe96",
+        "filename": "pylint.rc",
+        "patchSetId": 9
+      },
+      "lineNbr": 200,
+      "author": {
+        "id": 5807
+      },
+      "writtenOn": "2020-01-28T19:18:20Z",
+      "side": 1,
+      "message": "ok this is a bit weird number, do you have a module that has just over 1500 but less than 1530 lines?\nmight as well round up to 1600?",
+      "revId": "fcc4d5da7dfba1219407afc629d2983abe992470",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": true
+    }
+  ]
+}

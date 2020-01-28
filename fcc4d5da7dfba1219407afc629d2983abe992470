@@ -19,6 +19,23 @@
     },
     {
       "key": {
+        "uuid": "2c931eb9_52c914dd",
+        "filename": "nfvbench/cfg.default.yaml",
+        "patchSetId": 9
+      },
+      "lineNbr": 195,
+      "author": {
+        "id": 6909
+      },
+      "writtenOn": "2020-01-28T23:54:25Z",
+      "side": 1,
+      "message": "Maybe I missed something, why we can\u0027t use above dst_vtep for the same purpose?",
+      "revId": "fcc4d5da7dfba1219407afc629d2983abe992470",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "b10e74e8_328d648e",
         "filename": "nfvbench/cfg.default.yaml",
         "patchSetId": 9
@@ -149,6 +166,41 @@
       "writtenOn": "2020-01-28T19:22:45Z",
       "side": 1,
       "message": "ok I see now why you\u0027re calling this inner label and outer label.\nOne important question is how much of inner/outer label nesting is specific to CVIM implementation?\nIs this in any way standard MPLS design to have 2 nested labels?\n\nThink about a potential external user of the mpls feature and wanting to use it against its own \"MPLS\" chains, will it work? Or it depends whether label nesting is done the same way as CVIM?\nWe need to document any mpls label nesting requirements/assumptions in the doc/readme section",
+      "revId": "fcc4d5da7dfba1219407afc629d2983abe992470",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c2167a7a_c627ef36",
+        "filename": "nfvbench/traffic_gen/trex_gen.py",
+        "patchSetId": 9
+      },
+      "lineNbr": 377,
+      "author": {
+        "id": 6909
+      },
+      "writtenOn": "2020-01-28T23:54:25Z",
+      "side": 1,
+      "message": "Today in CVIM, we only support 2 labels exchange, transport label and service(VPN) label, i.e. outter/inner label. Technically, we definitely should be OK to push as many as label as we want for traffic engineering, but in the context of CVIM (to be precise, between TOR and compute nodes), there is no way we can do traffic engineering, so probably it is OK to keep the inner/outter for now.\n\nGiven this is upstream code, so I would suggest, we should design in the way that we allow to push a \"list\" of labels, and in CVIM context we consume 2 as needed. Like a list of transport labels, but one service label. Don\u0027t know if that makes sense?",
+      "parentUuid": "e3b600ac_68b289b5",
+      "revId": "fcc4d5da7dfba1219407afc629d2983abe992470",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b420d5dc_422ce66f",
+        "filename": "nfvbench/traffic_gen/trex_gen.py",
+        "patchSetId": 9
+      },
+      "lineNbr": 483,
+      "author": {
+        "id": 6909
+      },
+      "writtenOn": "2020-01-28T23:54:25Z",
+      "side": 1,
+      "message": "What does it give when enable flow_stats for MPLS? It crashed or gave all zeros?",
       "revId": "fcc4d5da7dfba1219407afc629d2983abe992470",
       "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
       "unresolved": true

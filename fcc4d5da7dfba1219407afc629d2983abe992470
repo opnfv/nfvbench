@@ -190,6 +190,24 @@
     },
     {
       "key": {
+        "uuid": "6b45fc9f_35c14207",
+        "filename": "nfvbench/traffic_gen/trex_gen.py",
+        "patchSetId": 9
+      },
+      "lineNbr": 377,
+      "author": {
+        "id": 5807
+      },
+      "writtenOn": "2020-01-29T00:07:49Z",
+      "side": 1,
+      "message": "it would be ideal to be generic and support arbitrary number of labels but we can also be pragmatic and restrict this version of nfvbench to use 2 labels only - as long as it is documented how to configure nfvbench and what are the limitations (ie just say this version only supports 2 labels).\nIf somebody wants to support more labels, the code can always be enhanced.\nSo I suggest we keep the current limitation and document properly - I think mpls deserves one section in one of the readme file or a new readme file.",
+      "parentUuid": "c2167a7a_c627ef36",
+      "revId": "fcc4d5da7dfba1219407afc629d2983abe992470",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "b420d5dc_422ce66f",
         "filename": "nfvbench/traffic_gen/trex_gen.py",
         "patchSetId": 9

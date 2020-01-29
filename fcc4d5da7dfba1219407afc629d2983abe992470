@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "5e6bff44_636d8141",
+        "filename": "nfvbench/cfg.default.yaml",
+        "patchSetId": 9
+      },
+      "lineNbr": 194,
+      "author": {
+        "id": 7461
+      },
+      "writtenOn": "2020-01-29T08:21:18Z",
+      "side": 1,
+      "message": "ok theoretically I do not see much difference from expectable values side, maybe I will just describe the functional difference for these parameters MAC resolving vs traffic termination?",
+      "parentUuid": "b2f134f5_4d45e9cb",
+      "revId": "fcc4d5da7dfba1219407afc629d2983abe992470",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "2c931eb9_52c914dd",
         "filename": "nfvbench/cfg.default.yaml",
         "patchSetId": 9
@@ -30,6 +48,24 @@
       "writtenOn": "2020-01-28T23:54:25Z",
       "side": 1,
       "message": "Maybe I missed something, why we can\u0027t use above dst_vtep for the same purpose?",
+      "revId": "fcc4d5da7dfba1219407afc629d2983abe992470",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7123b14d_43aee7e3",
+        "filename": "nfvbench/cfg.default.yaml",
+        "patchSetId": 9
+      },
+      "lineNbr": 195,
+      "author": {
+        "id": 7461
+      },
+      "writtenOn": "2020-01-29T08:21:18Z",
+      "side": 1,
+      "message": "Theoretically yes we could use single parameter, but I decided to differentiate it in order to avoid some mess in code later if some additional cases (encapsulations) have to be supported or peer/vtep specific changes are required, just to keep these parameters totally independent for some case. To be more concrete here my example: peer IP address is mostly required for MAC resolving, while vtep IP is more about packet destination. So if we want to support let say GRE later or VXLAN through L3 scenario it could be useful to differentiate these parameters.",
+      "parentUuid": "2c931eb9_52c914dd",
       "revId": "fcc4d5da7dfba1219407afc629d2983abe992470",
       "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
       "unresolved": true
@@ -53,6 +89,24 @@
     },
     {
       "key": {
+        "uuid": "72f4b5d4_24762907",
+        "filename": "nfvbench/cfg.default.yaml",
+        "patchSetId": 9
+      },
+      "lineNbr": 382,
+      "author": {
+        "id": 7461
+      },
+      "writtenOn": "2020-01-29T08:21:18Z",
+      "side": 1,
+      "message": "ok\n2 values only, no auto-indexing at the moment... as minimum for transport labels it maybe doesn\u0027t make sense at all, until we know exactly what we pushing. I still have to think if something could be automated, but maybe not at this time, we can enhance it later",
+      "parentUuid": "b10e74e8_328d648e",
+      "revId": "fcc4d5da7dfba1219407afc629d2983abe992470",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "7525dfb5_2f5c734b",
         "filename": "nfvbench/cfg.default.yaml",
         "patchSetId": 9
@@ -67,6 +121,24 @@
       "revId": "fcc4d5da7dfba1219407afc629d2983abe992470",
       "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7ac4de25_12a70037",
+        "filename": "nfvbench/cfg.default.yaml",
+        "patchSetId": 9
+      },
+      "lineNbr": 590,
+      "author": {
+        "id": 7461
+      },
+      "writtenOn": "2020-01-29T08:21:18Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "7525dfb5_2f5c734b",
+      "revId": "fcc4d5da7dfba1219407afc629d2983abe992470",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": false
     },
     {
       "key": {
@@ -87,6 +159,24 @@
     },
     {
       "key": {
+        "uuid": "bb28fb89_1d2b7051",
+        "filename": "nfvbench/chain_runner.py",
+        "patchSetId": 9
+      },
+      "lineNbr": 187,
+      "author": {
+        "id": 7461
+      },
+      "writtenOn": "2020-01-29T08:21:18Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "6ba3a9cb_205e18ae",
+      "revId": "fcc4d5da7dfba1219407afc629d2983abe992470",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "f88175fe_8514d7e2",
         "filename": "nfvbench/chaining.py",
         "patchSetId": 9
@@ -98,6 +188,24 @@
       "writtenOn": "2020-01-28T19:18:20Z",
       "side": 1,
       "message": "Here 2 terns are used: inner label and vpn label\nare they the same?\ncan we use one terminology?",
+      "revId": "fcc4d5da7dfba1219407afc629d2983abe992470",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "31f30de1_42a168b8",
+        "filename": "nfvbench/chaining.py",
+        "patchSetId": 9
+      },
+      "lineNbr": 375,
+      "author": {
+        "id": 7461
+      },
+      "writtenOn": "2020-01-29T08:21:18Z",
+      "side": 1,
+      "message": "2 labels for the different purposes one is transport and another one is for vpn, so we have to differentiate.",
+      "parentUuid": "f88175fe_8514d7e2",
       "revId": "fcc4d5da7dfba1219407afc629d2983abe992470",
       "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
       "unresolved": true
@@ -121,6 +229,24 @@
     },
     {
       "key": {
+        "uuid": "c2af380a_e5f202e7",
+        "filename": "nfvbench/chaining.py",
+        "patchSetId": 9
+      },
+      "lineNbr": 943,
+      "author": {
+        "id": 7461
+      },
+      "writtenOn": "2020-01-29T08:21:18Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "f49038ab_e9588095",
+      "revId": "fcc4d5da7dfba1219407afc629d2983abe992470",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "a9cdc4b2_d7f01bfa",
         "filename": "nfvbench/chaining.py",
         "patchSetId": 9
@@ -132,6 +258,24 @@
       "writtenOn": "2020-01-28T19:18:20Z",
       "side": 1,
       "message": "(instance_count - 1) *10 is removed\nis that a merge error or intentional?",
+      "revId": "fcc4d5da7dfba1219407afc629d2983abe992470",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c1ecca5b_a76038c2",
+        "filename": "nfvbench/chaining.py",
+        "patchSetId": 9
+      },
+      "lineNbr": 1271,
+      "author": {
+        "id": 7461
+      },
+      "writtenOn": "2020-01-29T08:21:18Z",
+      "side": 1,
+      "message": "this is must be merge error",
+      "parentUuid": "a9cdc4b2_d7f01bfa",
       "revId": "fcc4d5da7dfba1219407afc629d2983abe992470",
       "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
       "unresolved": true
@@ -152,6 +296,24 @@
       "revId": "fcc4d5da7dfba1219407afc629d2983abe992470",
       "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7b4f37fb_095d87b3",
+        "filename": "nfvbench/nfvbench.py",
+        "patchSetId": 9
+      },
+      "lineNbr": 605,
+      "author": {
+        "id": 7461
+      },
+      "writtenOn": "2020-01-29T08:21:18Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "acded66c_605d7260",
+      "revId": "fcc4d5da7dfba1219407afc629d2983abe992470",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": false
     },
     {
       "key": {
@@ -208,6 +370,24 @@
     },
     {
       "key": {
+        "uuid": "c96ead11_27de8ba1",
+        "filename": "nfvbench/traffic_gen/trex_gen.py",
+        "patchSetId": 9
+      },
+      "lineNbr": 377,
+      "author": {
+        "id": 7461
+      },
+      "writtenOn": "2020-01-29T08:21:18Z",
+      "side": 1,
+      "message": "Two labels can cover 99,9% of cases, transport label always tightly mapped to transport MPLS domain, the number of transport labels and labels values itself could be changed while MPLS-VPN packet traversing MPLS domain until it reaches PE node (depending on MPLS type), only internal VPN label should be unchanged. All nfvbench is doing just puts the initial transport MPLS label on a packet. The only requirement for initial MPLS label - it should be \"correct\" and recognisable by MPLS transport infrastructure, so MPLS-VPN packet can be delivered correctly. In other words there is no much necessity for nfvbench to push stack deeper than 2 labels because all transport labels handling defined by transport MPLS domain. So IMO this not even the limitation to support 2 labels only, this is essential and enough condition. If user suppose to have some super sophisticated case with 3 or more labels stack, he can manipulate by labels (add/pop/swap/del) by using transport domain, sure maybe this part could be covered by nfvbench too theoretically, but IMO this is not the job it should do.",
+      "parentUuid": "6b45fc9f_35c14207",
+      "revId": "fcc4d5da7dfba1219407afc629d2983abe992470",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "b420d5dc_422ce66f",
         "filename": "nfvbench/traffic_gen/trex_gen.py",
         "patchSetId": 9
@@ -219,6 +399,24 @@
       "writtenOn": "2020-01-28T23:54:25Z",
       "side": 1,
       "message": "What does it give when enable flow_stats for MPLS? It crashed or gave all zeros?",
+      "revId": "fcc4d5da7dfba1219407afc629d2983abe992470",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "fb3ab983_7999b59a",
+        "filename": "nfvbench/traffic_gen/trex_gen.py",
+        "patchSetId": 9
+      },
+      "lineNbr": 483,
+      "author": {
+        "id": 7461
+      },
+      "writtenOn": "2020-01-29T08:21:18Z",
+      "side": 1,
+      "message": "I have to check it, but the final error looks like this:\n  File \"/usr/lib/python2.7/site-packages/trex/stl/trex_stl_client.py\", line 499, in add_streams\n    raise TRexError(rc)\nTRexError: Port 0 : *** Failed parsing given packet for flow stat.  NIC does not support MPLS\nFailed parsing given packet for flow stat.  NIC does not support MPLS\n\nI already had discussion before with trex team they clearly said - only next gen Intel nics can support this function.. some 710 BXXL card",
+      "parentUuid": "b420d5dc_422ce66f",
       "revId": "fcc4d5da7dfba1219407afc629d2983abe992470",
       "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
       "unresolved": true
@@ -239,6 +437,24 @@
       "revId": "fcc4d5da7dfba1219407afc629d2983abe992470",
       "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9ac4019a_b60f59ce",
+        "filename": "pylint.rc",
+        "patchSetId": 9
+      },
+      "lineNbr": 200,
+      "author": {
+        "id": 7461
+      },
+      "writtenOn": "2020-01-29T08:21:18Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "0f1acbd4_53fdfe96",
+      "revId": "fcc4d5da7dfba1219407afc629d2983abe992470",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": false
     }
   ]
 }

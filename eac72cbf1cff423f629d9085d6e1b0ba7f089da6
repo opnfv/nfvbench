@@ -1,0 +1,208 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "ff150925_c64c1b10",
+        "filename": "docs/testing/user/userguide/mpls.rst",
+        "patchSetId": 16
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 5807
+      },
+      "writtenOn": "2020-01-30T23:53:55Z",
+      "side": 1,
+      "message": "This new mpls.rst file is orphan.\nIt needs to be referenced from index.rst (just place the reference to mpls.rst after pvpl3\n(the .rst is not needed there)",
+      "revId": "eac72cbf1cff423f629d9085d6e1b0ba7f089da6",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "eab85481_3ff21eb6",
+        "filename": "docs/testing/user/userguide/mpls.rst",
+        "patchSetId": 16
+      },
+      "lineNbr": 51,
+      "author": {
+        "id": 5807
+      },
+      "writtenOn": "2020-01-30T23:53:55Z",
+      "side": 1,
+      "message": "mention that this example assumes openstack is at the other end of the mpls tunnels.",
+      "revId": "eac72cbf1cff423f629d9085d6e1b0ba7f089da6",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8d5ed52f_b7d907d3",
+        "filename": "docs/testing/user/userguide/mpls.rst",
+        "patchSetId": 16
+      },
+      "lineNbr": 57,
+      "author": {
+        "id": 5807
+      },
+      "writtenOn": "2020-01-30T23:53:55Z",
+      "side": 1,
+      "message": "Suggest rephrasing the above as\n\nPackets generated and sent to port A are delivered to the MPLS domain infrastructure which will transport that packet to the other end of the MPLS transport tunnel using the outer label.\nAt that point, the outer label is decapsulated and the inner label is used to select the destination openstack network. After decapulation of the inner label, the resulting L2 frame is then forwarded to the destination VM corresponding to the destination MAC.",
+      "revId": "eac72cbf1cff423f629d9085d6e1b0ba7f089da6",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8f06c18d_d58bad64",
+        "filename": "docs/testing/user/userguide/mpls.rst",
+        "patchSetId": 16
+      },
+      "lineNbr": 61,
+      "author": {
+        "id": 5807
+      },
+      "writtenOn": "2020-01-30T23:53:55Z",
+      "side": 1,
+      "message": "data plain -\u003e data plane\n\nActually what the VM does with the packet is either L2 forwarding or L3 routing so suggest rephrasing as:\n\nWhen the VM receives the packet, it is sent back to far end port of the traffic generator (port B) using either L2 forwarding or L3 routing though the peer virtual interface.\nThe return packet is then encapsulated with the inner label first then outer label to reach nfvbench on port B.",
+      "revId": "eac72cbf1cff423f629d9085d6e1b0ba7f089da6",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "44d250c7_ffb0b3cb",
+        "filename": "docs/testing/user/userguide/mpls.rst",
+        "patchSetId": 16
+      },
+      "lineNbr": 73,
+      "author": {
+        "id": 5807
+      },
+      "writtenOn": "2020-01-30T23:53:55Z",
+      "side": 1,
+      "message": "Pls add the 1-chain example first, followed by this 2-chain example",
+      "revId": "eac72cbf1cff423f629d9085d6e1b0ba7f089da6",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8e69b187_83545f06",
+        "filename": "docs/testing/user/userguide/mpls.rst",
+        "patchSetId": 16
+      },
+      "lineNbr": 83,
+      "author": {
+        "id": 5807
+      },
+      "writtenOn": "2020-01-30T23:53:55Z",
+      "side": 1,
+      "message": "can you use in the example the labels as described in the packet dump above (16303 and 5010) for left.\nFOr right you can increment.\n\nremove the leading \"#\"\n\nAre the outer labels always identical for left and right and all chains?",
+      "revId": "eac72cbf1cff423f629d9085d6e1b0ba7f089da6",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "90ba2629_4abde1ae",
+        "filename": "nfvbench/cfg.default.yaml",
+        "patchSetId": 16
+      },
+      "lineNbr": 197,
+      "author": {
+        "id": 5807
+      },
+      "writtenOn": "2020-01-30T23:53:55Z",
+      "side": 1,
+      "message": "If you add \"and can be used with VxLAN or GRE encapsulations\" you will have to explain how to use...\nSo maybe you should just say it is for mpls only.",
+      "revId": "eac72cbf1cff423f629d9085d6e1b0ba7f089da6",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "82c8bb74_bd07afe9",
+        "filename": "nfvbench/cfg.default.yaml",
+        "patchSetId": 16
+      },
+      "lineNbr": 386,
+      "author": {
+        "id": 5807
+      },
+      "writtenOn": "2020-01-30T23:53:55Z",
+      "side": 1,
+      "message": "becuase \u003d\u003e because",
+      "revId": "eac72cbf1cff423f629d9085d6e1b0ba7f089da6",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "22325063_0c1f900a",
+        "filename": "nfvbench/cfg.default.yaml",
+        "patchSetId": 16
+      },
+      "lineNbr": 388,
+      "author": {
+        "id": 5807
+      },
+      "writtenOn": "2020-01-30T23:53:55Z",
+      "side": 1,
+      "message": "\"the same as for regular VLAN configuration\"\nis ambiguous...\n\nSuggest keeping it simple and say that \nsegmentation_id contains the inner VLAN mpls label for each chain and that\nmpls_transport_labels contains the outer transport MPLS label for each chain.",
+      "revId": "eac72cbf1cff423f629d9085d6e1b0ba7f089da6",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "877241f9_c6b08b12",
+        "filename": "nfvbench/cfg.default.yaml",
+        "patchSetId": 16
+      },
+      "lineNbr": 390,
+      "author": {
+        "id": 5807
+      },
+      "writtenOn": "2020-01-30T23:53:55Z",
+      "side": 1,
+      "message": "Now that you have a readme, I suggest to move the entire section \"Only single MPLS transport ...If more than one transport label stack is required then these operations should be handled by MPLS transport domain where nfvbench is attached. Next-hop mpls router...\" to the readme",
+      "revId": "eac72cbf1cff423f629d9085d6e1b0ba7f089da6",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2533673d_04ad2264",
+        "filename": "nfvbench/cfg.default.yaml",
+        "patchSetId": 16
+      },
+      "lineNbr": 406,
+      "author": {
+        "id": 5807
+      },
+      "writtenOn": "2020-01-30T23:53:55Z",
+      "side": 1,
+      "message": "missing phys_sriov1 in the example above.\n\nDescribe what should the user put in physical_network in case of mpls?",
+      "revId": "eac72cbf1cff423f629d9085d6e1b0ba7f089da6",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "919f7409_df149c52",
+        "filename": "nfvbench/cfg.default.yaml",
+        "patchSetId": 16
+      },
+      "lineNbr": 423,
+      "author": {
+        "id": 5807
+      },
+      "writtenOn": "2020-01-30T23:53:55Z",
+      "side": 1,
+      "message": "this auto-indexing example has been separated from the above text (should be put before the mpls section since mpls does not support auto-indexing)",
+      "revId": "eac72cbf1cff423f629d9085d6e1b0ba7f089da6",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": true
+    }
+  ]
+}

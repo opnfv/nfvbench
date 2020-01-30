@@ -53,6 +53,24 @@
     },
     {
       "key": {
+        "uuid": "acfb0f56_72ecb0d7",
+        "filename": "nfvbench/traffic_client.py",
+        "patchSetId": 14
+      },
+      "lineNbr": 319,
+      "author": {
+        "id": 5807
+      },
+      "writtenOn": "2020-01-30T20:05:20Z",
+      "side": 1,
+      "message": "(a or b) is the simper way\notherwise \n(a is True or b is True) is more pedantic but more consistent than\n(a or b is True)\n\nSuggest (a or b)",
+      "parentUuid": "e9f11343_69645f8f",
+      "revId": "33fd717b20c135063e7b0df8a61f9247829b4e30",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "c2e8f3c0_dbdd37e7",
         "filename": "nfvbench/traffic_client.py",
         "patchSetId": 14
@@ -81,6 +99,24 @@
       "writtenOn": "2020-01-30T19:57:15Z",
       "side": 1,
       "message": "Merging issue?",
+      "revId": "33fd717b20c135063e7b0df8a61f9247829b4e30",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e1b2534f_be279e41",
+        "filename": "test/test_chains.py",
+        "patchSetId": 14
+      },
+      "lineNbr": 75,
+      "author": {
+        "id": 5807
+      },
+      "writtenOn": "2020-01-30T20:05:20Z",
+      "side": 1,
+      "message": "this is required for all new parameters",
+      "parentUuid": "a42e980b_e88122f5",
       "revId": "33fd717b20c135063e7b0df8a61f9247829b4e30",
       "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
       "unresolved": true

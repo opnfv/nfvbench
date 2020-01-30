@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1403424e_7451371b",
+        "filename": "nfvbench/cfg.default.yaml",
+        "patchSetId": 14
+      },
+      "lineNbr": 613,
+      "author": {
+        "id": 6909
+      },
+      "writtenOn": "2020-01-30T19:57:15Z",
+      "side": 0,
+      "message": "Merging issue...",
+      "revId": "ae838f98fa020d0ad0aa37ab58e02456889c3375",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "edb683e0_db4db4d5",
+        "filename": "nfvbench/chaining.py",
+        "patchSetId": 14
+      },
+      "lineNbr": 1251,
+      "author": {
+        "id": 6909
+      },
+      "writtenOn": "2020-01-30T19:57:15Z",
+      "side": 0,
+      "message": "Merging issue...",
+      "revId": "ae838f98fa020d0ad0aa37ab58e02456889c3375",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": true
+    }
+  ]
+}

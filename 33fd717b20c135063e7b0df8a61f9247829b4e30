@@ -1,0 +1,89 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "2da8a55a_7b942cf3",
+        "filename": "nfvbench/cfg.default.yaml",
+        "patchSetId": 14
+      },
+      "lineNbr": 190,
+      "author": {
+        "id": 6909
+      },
+      "writtenOn": "2020-01-30T19:57:15Z",
+      "side": 1,
+      "message": "So we are using src_vteps for both VxLAN and MPLS, but we differentiate dst_vtep and dst_peer_ips. I am sorry I am still confused between this two by reading the documentation and your comments. Let\u0027s have a quick call sometime tomorrow when you are up and see if I can understand...",
+      "revId": "33fd717b20c135063e7b0df8a61f9247829b4e30",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e1970802_1ac02675",
+        "filename": "nfvbench/nfvbench.py",
+        "patchSetId": 14
+      },
+      "lineNbr": 236,
+      "author": {
+        "id": 6909
+      },
+      "writtenOn": "2020-01-30T19:57:15Z",
+      "side": 1,
+      "message": "Should we check here for:\n1. Exclusive VxLAN or MPLS configuration;\n2. When MPLS is sets true, check those latency_stream, flow_stats etc. are all false.",
+      "revId": "33fd717b20c135063e7b0df8a61f9247829b4e30",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e9f11343_69645f8f",
+        "filename": "nfvbench/traffic_client.py",
+        "patchSetId": 14
+      },
+      "lineNbr": 319,
+      "author": {
+        "id": 6909
+      },
+      "writtenOn": "2020-01-30T19:57:15Z",
+      "side": 1,
+      "message": "I don\u0027t think necessary, but if just to follow the existing pattern here, you might need \"self.vxlan is True or self.mpls is True). To me, it will be just fine with (self.vxlan or self.mpls)... Looks weird for not being symmetric. I will let Alec to make the call.",
+      "revId": "33fd717b20c135063e7b0df8a61f9247829b4e30",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c2e8f3c0_dbdd37e7",
+        "filename": "nfvbench/traffic_client.py",
+        "patchSetId": 14
+      },
+      "lineNbr": 320,
+      "author": {
+        "id": 6909
+      },
+      "writtenOn": "2020-01-30T19:57:15Z",
+      "side": 1,
+      "message": "ditto",
+      "revId": "33fd717b20c135063e7b0df8a61f9247829b4e30",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a42e980b_e88122f5",
+        "filename": "test/test_chains.py",
+        "patchSetId": 14
+      },
+      "lineNbr": 75,
+      "author": {
+        "id": 6909
+      },
+      "writtenOn": "2020-01-30T19:57:15Z",
+      "side": 1,
+      "message": "Merging issue?",
+      "revId": "33fd717b20c135063e7b0df8a61f9247829b4e30",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": true
+    }
+  ]
+}

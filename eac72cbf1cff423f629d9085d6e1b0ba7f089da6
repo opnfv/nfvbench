@@ -2,6 +2,23 @@
   "comments": [
     {
       "key": {
+        "uuid": "8e5765ce_77faaec4",
+        "filename": "docs/testing/user/userguide/mpls.rst",
+        "patchSetId": 16
+      },
+      "lineNbr": 3,
+      "author": {
+        "id": 6909
+      },
+      "writtenOn": "2020-01-31T00:34:25Z",
+      "side": 1,
+      "message": "Should we remove this?",
+      "revId": "eac72cbf1cff423f629d9085d6e1b0ba7f089da6",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "ff150925_c64c1b10",
         "filename": "docs/testing/user/userguide/mpls.rst",
         "patchSetId": 16
@@ -200,6 +217,40 @@
       "writtenOn": "2020-01-30T23:53:55Z",
       "side": 1,
       "message": "this auto-indexing example has been separated from the above text (should be put before the mpls section since mpls does not support auto-indexing)",
+      "revId": "eac72cbf1cff423f629d9085d6e1b0ba7f089da6",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6d4a8864_e41ec7c0",
+        "filename": "nfvbench/cfg.default.yaml",
+        "patchSetId": 16
+      },
+      "lineNbr": 649,
+      "author": {
+        "id": 6909
+      },
+      "writtenOn": "2020-01-31T00:34:25Z",
+      "side": 1,
+      "message": "Is this delete intended? Merging problem?",
+      "revId": "eac72cbf1cff423f629d9085d6e1b0ba7f089da6",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "790d34f1_188b22dc",
+        "filename": "test/test_chains.py",
+        "patchSetId": 16
+      },
+      "lineNbr": 75,
+      "author": {
+        "id": 6909
+      },
+      "writtenOn": "2020-01-31T00:34:25Z",
+      "side": 1,
+      "message": "Same thing here, not related to the patch?",
       "revId": "eac72cbf1cff423f629d9085d6e1b0ba7f089da6",
       "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
       "unresolved": true

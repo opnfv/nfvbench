@@ -121,6 +121,23 @@
     },
     {
       "key": {
+        "uuid": "313a1483_458c57e0",
+        "filename": "nfvbench/cfg.default.yaml",
+        "patchSetId": 16
+      },
+      "lineNbr": 195,
+      "author": {
+        "id": 6909
+      },
+      "writtenOn": "2020-01-31T01:17:40Z",
+      "side": 1,
+      "message": "A little complicated sentence. I guess you mean:\n\nThe encapsulated L3/MPLS packet needs to traverse L3 or MPLS fabric to reach to its final dst_vtep. This parameter is required to resolve first next-hop MAC address if it next-hop is not its final dst_vtep.",
+      "revId": "eac72cbf1cff423f629d9085d6e1b0ba7f089da6",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "90ba2629_4abde1ae",
         "filename": "nfvbench/cfg.default.yaml",
         "patchSetId": 16
@@ -132,6 +149,41 @@
       "writtenOn": "2020-01-30T23:53:55Z",
       "side": 1,
       "message": "If you add \"and can be used with VxLAN or GRE encapsulations\" you will have to explain how to use...\nSo maybe you should just say it is for mpls only.",
+      "revId": "eac72cbf1cff423f629d9085d6e1b0ba7f089da6",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "04127008_0c6dd395",
+        "filename": "nfvbench/cfg.default.yaml",
+        "patchSetId": 16
+      },
+      "lineNbr": 197,
+      "author": {
+        "id": 6909
+      },
+      "writtenOn": "2020-01-31T01:17:40Z",
+      "side": 1,
+      "message": "\u003e If you add \"and can be used with VxLAN or GRE encapsulations\" you will have to explain how to use...\n\u003e So maybe you should just say it is for mpls only.\n\nAgree with Alec. We are not doing any logic for VxLAN on this parameter yet, and it is really not necessary to make it over L3 if NFVbench and VTEP is coming from the same TOR. When there is a need, we will come back and update the documentation and implement corresponding code for that.",
+      "parentUuid": "90ba2629_4abde1ae",
+      "revId": "eac72cbf1cff423f629d9085d6e1b0ba7f089da6",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f293e3c4_95d5304f",
+        "filename": "nfvbench/cfg.default.yaml",
+        "patchSetId": 16
+      },
+      "lineNbr": 198,
+      "author": {
+        "id": 6909
+      },
+      "writtenOn": "2020-01-31T01:17:40Z",
+      "side": 1,
+      "message": "Thanks a lot for the picture, now I understand why it is needed for MPLS. So the IP here is acting as a GW for src_vteps to reach dst_vtep. Not needed for VxLAN today as they are in same L2, but we need it for MPLS as they are over L3. Right? Correct me if I am wrong.\n\nI would rename it to \"vtep_gateway_ips\". We used the same \"vtep\" concept for MPLS anyway above, so I think it should be OK to continue that path. We can define this as must for MPLS, and when we really need that for VxLAN sometime later, no need to change the parameter name again.\n\nIf that is the case, I would suggest to add below for documentation:\nNeeded for MPLS only. The IPs will be the GW for src_vteps to reach dst_vtep over a L3 fabric.",
       "revId": "eac72cbf1cff423f629d9085d6e1b0ba7f089da6",
       "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
       "unresolved": true

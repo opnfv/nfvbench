@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "8cbe63ca_75929009",
+        "filename": "docs/testing/user/userguide/mpls.rst",
+        "patchSetId": 16
+      },
+      "lineNbr": 3,
+      "author": {
+        "id": 7461
+      },
+      "writtenOn": "2020-01-31T05:23:23Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "8e5765ce_77faaec4",
+      "revId": "eac72cbf1cff423f629d9085d6e1b0ba7f089da6",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "ff150925_c64c1b10",
         "filename": "docs/testing/user/userguide/mpls.rst",
         "patchSetId": 16
@@ -33,6 +51,24 @@
       "revId": "eac72cbf1cff423f629d9085d6e1b0ba7f089da6",
       "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3ab28e42_7ffb8602",
+        "filename": "docs/testing/user/userguide/mpls.rst",
+        "patchSetId": 16
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 7461
+      },
+      "writtenOn": "2020-01-31T05:23:23Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "ff150925_c64c1b10",
+      "revId": "eac72cbf1cff423f629d9085d6e1b0ba7f089da6",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": false
     },
     {
       "key": {
@@ -53,6 +89,24 @@
     },
     {
       "key": {
+        "uuid": "616e1a0f_880e76f0",
+        "filename": "docs/testing/user/userguide/mpls.rst",
+        "patchSetId": 16
+      },
+      "lineNbr": 51,
+      "author": {
+        "id": 7461
+      },
+      "writtenOn": "2020-01-31T05:23:23Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "eab85481_3ff21eb6",
+      "revId": "eac72cbf1cff423f629d9085d6e1b0ba7f089da6",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "8d5ed52f_b7d907d3",
         "filename": "docs/testing/user/userguide/mpls.rst",
         "patchSetId": 16
@@ -67,6 +121,24 @@
       "revId": "eac72cbf1cff423f629d9085d6e1b0ba7f089da6",
       "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "06779252_8cec1892",
+        "filename": "docs/testing/user/userguide/mpls.rst",
+        "patchSetId": 16
+      },
+      "lineNbr": 57,
+      "author": {
+        "id": 7461
+      },
+      "writtenOn": "2020-01-31T05:23:23Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "8d5ed52f_b7d907d3",
+      "revId": "eac72cbf1cff423f629d9085d6e1b0ba7f089da6",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": false
     },
     {
       "key": {
@@ -87,6 +159,24 @@
     },
     {
       "key": {
+        "uuid": "fa7f5864_7e59348d",
+        "filename": "docs/testing/user/userguide/mpls.rst",
+        "patchSetId": 16
+      },
+      "lineNbr": 61,
+      "author": {
+        "id": 7461
+      },
+      "writtenOn": "2020-01-31T05:23:23Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "8f06c18d_d58bad64",
+      "revId": "eac72cbf1cff423f629d9085d6e1b0ba7f089da6",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "44d250c7_ffb0b3cb",
         "filename": "docs/testing/user/userguide/mpls.rst",
         "patchSetId": 16
@@ -101,6 +191,24 @@
       "revId": "eac72cbf1cff423f629d9085d6e1b0ba7f089da6",
       "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d0e4edd2_b2a34829",
+        "filename": "docs/testing/user/userguide/mpls.rst",
+        "patchSetId": 16
+      },
+      "lineNbr": 73,
+      "author": {
+        "id": 7461
+      },
+      "writtenOn": "2020-01-31T05:23:23Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "44d250c7_ffb0b3cb",
+      "revId": "eac72cbf1cff423f629d9085d6e1b0ba7f089da6",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": false
     },
     {
       "key": {
@@ -121,6 +229,24 @@
     },
     {
       "key": {
+        "uuid": "e1035fb8_a3d04444",
+        "filename": "docs/testing/user/userguide/mpls.rst",
+        "patchSetId": 16
+      },
+      "lineNbr": 83,
+      "author": {
+        "id": 7461
+      },
+      "writtenOn": "2020-01-31T05:23:23Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "8e69b187_83545f06",
+      "revId": "eac72cbf1cff423f629d9085d6e1b0ba7f089da6",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "313a1483_458c57e0",
         "filename": "nfvbench/cfg.default.yaml",
         "patchSetId": 16
@@ -135,6 +261,24 @@
       "revId": "eac72cbf1cff423f629d9085d6e1b0ba7f089da6",
       "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7f14c350_38861ebd",
+        "filename": "nfvbench/cfg.default.yaml",
+        "patchSetId": 16
+      },
+      "lineNbr": 195,
+      "author": {
+        "id": 7461
+      },
+      "writtenOn": "2020-01-31T05:23:23Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "313a1483_458c57e0",
+      "revId": "eac72cbf1cff423f629d9085d6e1b0ba7f089da6",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": false
     },
     {
       "key": {
@@ -173,6 +317,24 @@
     },
     {
       "key": {
+        "uuid": "e2ca5cab_400a064f",
+        "filename": "nfvbench/cfg.default.yaml",
+        "patchSetId": 16
+      },
+      "lineNbr": 197,
+      "author": {
+        "id": 7461
+      },
+      "writtenOn": "2020-01-31T05:23:23Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "04127008_0c6dd395",
+      "revId": "eac72cbf1cff423f629d9085d6e1b0ba7f089da6",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "f293e3c4_95d5304f",
         "filename": "nfvbench/cfg.default.yaml",
         "patchSetId": 16
@@ -184,6 +346,24 @@
       "writtenOn": "2020-01-31T01:17:40Z",
       "side": 1,
       "message": "Thanks a lot for the picture, now I understand why it is needed for MPLS. So the IP here is acting as a GW for src_vteps to reach dst_vtep. Not needed for VxLAN today as they are in same L2, but we need it for MPLS as they are over L3. Right? Correct me if I am wrong.\n\nI would rename it to \"vtep_gateway_ips\". We used the same \"vtep\" concept for MPLS anyway above, so I think it should be OK to continue that path. We can define this as must for MPLS, and when we really need that for VxLAN sometime later, no need to change the parameter name again.\n\nIf that is the case, I would suggest to add below for documentation:\nNeeded for MPLS only. The IPs will be the GW for src_vteps to reach dst_vtep over a L3 fabric.",
+      "revId": "eac72cbf1cff423f629d9085d6e1b0ba7f089da6",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "86a1700b_c29b224f",
+        "filename": "nfvbench/cfg.default.yaml",
+        "patchSetId": 16
+      },
+      "lineNbr": 198,
+      "author": {
+        "id": 7461
+      },
+      "writtenOn": "2020-01-31T05:23:23Z",
+      "side": 1,
+      "message": "In case of MPLS it\u0027s not exactly L3 fabric, but the common sense is the same, if we want to resolve next-hop MACs the we need these peer IPs which is directly connected.\nWill change it as suggested.",
+      "parentUuid": "f293e3c4_95d5304f",
       "revId": "eac72cbf1cff423f629d9085d6e1b0ba7f089da6",
       "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
       "unresolved": true
@@ -204,6 +384,24 @@
       "revId": "eac72cbf1cff423f629d9085d6e1b0ba7f089da6",
       "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "91c20f19_7853fb70",
+        "filename": "nfvbench/cfg.default.yaml",
+        "patchSetId": 16
+      },
+      "lineNbr": 386,
+      "author": {
+        "id": 7461
+      },
+      "writtenOn": "2020-01-31T05:23:23Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "82c8bb74_bd07afe9",
+      "revId": "eac72cbf1cff423f629d9085d6e1b0ba7f089da6",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": false
     },
     {
       "key": {
@@ -241,6 +439,24 @@
     },
     {
       "key": {
+        "uuid": "72356486_24f5be80",
+        "filename": "nfvbench/cfg.default.yaml",
+        "patchSetId": 16
+      },
+      "lineNbr": 390,
+      "author": {
+        "id": 7461
+      },
+      "writtenOn": "2020-01-31T05:23:23Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "877241f9_c6b08b12",
+      "revId": "eac72cbf1cff423f629d9085d6e1b0ba7f089da6",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "2533673d_04ad2264",
         "filename": "nfvbench/cfg.default.yaml",
         "patchSetId": 16
@@ -252,6 +468,24 @@
       "writtenOn": "2020-01-30T23:53:55Z",
       "side": 1,
       "message": "missing phys_sriov1 in the example above.\n\nDescribe what should the user put in physical_network in case of mpls?",
+      "revId": "eac72cbf1cff423f629d9085d6e1b0ba7f089da6",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "535b1b7c_11c5df36",
+        "filename": "nfvbench/cfg.default.yaml",
+        "patchSetId": 16
+      },
+      "lineNbr": 406,
+      "author": {
+        "id": 7461
+      },
+      "writtenOn": "2020-01-31T05:23:23Z",
+      "side": 1,
+      "message": "Actually not missed, but I will change the order.\nAck",
+      "parentUuid": "2533673d_04ad2264",
       "revId": "eac72cbf1cff423f629d9085d6e1b0ba7f089da6",
       "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
       "unresolved": true
@@ -275,6 +509,24 @@
     },
     {
       "key": {
+        "uuid": "9935f737_c62ebb8a",
+        "filename": "nfvbench/cfg.default.yaml",
+        "patchSetId": 16
+      },
+      "lineNbr": 423,
+      "author": {
+        "id": 7461
+      },
+      "writtenOn": "2020-01-31T05:23:23Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "919f7409_df149c52",
+      "revId": "eac72cbf1cff423f629d9085d6e1b0ba7f089da6",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "6d4a8864_e41ec7c0",
         "filename": "nfvbench/cfg.default.yaml",
         "patchSetId": 16
@@ -292,6 +544,24 @@
     },
     {
       "key": {
+        "uuid": "25063c7c_f7298477",
+        "filename": "nfvbench/cfg.default.yaml",
+        "patchSetId": 16
+      },
+      "lineNbr": 649,
+      "author": {
+        "id": 7461
+      },
+      "writtenOn": "2020-01-31T05:23:23Z",
+      "side": 1,
+      "message": "No this one I deleted incidentally, auto-merge issue, have to put it back, should not affect the tox test.",
+      "parentUuid": "6d4a8864_e41ec7c0",
+      "revId": "eac72cbf1cff423f629d9085d6e1b0ba7f089da6",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "790d34f1_188b22dc",
         "filename": "test/test_chains.py",
         "patchSetId": 16
@@ -303,6 +573,24 @@
       "writtenOn": "2020-01-31T00:34:25Z",
       "side": 1,
       "message": "Same thing here, not related to the patch?",
+      "revId": "eac72cbf1cff423f629d9085d6e1b0ba7f089da6",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8fa3f4a9_44de9bd8",
+        "filename": "test/test_chains.py",
+        "patchSetId": 16
+      },
+      "lineNbr": 75,
+      "author": {
+        "id": 7461
+      },
+      "writtenOn": "2020-01-31T05:23:23Z",
+      "side": 1,
+      "message": "Yes, I did it because of merging. tox tests could not pass.\nI pointed + \u0027loop_vm_arp test fix\u0027 in commit message",
+      "parentUuid": "790d34f1_188b22dc",
       "revId": "eac72cbf1cff423f629d9085d6e1b0ba7f089da6",
       "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
       "unresolved": true

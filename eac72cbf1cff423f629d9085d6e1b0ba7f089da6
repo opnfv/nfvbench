@@ -594,6 +594,24 @@
       "revId": "eac72cbf1cff423f629d9085d6e1b0ba7f089da6",
       "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "61d37a61_839615eb",
+        "filename": "test/test_chains.py",
+        "patchSetId": 16
+      },
+      "lineNbr": 75,
+      "author": {
+        "id": 7461
+      },
+      "writtenOn": "2020-01-31T08:23:12Z",
+      "side": 1,
+      "message": "https://build.opnfv.org/ci/job/nfvbench-verify-master/382/console",
+      "parentUuid": "8fa3f4a9_44de9bd8",
+      "revId": "eac72cbf1cff423f629d9085d6e1b0ba7f089da6",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": true
     }
   ]
 }

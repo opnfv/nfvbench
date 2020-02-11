@@ -1,0 +1,6 @@
+docker_args:
+  env: {}
+  volumes:
+    - /lib/modules/$(uname -r):/lib/modules/$(uname -r)
+    - /usr/src/kernels:/usr/src/kernels -v /dev:/dev
+    - /home/opnfv/nfvbench:/tmp/nfvbench

@@ -92,7 +92,7 @@ Traffic Generation
 
 NFVbench currently integrates with the open source TRex traffic generator:
 
-- `TRex <https://trex-tgn.cisco.com>`_ (pre-built into the NFVbench container)
+- `TRex <https://github.com/cisco-system-traffic-generator/trex-core#documentation>`_ (pre-built into the NFVbench container)
 
 
 Supported Packet Paths

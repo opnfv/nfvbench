@@ -1,0 +1,20 @@
+---
+- hosts:
+    - 127.0.0.1
+  roles:
+    - role: collivier.xtesting
+      project: nfvbench
+      gerrit_project: nfvbench
+      builds:
+        steps:
+          - name: build opnfv/nfvbench
+            containers:
+              - name: nfvbench
+                ref_arg: BRANCH
+                path: docker
+      suites:
+        - container: nfvbench
+          tests:
+            - 10kpps-pvp-run
+          properties:
+            execution-type: SEQUENTIALLY

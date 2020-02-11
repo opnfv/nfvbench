@@ -35,10 +35,17 @@ RUN apt-get update && apt-get install -y \
        && python3 get-pip.py \
        && pip3 install -U pbr \
        && pip3 install -U setuptools \
+       && pip3 install -U xtesting \
        && cd / \
        && git clone https://gerrit.opnfv.org/gerrit/nfvbench \
        && cd /nfvbench && pip3 install -e . \
        && wget -O nfvbenchvm-$VM_IMAGE_VER.qcow2 http://artifacts.opnfv.org/nfvbench/images/nfvbenchvm_centos-$VM_IMAGE_VER.qcow2 \
+       # XTesting mapping for volume mount in case of override testcases.yaml file
+       # Default: NFVBench testcases.yaml file is used
+       && mkdir /xtesting \
+       && cp xtesting/testcases.yaml /xtesting/testcases.yaml \
+       && rm -rf /usr/local/lib/python3.6/dist-packages/xtesting/ci/testcases.yaml \
+       && ln -s /xtesting/testcases.yaml /usr/local/lib/python3.6/dist-packages/xtesting/ci/testcases.yaml \
        && python3 ./docker/cleanup_generators.py \
        && rm -rf /nfvbench/.git \
        && apt-get remove -y wget git \

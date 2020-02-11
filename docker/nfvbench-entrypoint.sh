@@ -13,9 +13,15 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 #
-
-if [ -z "$1" ] ||  [ $1 != 'start_rest_server' ]; then
+if [ -z "$1" ] ||  ([ $1 != 'start_rest_server' ] &&  [ $1 != 'run_tests' ]); then
         tail -f /dev/null
+elif [ $1 == 'run_tests' ]; then
+        PARAMS=""
+        for var in "${@:2}"
+        do
+            PARAMS+="$var "
+        done
+        eval "run_tests $PARAMS"
 else
         PARAMS="--server"
         if [ -n "$HOST" ]; then

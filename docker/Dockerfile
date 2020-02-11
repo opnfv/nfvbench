@@ -23,14 +23,16 @@ RUN apt-get update && apt-get install -y \
        iproute2 \
        libelf1 \
        && ln -s /usr/bin/python3.6 /usr/local/bin/python3 \
-       && mkdir -p /opt/trex \
+       && mkdir -p /opt/trex/$TREX_VER \
        && mkdir /var/log/nfvbench \
-       && wget --no-cache https://trex-tgn.cisco.com/trex/release/$TREX_VER.tar.gz \
-       && tar xzf $TREX_VER.tar.gz -C /opt/trex \
+       && mkdir /tmp/trex \
+       && wget --no-cache https://github.com/cisco-system-traffic-generator/trex-core/archive/$TREX_VER.tar.gz \
+       && tar xzf $TREX_VER.tar.gz --strip-components=1 -C /tmp/trex \
        && rm -f /$TREX_VER.tar.gz \
-       && rm -f /opt/trex/$TREX_VER/trex_client_$TREX_VER.tar.gz \
-       && cp -a /opt/trex/$TREX_VER/automation/trex_control_plane/interactive/trex /usr/local/lib/python3.6/dist-packages/ \
+       && cp -a /tmp/trex/scripts/automation/trex_control_plane/interactive/trex /usr/local/lib/python3.6/dist-packages/ \
+       && cp -a /tmp/trex/scripts/* /opt/trex/$TREX_VER/ \
        && rm -rf /opt/trex/$TREX_VER/automation/trex_control_plane/interactive/trex \
+       && rm -rf /tmp/trex \
        && wget https://bootstrap.pypa.io/get-pip.py \
        && python3 get-pip.py \
        && pip3 install -U pbr \
@@ -39,6 +41,8 @@ RUN apt-get update && apt-get install -y \
        && git clone https://gerrit.opnfv.org/gerrit/nfvbench \
        && cd /nfvbench && pip3 install -e . \
        && wget -O nfvbenchvm-$VM_IMAGE_VER.qcow2 http://artifacts.opnfv.org/nfvbench/images/nfvbenchvm_centos-$VM_IMAGE_VER.qcow2 \
+       # Override Xtesting testcases.yaml file by NFVbench default one
+       && cp xtesting/testcases.yaml /usr/local/lib/python3.6/dist-packages/xtesting/ci/testcases.yaml \
        && python3 ./docker/cleanup_generators.py \
        && rm -rf /nfvbench/.git \
        && apt-get remove -y wget git \

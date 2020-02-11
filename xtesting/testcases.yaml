@@ -1,0 +1,20 @@
+---
+tiers:
+    -
+        name: nfvbench
+        order: 1
+        description: 'Data Plane Performance Testing'
+        testcases:
+            -
+                case_name: 10kpps-pvp-run
+                project_name: nfvbench
+                criteria: 100
+                blocking: true
+                clean_flag: false
+                description: ''
+                run:
+                    name: 'bashfeature'
+                    args:
+                        cmd:
+                            - nfvbench -c /tmp/nfvbench/nfvbench.cfg --rate 10kpps
+

@@ -85,6 +85,8 @@ In this mode, the NFVbench code will reside in a container running in the backgr
 An alias is then used to invoke a new NFVbench benchmark run using docker exec.
 The $HOME/nfvbench directory on the host is mapped on the /tmp/nfvbench in the container to facilitate file sharing between the 2 environments.
 
+.. _start-nfvbench-container
+
 Start NFVbench container
 ~~~~~~~~~~~~~~~~~~~~~~~~
 The NFVbench container can be started using docker run command or using docker compose.

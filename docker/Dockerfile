@@ -35,9 +35,11 @@ RUN apt-get update && apt-get install -y \
        && python3 get-pip.py \
        && pip3 install -U pbr \
        && pip3 install -U setuptools \
+       && pip3 install -U xtesting \
        && cd / \
        && git clone https://gerrit.opnfv.org/gerrit/nfvbench \
        && cd /nfvbench && pip3 install -e . \
+       && cp xtesting/testcases.yaml /usr/local/lib/python3.6/dist-packages/xtesting/ci/testcases.yaml \
        && wget -O nfvbenchvm-$VM_IMAGE_VER.qcow2 http://artifacts.opnfv.org/nfvbench/images/nfvbenchvm_centos-$VM_IMAGE_VER.qcow2 \
        && python3 ./docker/cleanup_generators.py \
        && rm -rf /nfvbench/.git \

@@ -144,7 +144,7 @@ def get_intel_pci(nic_slot=None, nic_ports=None):
         devices = ''
 
     for driver in ['i40e', 'ixgbe']:
-        matches = re.findall(regex.format(hx=hx, driver=driver), devices)
+        matches = re.findall(regex.format(hx=hx, driver=driver), devices.decode("utf-8"))
         if not matches:
             continue
 
@@ -160,9 +160,8 @@ def get_intel_pci(nic_slot=None, nic_ports=None):
                                            stdout=subprocess.PIPE,
                                            stderr=subprocess.PIPE)
                 intf_info, _ = process.communicate()
-                if not re.search('team_slave|bond_slave', intf_info):
+                if not re.search('team_slave|bond_slave', intf_info.decode("utf-8")):
                     pcis.append(port[1])
-
             if len(pcis) == 2:
                 break
 

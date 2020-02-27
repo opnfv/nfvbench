@@ -470,10 +470,11 @@ class TRex(AbstractTrafficGenerator):
             STLVmWrFlowVar(fv_name="ip_dst", pkt_offset="IP:{}.dst".format(encap_level)),
             dst_fv_port,
             STLVmWrFlowVar(fv_name="p_dst", pkt_offset="UDP:{}.dport".format(encap_level)),
-            STLVmFixChecksumHw(l3_offset="IP:{}".format(encap_level),
-                               l4_offset="UDP:{}".format(encap_level),
-                               l4_type=CTRexVmInsFixHwCs.L4_TYPE_UDP)
         ]
+        for encap in range(int(encap_level), -1, -1):
+            vm_param.append(STLVmFixChecksumHw(l3_offset="IP:{}".format(encap),
+                                               l4_offset="UDP:{}".format(encap),
+                                               l4_type=CTRexVmInsFixHwCs.L4_TYPE_UDP))
         pad = max(0, frame_size - len(pkt_base)) * 'x'
 
         return STLPktBuilder(pkt=pkt_base / pad,

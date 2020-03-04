@@ -1,0 +1,106 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "534dd81e_49d26be0",
+        "filename": "docker/nfvbench-entrypoint.sh",
+        "patchSetId": 3
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 5807
+      },
+      "writtenOn": "2020-03-04T16:53:04Z",
+      "side": 1,
+      "message": "it seems to me based on your run example, you just need to launch the container in this mode.\nThis allows you to then do docker exec ... run_tests...",
+      "revId": "ef6c203658bfb8b7d18c563454ce870a64bb5a4f",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e5e51b1d_19fd0d61",
+        "filename": "docker/nfvbench-entrypoint.sh",
+        "patchSetId": 3
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 5807
+      },
+      "writtenOn": "2020-03-04T16:53:04Z",
+      "side": 1,
+      "message": "this one will allow you to launch a new nfvbench container instance, execute run_tests then exit the container (which you need to cleanup).\nNot sure this is needed as iyt is not described in the doc",
+      "revId": "ef6c203658bfb8b7d18c563454ce870a64bb5a4f",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1ef24b7f_98ea5768",
+        "filename": "docs/testing/user/userguide/xtesting.rst",
+        "patchSetId": 3
+      },
+      "lineNbr": 3,
+      "author": {
+        "id": 5807
+      },
+      "writtenOn": "2020-03-04T16:53:04Z",
+      "side": 1,
+      "message": "probably should remove (c) statement",
+      "revId": "ef6c203658bfb8b7d18c563454ce870a64bb5a4f",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8ac792d0_00d845f0",
+        "filename": "docs/testing/user/userguide/xtesting.rst",
+        "patchSetId": 3
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 5807
+      },
+      "writtenOn": "2020-03-04T16:53:04Z",
+      "side": 1,
+      "message": "I see what you mean but the wording is a bit awkward.\nI would instead add a comment describing how to launch the container when it is to be used by XTesting (parameters for docker run), providing the exact arguments would be good.\nFrom the dockerfile and abve comment it looks like all you need is a nfvbench launched without arg and is sitting there waiting for docker exec commands.",
+      "revId": "ef6c203658bfb8b7d18c563454ce870a64bb5a4f",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "835a1963_f1092ec2",
+        "filename": "docs/testing/user/userguide/xtesting.rst",
+        "patchSetId": 3
+      },
+      "lineNbr": 23,
+      "author": {
+        "id": 5807
+      },
+      "writtenOn": "2020-03-04T16:53:04Z",
+      "side": 1,
+      "message": "As discussed by email, I think it would be simpler to use the volume mapping $HOME/nfvbench/xtesting \u003c\u003d\u003e /tmp/nfvbench/xtesting\nand use relative paths in all run_tests commands",
+      "revId": "ef6c203658bfb8b7d18c563454ce870a64bb5a4f",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "012d0229_d8f48eec",
+        "filename": "docs/testing/user/userguide/xtesting.rst",
+        "patchSetId": 3
+      },
+      "lineNbr": 74,
+      "author": {
+        "id": 5807
+      },
+      "writtenOn": "2020-03-04T16:53:04Z",
+      "side": 1,
+      "message": "pls also include ion examples how to stage the xtesting config files on the host prior to invoking docker exec",
+      "revId": "ef6c203658bfb8b7d18c563454ce870a64bb5a4f",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": true
+    }
+  ]
+}

@@ -1,0 +1,55 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "c67eead6_70e28c63",
+        "filename": "docker/Dockerfile",
+        "patchSetId": 4
+      },
+      "lineNbr": 48,
+      "author": {
+        "id": 3405
+      },
+      "writtenOn": "2020-03-16T07:44:03Z",
+      "side": 1,
+      "message": "Here a simple docker copy is enough\nhttps://git.opnfv.org/functest-kubernetes/tree/docker/security/Dockerfile",
+      "revId": "973b38f5571f80b492aa317005b414e7b825ff7f",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "01c91465_beaa3acd",
+        "filename": "docs/testing/user/userguide/xtesting.rst",
+        "patchSetId": 4
+      },
+      "lineNbr": 5,
+      "author": {
+        "id": 3405
+      },
+      "writtenOn": "2020-03-16T07:44:03Z",
+      "side": 1,
+      "message": "Xtesting.",
+      "revId": "973b38f5571f80b492aa317005b414e7b825ff7f",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "90120c12_f4c9b07c",
+        "filename": "docs/testing/user/userguide/xtesting.rst",
+        "patchSetId": 4
+      },
+      "lineNbr": 23,
+      "author": {
+        "id": 3405
+      },
+      "writtenOn": "2020-03-16T07:44:03Z",
+      "side": 1,
+      "message": "Xtesting supports artifacts publication too.\nAt the end you may rather provide the cookbook.\nhttps://wiki.opnfv.org/pages/viewpage.action?pageId\u003d32015004",
+      "revId": "973b38f5571f80b492aa317005b414e7b825ff7f",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": true
+    }
+  ]
+}

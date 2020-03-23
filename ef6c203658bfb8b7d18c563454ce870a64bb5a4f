@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "22914b62_f3167237",
+        "filename": "docker/nfvbench-entrypoint.sh",
+        "patchSetId": 3
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 7465
+      },
+      "writtenOn": "2020-03-23T17:37:07Z",
+      "side": 1,
+      "message": "It is useful if NFVBench container is started using docker clean up command and waiting for XTesting complete execution",
+      "parentUuid": "534dd81e_49d26be0",
+      "revId": "ef6c203658bfb8b7d18c563454ce870a64bb5a4f",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "e5e51b1d_19fd0d61",
         "filename": "docker/nfvbench-entrypoint.sh",
         "patchSetId": 3
@@ -53,6 +71,24 @@
     },
     {
       "key": {
+        "uuid": "efd6c8cf_bf1a6c95",
+        "filename": "docs/testing/user/userguide/xtesting.rst",
+        "patchSetId": 3
+      },
+      "lineNbr": 3,
+      "author": {
+        "id": 7465
+      },
+      "writtenOn": "2020-03-23T17:37:07Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1ef24b7f_98ea5768",
+      "revId": "ef6c203658bfb8b7d18c563454ce870a64bb5a4f",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "8ac792d0_00d845f0",
         "filename": "docs/testing/user/userguide/xtesting.rst",
         "patchSetId": 3
@@ -70,6 +106,24 @@
     },
     {
       "key": {
+        "uuid": "2aadf4c2_ec1a19db",
+        "filename": "docs/testing/user/userguide/xtesting.rst",
+        "patchSetId": 3
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 7465
+      },
+      "writtenOn": "2020-03-23T17:37:07Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "8ac792d0_00d845f0",
+      "revId": "ef6c203658bfb8b7d18c563454ce870a64bb5a4f",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "835a1963_f1092ec2",
         "filename": "docs/testing/user/userguide/xtesting.rst",
         "patchSetId": 3
@@ -81,6 +135,24 @@
       "writtenOn": "2020-03-04T16:53:04Z",
       "side": 1,
       "message": "As discussed by email, I think it would be simpler to use the volume mapping $HOME/nfvbench/xtesting \u003c\u003d\u003e /tmp/nfvbench/xtesting\nand use relative paths in all run_tests commands",
+      "revId": "ef6c203658bfb8b7d18c563454ce870a64bb5a4f",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1ac057eb_fbafc322",
+        "filename": "docs/testing/user/userguide/xtesting.rst",
+        "patchSetId": 3
+      },
+      "lineNbr": 23,
+      "author": {
+        "id": 7465
+      },
+      "writtenOn": "2020-03-23T17:37:07Z",
+      "side": 1,
+      "message": "Yes agree but not sure XTesting allows to pass a PATH for run_tests command.",
+      "parentUuid": "835a1963_f1092ec2",
       "revId": "ef6c203658bfb8b7d18c563454ce870a64bb5a4f",
       "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
       "unresolved": true

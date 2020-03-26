@@ -159,6 +159,24 @@
     },
     {
       "key": {
+        "uuid": "d59f29ed_e7fa85ae",
+        "filename": "docs/testing/user/userguide/xtesting.rst",
+        "patchSetId": 3
+      },
+      "lineNbr": 23,
+      "author": {
+        "id": 5807
+      },
+      "writtenOn": "2020-03-26T00:49:39Z",
+      "side": 1,
+      "message": "new mapping works so we can close this",
+      "parentUuid": "1ac057eb_fbafc322",
+      "revId": "ef6c203658bfb8b7d18c563454ce870a64bb5a4f",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "012d0229_d8f48eec",
         "filename": "docs/testing/user/userguide/xtesting.rst",
         "patchSetId": 3

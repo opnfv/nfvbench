@@ -23,7 +23,7 @@ The NFVbench version is controlled by the git tag that conforms to the semver ve
 This tag controls the version of the Dockerfile used for building the container.
 
 The TRex version is controlled by the TREX_VER variable in Dockerfile (e.g. ENV TREX_VER "v2.56").
-TRex is installed in container from https://trex-tgn.cisco.com/trex/release/
+TRex is installed in container from https://github.com/cisco-system-traffic-generator/trex-core/releases
 
 The Test VM version is controlled by the VM_IMAGE_VER variable in Dockerfile (e.g. ENV VM_IMAGE_VER "0.8").
 The VM is extracted from google storage (http://artifacts.opnfv.org)

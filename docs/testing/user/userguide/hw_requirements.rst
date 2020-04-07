@@ -14,7 +14,8 @@ To run NFVbench you need the following hardware:
 - a DPDK compatible NIC with at least 2 ports (preferably 10Gbps or higher)
 - 2 ethernet cables between the NIC and the OpenStack pod under test (usually through a top of rack switch)
 
-The DPDK-compliant NIC must be one supported by the TRex traffic generator (such as Intel X710, refer to the `Trex Installation Guide <https://trex-tgn.cisco.com/trex/doc/trex_manual.html#_download_and_installation>`_ for a complete list of supported NIC)
+The DPDK-compliant NIC must be one supported by the TRex traffic generator (such as Intel X710, 
+refer to the Trex Installation Guide for a complete list of supported NIC)
 
 To run the TRex traffic generator (that is bundled with NFVbench) you will need to wire 2 physical interfaces of the NIC to the TOR switch(es):
     - if you have only 1 TOR, wire both interfaces to that same TOR

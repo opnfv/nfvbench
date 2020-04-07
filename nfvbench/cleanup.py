@@ -96,7 +96,7 @@ class NetworkCleaner(object):
         for net in all_networks:
             netname = net['name']
             for prefix in network_name_prefixes:
-                if netname.startswith(prefix):
+                if prefix and netname.startswith(prefix):
                     self.networks.append(net)
                     net_ids.append(net['id'])
                     break
@@ -269,8 +269,8 @@ class Cleaner(object):
         self.nova_client = Client(2, session=session)
         network_names = [inet['name'] for inet in config.internal_networks.values()]
         network_names.extend([inet['name'] for inet in config.edge_networks.values()])
-        network_names.extend(config.management_network['name'])
-        network_names.extend(config.floating_network['name'])
+        network_names.append(config.management_network['name'])
+        network_names.append(config.floating_network['name'])
         router_names = [rtr['router_name'] for rtr in config.edge_networks.values()]
         # add idle networks as well
         if config.idle_networks.name:

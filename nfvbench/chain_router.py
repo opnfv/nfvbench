@@ -80,6 +80,8 @@ class ChainRouter(object):
                                              .format(router=self.name,
                                                      sub_id=subnet.network['subnets'][0]))
                 interfaces = self.manager.neutron_client.list_ports(device_id=router['id'])['ports']
+                interfaces = [x for x in interfaces if x['fixed_ips'][0]['subnet_id'] in
+                              [s.network['subnets'][0] for s in self.subnets]]
                 for interface in interfaces:
                     if self.is_ip_in_network(
                             interface['fixed_ips'][0]['ip_address'],
@@ -125,6 +127,8 @@ class ChainRouter(object):
                 router_interface = {'subnet_id': subnet.network['subnets'][0]}
                 self.manager.neutron_client.add_interface_router(router_id, router_interface)
             interfaces = self.manager.neutron_client.list_ports(device_id=router_id)['ports']
+            interfaces = [x for x in interfaces if x['fixed_ips'][0]['subnet_id'] in
+                          [s.network['subnets'][0] for s in self.subnets]]
             for interface in interfaces:
                 itf = interface['fixed_ips'][0]['ip_address']
                 cidr0 = self.manager.config.traffic_generator.tg_gateway_ip_cidrs[0]

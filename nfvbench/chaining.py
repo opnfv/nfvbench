@@ -245,6 +245,7 @@ class ChainNetwork(object):
         self.reuse = False
         self.network = None
         self.vlan = None
+        self.router_name = None
         if manager.config.l3_router and hasattr(network_config, 'router_name'):
             self.router_name = network_config.router_name
         try:
@@ -924,7 +925,8 @@ class Chain(object):
         if port_index:
             # this will pick the last item in array
             port_index = -1
-        return self.networks[port_index].get_vlan()
+        networks = [x for x in self.networks if not x.router_name]
+        return networks[port_index].get_vlan()
 
     def get_vxlan(self, port_index):
         """Get the VXLAN id on a given port.

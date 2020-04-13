@@ -172,8 +172,8 @@ traffic_generator:
     # `tg_gateway_ip_addrs` base IP for traffic generator ports in the left and right networks to the VNFs
     #                       chain count consecutive IP addresses spaced by tg_gateway_ip_addrs_step will be used
     # `tg_gateway_ip_addrs__step`: step for generating traffic generator gateway sequences. default is 0.0.0.1
-    tg_gateway_ip_addrs: ['1.1.0.100', '2.2.0.100']
-    tg_gateway_ip_cidrs: ['1.1.0.0/24','2.2.0.0/24']
+    tg_gateway_ip_addrs: ['192.168.1.100', '192.168.2.100']
+    tg_gateway_ip_cidrs: ['192.168.1.0/24','192.168.2.0/24']
     tg_gateway_ip_addrs_step: 0.0.0.1
     # `gateway_ip_addrs`: base IPs of VNF router gateways (left and right), quantity used depends on chain count
     #                     must correspond to the public IP on the left and right networks
@@ -181,7 +181,7 @@ traffic_generator:
     #                     must be the same subnet but not same IP as tg_gateway_ip_addrs.
     #                     chain count consecutive IP addresses spaced by gateway_ip_addrs_step will be used
     # `gateway_ip_addrs_step`: step for generating router gateway sequences. default is 0.0.0.1
-    gateway_ip_addrs: ['1.1.0.2', '2.2.0.2']
+    gateway_ip_addrs: ['192.168.1.1', '192.168.2.1']
     gateway_ip_addrs_step: 0.0.0.1
 
     # UDP DEFINED VARIABLES

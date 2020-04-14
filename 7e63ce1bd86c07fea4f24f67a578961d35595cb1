@@ -37,6 +37,24 @@
     },
     {
       "key": {
+        "uuid": "10bd854b_b712ad36",
+        "filename": "nfvbench/chain_router.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 82,
+      "author": {
+        "id": 7465
+      },
+      "writtenOn": "2020-04-14T10:20:17Z",
+      "side": 1,
+      "message": "For my point of view, no need to add a variable for this but a comment can be appreciated",
+      "parentUuid": "2339b31f_bd25f8aa",
+      "revId": "7e63ce1bd86c07fea4f24f67a578961d35595cb1",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "d579fff0_9db9d547",
         "filename": "nfvbench/chain_router.py",
         "patchSetId": 2

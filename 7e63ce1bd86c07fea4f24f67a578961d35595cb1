@@ -1,0 +1,55 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7a9ff9d2_9ac09697",
+        "filename": "nfvbench/chain_router.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 82,
+      "author": {
+        "id": 6909
+      },
+      "writtenOn": "2020-04-14T07:34:45Z",
+      "side": 1,
+      "message": "not needed any more?",
+      "revId": "7e63ce1bd86c07fea4f24f67a578961d35595cb1",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d579fff0_9db9d547",
+        "filename": "nfvbench/chain_router.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 129,
+      "author": {
+        "id": 6909
+      },
+      "writtenOn": "2020-04-14T07:34:45Z",
+      "side": 1,
+      "message": "ditto",
+      "revId": "7e63ce1bd86c07fea4f24f67a578961d35595cb1",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9de54f88_520e0426",
+        "filename": "nfvbench/chaining.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 928,
+      "author": {
+        "id": 6909
+      },
+      "writtenOn": "2020-04-14T07:34:45Z",
+      "side": 1,
+      "message": "I don\u0027t see you set x.router_name anywhere else, did I miss anything?",
+      "revId": "7e63ce1bd86c07fea4f24f67a578961d35595cb1",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": true
+    }
+  ]
+}

@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "2339b31f_bd25f8aa",
+        "filename": "nfvbench/chain_router.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 82,
+      "author": {
+        "id": 7461
+      },
+      "writtenOn": "2020-04-14T08:43:26Z",
+      "side": 1,
+      "message": "it\u0027s still needed we doing 2 different operations while using/rewriting the same variable \"interfaces\", probably we can create one more variable \"interfaces_filtered\" if it looks confusing",
+      "parentUuid": "7a9ff9d2_9ac09697",
+      "revId": "7e63ce1bd86c07fea4f24f67a578961d35595cb1",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "d579fff0_9db9d547",
         "filename": "nfvbench/chain_router.py",
         "patchSetId": 2
@@ -36,6 +54,24 @@
     },
     {
       "key": {
+        "uuid": "bfd8e8c8_564ab53c",
+        "filename": "nfvbench/chain_router.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 129,
+      "author": {
+        "id": 7461
+      },
+      "writtenOn": "2020-04-14T08:43:26Z",
+      "side": 1,
+      "message": "same thing as above",
+      "parentUuid": "d579fff0_9db9d547",
+      "revId": "7e63ce1bd86c07fea4f24f67a578961d35595cb1",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "9de54f88_520e0426",
         "filename": "nfvbench/chaining.py",
         "patchSetId": 2
@@ -47,6 +83,24 @@
       "writtenOn": "2020-04-14T07:34:45Z",
       "side": 1,
       "message": "I don\u0027t see you set x.router_name anywhere else, did I miss anything?",
+      "revId": "7e63ce1bd86c07fea4f24f67a578961d35595cb1",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "fdba4f14_f73027fc",
+        "filename": "nfvbench/chaining.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 928,
+      "author": {
+        "id": 7461
+      },
+      "writtenOn": "2020-04-14T08:43:26Z",
+      "side": 1,
+      "message": "this x.router_name derives exactly from comprehension... where x is a network, please take a look more carefully. Probably I can rewrite comprehension if looks very confusing please let me know.",
+      "parentUuid": "9de54f88_520e0426",
       "revId": "7e63ce1bd86c07fea4f24f67a578961d35595cb1",
       "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
       "unresolved": true

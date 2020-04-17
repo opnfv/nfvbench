@@ -47,6 +47,7 @@ from trex.stl.api import STLScVmRaw
 from trex.stl.api import STLStream
 from trex.stl.api import STLTXCont
 from trex.stl.api import STLVmFixChecksumHw
+from trex.stl.api import STLVmFixIpv4
 from trex.stl.api import STLVmFlowVar
 from trex.stl.api import STLVmFlowVarRepeatableRandom
 from trex.stl.api import STLVmWrFlowVar
@@ -471,10 +472,13 @@ class TRex(AbstractTrafficGenerator):
             dst_fv_port,
             STLVmWrFlowVar(fv_name="p_dst", pkt_offset="UDP:{}.dport".format(encap_level)),
         ]
-        for encap in range(int(encap_level), -1, -1):
-            vm_param.append(STLVmFixChecksumHw(l3_offset="IP:{}".format(encap),
-                                               l4_offset="UDP:{}".format(encap),
-                                               l4_type=CTRexVmInsFixHwCs.L4_TYPE_UDP))
+        # Use HW Offload to calculate the outter IP/UDP packet
+        vm_param.append(STLVmFixChecksumHw(l3_offset="IP:0",
+                                           l4_offset="UDP:0",
+                                           l4_type=CTRexVmInsFixHwCs.L4_TYPE_UDP))
+        # Use software to fix the inner IP/UDP payload for VxLAN packets
+        if int(encap_level):
+            vm_param.append(STLVmFixIpv4(offset="IP:1"))
         pad = max(0, frame_size - len(pkt_base)) * 'x'
 
         return STLPktBuilder(pkt=pkt_base / pad,

@@ -707,6 +707,14 @@ no_traffic: false
 # Can be overriden by --l3-router
 l3_router: false
 
+# If l3_router is true and depending on ARP stale time SUT configuration
+# Gratuitous ARP (GARP) from TG port to the router is needed to keep traffic up
+# Default value: 1 packet per second
+# This value needs to be defined inferior to SUT ARP stale time to avoid GARP packets drop
+# in case of high load traffic
+periodic_gratuitous_arp: false
+gratuitous_arp_pps: 1
+
 # Test configuration
 
 # The rate pps for traffic going in reverse direction in case of unidirectional flow. Default to 1.

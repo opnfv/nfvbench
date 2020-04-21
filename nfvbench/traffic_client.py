@@ -923,6 +923,9 @@ class TrafficClient(object):
         retDict = {'total_tx_rate': stats['total_tx_rate'],
                    'offered_tx_rate_bps': stats['offered_tx_rate_bps']}
 
+        if self.config.periodic_gratuitous_arp:
+            retDict['garp_total_tx_rate'] = stats['garp_total_tx_rate']
+
         tx_keys = ['total_pkts', 'total_pkt_bytes', 'pkt_rate', 'pkt_bit_rate']
         rx_keys = tx_keys + ['dropped_pkts']
 
@@ -1201,10 +1204,23 @@ class TrafficClient(object):
         for idx, key in enumerate(["direction-forward", "direction-reverse"]):
             tx_rate = results["stats"][str(idx)]["tx"]["total_pkts"] / self.config.duration_sec
             rx_rate = results["stats"][str(1 - idx)]["rx"]["total_pkts"] / self.config.duration_sec
+
+            orig_rate = self.run_config['rates'][idx]
+            if self.config.periodic_gratuitous_arp:
+                orig_rate['rate_pps'] = float(
+                    orig_rate['rate_pps']) - self.config.gratuitous_arp_pps
+
             r[key] = {
-                "orig": self.__convert_rates(self.run_config['rates'][idx]),
+                "orig": self.__convert_rates(orig_rate),
                 "tx": self.__convert_rates({'rate_pps': tx_rate}),
                 "rx": self.__convert_rates({'rate_pps': rx_rate})
+            }
+
+        if self.config.periodic_gratuitous_arp:
+            r['garp-direction-total'] = {
+                "orig": self.__convert_rates({'rate_pps': self.config.gratuitous_arp_pps * 2}),
+                "tx": self.__convert_rates({'rate_pps': results["stats"]["garp_total_tx_rate"]}),
+                "rx": self.__convert_rates({'rate_pps': 0})
             }
 
         total = {}
@@ -1214,6 +1230,7 @@ class TrafficClient(object):
                 total[direction][unit] = sum([float(x[direction][unit]) for x in list(r.values())])
 
         r['direction-total'] = total
+
         return r
 
     def insert_interface_stats(self, pps_list):

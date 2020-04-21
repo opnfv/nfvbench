@@ -248,8 +248,9 @@ class NFVBenchSummarizer(Summarizer):
         ('RX Rate (pps)', Formatter.suffix(' pps'))
     ]
 
-    direction_keys = ['direction-forward', 'direction-reverse', 'direction-total']
-    direction_names = ['Forward', 'Reverse', 'Total']
+    direction_keys = ['direction-forward', 'direction-reverse', 'garp-direction-total',
+                      'direction-total']
+    direction_names = ['Forward', 'Reverse', 'Gratuitous ARP', 'Total']
 
     def __init__(self, result, sender):
         """Create a summarizer instance."""
@@ -458,6 +459,8 @@ class NFVBenchSummarizer(Summarizer):
         config_table = Table(self.config_header)
         for key, name in zip(self.direction_keys, self.direction_names):
             if key not in run_config:
+                continue
+            if name == 'Gratuitous ARP' and not self.config.periodic_gratuitous_arp:
                 continue
             config_table.add_row([
                 name,

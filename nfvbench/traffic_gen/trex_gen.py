@@ -24,6 +24,7 @@ from itertools import count
 from scapy.contrib.mpls import MPLS  # flake8: noqa
 # pylint: enable=import-error
 from nfvbench.log import LOG
+from nfvbench.specs import ChainType
 from nfvbench.traffic_server import TRexTrafficServer
 from nfvbench.utils import cast_integer
 from nfvbench.utils import timeout
@@ -31,6 +32,7 @@ from nfvbench.utils import TimeoutError
 
 # pylint: disable=import-error
 from trex.common.services.trex_service_arp import ServiceARP
+from trex.stl.api import ARP
 from trex.stl.api import bind_layers
 from trex.stl.api import CTRexVmInsFixHwCs
 from trex.stl.api import Dot1Q
@@ -46,6 +48,7 @@ from trex.stl.api import STLPktBuilder
 from trex.stl.api import STLScVmRaw
 from trex.stl.api import STLStream
 from trex.stl.api import STLTXCont
+from trex.stl.api import STLTXMultiBurst
 from trex.stl.api import STLVmFixChecksumHw
 from trex.stl.api import STLVmFixIpv4
 from trex.stl.api import STLVmFlowVar
@@ -116,7 +119,7 @@ class TRex(AbstractTrafficGenerator):
         pg_id = port * TRex.PORT_PG_ID_MASK | chain_id
         return pg_id, pg_id | TRex.LATENCY_PG_ID_MASK
 
-    def extract_stats(self, in_stats):
+    def extract_stats(self, in_stats, ifstats=None):
         """Extract stats from dict returned by Trex API.
 
         :param in_stats: dict as returned by TRex api
@@ -151,6 +154,32 @@ class TRex(AbstractTrafficGenerator):
             self.__combine_latencies(in_stats, result[ph]['rx'], ph)
 
         total_tx_pkts = result[0]['tx']['total_pkts'] + result[1]['tx']['total_pkts']
+
+        # in case of GARP packets we need to base total_tx_pkts value using flow_stats
+        # as no GARP packets have no flow stats and will not be received on the other port
+        if self.config.periodic_gratuitous_arp:
+            if not self.config.no_flow_stats and not self.config.no_latency_stats:
+                global_total_tx_pkts = total_tx_pkts
+                total_tx_pkts = 0
+                if ifstats:
+                    for chain_id, _ in enumerate(ifstats):
+                        for ph in self.port_handle:
+                            pg_id, lat_pg_id = self.get_pg_id(ph, chain_id)
+                            flows_tx_pkts = in_stats['flow_stats'][pg_id]['tx_pkts']['total'] + \
+                                            in_stats['flow_stats'][lat_pg_id]['tx_pkts']['total']
+                            result[ph]['tx']['total_pkts'] = flows_tx_pkts
+                            total_tx_pkts += flows_tx_pkts
+                else:
+                    for pg_id in in_stats['flow_stats']:
+                        if pg_id != 'global':
+                            total_tx_pkts += in_stats['flow_stats'][pg_id]['tx_pkts']['total']
+                result["garp_total_tx_rate"] = cast_integer(
+                    (global_total_tx_pkts - total_tx_pkts) / self.config.duration_sec)
+            else:
+                LOG.warning("Gratuitous ARP are not received by the other port so TRex and NFVbench"
+                            " see these packets as dropped. Please do not activate no_flow_stats"
+                            " and no_latency_stats properties to have a better drop rate.")
+
         result["total_tx_rate"] = cast_integer(total_tx_pkts / self.config.duration_sec)
         # actual offered tx rate in bps
         avg_packet_size = utils.get_average_packet_size(self.l2_frame_size)
@@ -497,6 +526,22 @@ class TRex(AbstractTrafficGenerator):
         return STLPktBuilder(pkt=pkt_base / pad,
                              vm=STLScVmRaw(vm_param, cache_size=int(self.config.cache_size)))
 
+    def _create_gratuitous_arp_pkt(self, stream_cfg):
+        """Create a GARP packet.
+
+        """
+        pkt_base = Ether(src=stream_cfg['mac_src'], dst="ff:ff:ff:ff:ff:ff")
+
+        if self.config.vxlan or self.config.mpls:
+            pkt_base /= Dot1Q(vlan=stream_cfg['vtep_vlan'])
+        elif stream_cfg['vlan_tag'] is not None:
+            pkt_base /= Dot1Q(vlan=stream_cfg['vlan_tag'])
+
+        pkt_base /= ARP(psrc=stream_cfg['ip_src_tg_gw'], hwsrc=stream_cfg['mac_src'],
+                        hwdst=stream_cfg['mac_src'], pdst=stream_cfg['ip_src_tg_gw'])
+
+        return STLPktBuilder(pkt=pkt_base)
+
     def generate_streams(self, port, chain_id, stream_cfg, l2frame, latency=True,
                          e2e=False):
         """Create a list of streams corresponding to a given chain and stream config.
@@ -538,23 +583,31 @@ class TRex(AbstractTrafficGenerator):
         else:
             l2frame_size = int(l2frame)
             pkt = self._create_pkt(stream_cfg, l2frame_size)
+            if self.config.periodic_gratuitous_arp:
+                requested_pps = int(utils.parse_rate_str(self.rates[0])[
+                                        'rate_pps']) - self.config.gratuitous_arp_pps
+                if latency:
+                    requested_pps -= self.LATENCY_PPS
+                stltx_cont = STLTXCont(pps=requested_pps)
+            else:
+                stltx_cont = STLTXCont()
             if e2e or stream_cfg['mpls']:
                 streams.append(STLStream(packet=pkt,
                                          # Flow stats is disabled for MPLS now
                                          # flow_stats=STLFlowStats(pg_id=pg_id),
-                                         mode=STLTXCont()))
+                                         mode=stltx_cont))
             else:
                 if stream_cfg['vxlan'] is True:
                     streams.append(STLStream(packet=pkt,
                                              flow_stats=STLFlowStats(pg_id=pg_id,
                                                                      vxlan=True)
                                              if not self.config.no_flow_stats else None,
-                                             mode=STLTXCont()))
+                                             mode=stltx_cont))
                 else:
                     streams.append(STLStream(packet=pkt,
                                              flow_stats=STLFlowStats(pg_id=pg_id)
                                              if not self.config.no_flow_stats else None,
-                                             mode=STLTXCont()))
+                                             mode=stltx_cont))
             # for the latency stream, the minimum payload is 16 bytes even in case of vlan tagging
             # without vlan, the min l2 frame size is 64
             # with vlan it is 68
@@ -576,6 +629,18 @@ class TRex(AbstractTrafficGenerator):
                                          flow_stats=STLFlowLatencyStats(pg_id=lat_pg_id)
                                          if not self.config.no_latency_stats else None,
                                          mode=STLTXCont(pps=self.LATENCY_PPS)))
+
+        if self.config.periodic_gratuitous_arp and (
+                self.config.l3_router or self.config.service_chain == ChainType.EXT):
+            # In case of L3 router feature or EXT chain with router
+            # and depending on ARP stale time SUT configuration
+            # Gratuitous ARP from TG port to the router is needed to keep traffic up
+            garp_pkt = self._create_gratuitous_arp_pkt(stream_cfg)
+            ibg = self.config.gratuitous_arp_pps * 1000000.0
+            packets_count = int(self.config.duration_sec / self.config.gratuitous_arp_pps)
+            streams.append(
+                STLStream(packet=garp_pkt,
+                          mode=STLTXMultiBurst(pkts_per_burst=1, count=packets_count, ibg=ibg)))
         return streams
 
     @timeout(5)
@@ -799,7 +864,11 @@ class TRex(AbstractTrafficGenerator):
                 mult = 1
                 total_rate = utils.convert_rates(l2frame_size, rates[0], intf_speed)
             # rate must be enough for latency stream and at least 1 pps for base stream per chain
-            required_rate = (self.LATENCY_PPS + 1) * self.config.service_chain_count * mult
+            if self.config.periodic_gratuitous_arp:
+                required_rate = (self.LATENCY_PPS + 1 + self.config.gratuitous_arp_pps) \
+                                * self.config.service_chain_count * mult
+            else:
+                required_rate = (self.LATENCY_PPS + 1) * self.config.service_chain_count * mult
             result = utils.convert_rates(l2frame_size,
                                          {'rate_pps': required_rate},
                                          intf_speed * mult)
@@ -865,10 +934,10 @@ class TRex(AbstractTrafficGenerator):
         self.client.reset(self.port_handle)
         LOG.info('Cleared all existing streams')
 
-    def get_stats(self):
+    def get_stats(self, ifstats=None):
         """Get stats from Trex."""
         stats = self.client.get_stats()
-        return self.extract_stats(stats)
+        return self.extract_stats(stats, ifstats)
 
     def get_macs(self):
         """Return the Trex local port MAC addresses.

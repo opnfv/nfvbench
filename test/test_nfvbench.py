@@ -466,7 +466,10 @@ def _get_dummy_tg_config(chain_type, rate, scc=1, fc=10, step_ip='0.0.0.1',
         'service_mode': False,
         'no_flow_stats': False,
         'no_latency_stats': False,
-        'no_latency_streams': False
+        'no_latency_streams': False,
+        'periodic_gratuitous_arp': False,
+        'gratuitous_arp_pps': 1
+
 
     })
 

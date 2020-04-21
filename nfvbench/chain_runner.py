@@ -149,7 +149,10 @@ class ChainRunner(object):
             if self.config.single_run:
                 result['run_config'] = self.traffic_client.get_run_config(result)
                 required = result['run_config']['direction-total']['orig']['rate_pps']
-                actual = result['stats']['total_tx_rate']
+                if self.config.periodic_gratuitous_arp:
+                    actual = result['stats']['total_tx_rate'] + self.config.gratuitous_arp_pps
+                else:
+                    actual = result['stats']['total_tx_rate']
                 warning = self.traffic_client.compare_tx_rates(required, actual)
                 if warning is not None:
                     result['run_config']['warning'] = warning

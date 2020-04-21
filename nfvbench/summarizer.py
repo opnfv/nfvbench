@@ -266,6 +266,11 @@ class NFVBenchSummarizer(Summarizer):
                 # 'append' expects a single parameter => double parentheses
                 self.ndr_pdr_header.append((str(percentile) + ' %ile lat.', Formatter.standard))
                 self.single_run_header.append((str(percentile) + ' %ile lat.', Formatter.standard))
+
+        if self.config.periodic_gratuitous_arp:
+            self.direction_keys.insert(2, 'garp-direction-total')
+            self.direction_names.insert(2, 'Gratuitous ARP')
+
         # if sender is available initialize record
         if self.sender:
             self.__record_init()

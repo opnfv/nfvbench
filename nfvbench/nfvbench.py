@@ -405,6 +405,12 @@ def _parse_opts_from_cli():
                         action='store_true',
                         help='Use L3 neutron routers to handle traffic')
 
+    parser.add_argument('-garp', '--gratuitous-arp', dest='periodic_gratuitous_arp',
+                        default=None,
+                        action='store_true',
+                        help='Use gratuitous ARP to maintain session between TG '
+                             'and L3 routers to handle traffic')
+
     parser.add_argument('-0', '--no-traffic', dest='no_traffic',
                         default=None,
                         action='store_true',

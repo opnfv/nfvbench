@@ -1070,8 +1070,9 @@ def _get_dummy_tg_config(chain_type, rate, scc=1, fc=10, step_ip='0.0.0.1',
         'no_flow_stats': False,
         'no_latency_stats': False,
         'no_latency_streams': False,
-        'intf_speed': '10Gbps'
-
+        'intf_speed': '10Gbps',
+        'periodic_gratuitous_arp': False,
+        'gratuitous_arp_pps': 1
     })
 
 def _get_traffic_client(user_info=None):

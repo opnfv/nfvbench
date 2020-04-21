@@ -43,6 +43,7 @@ except ImportError:
     api_mod.CTRexVmInsFixHwCs = STLDummy
     api_mod.Dot1Q = STLDummy
     api_mod.Ether = STLDummy
+    api_mod.ARP = STLDummy
     api_mod.IP = STLDummy
     api_mod.STLClient = STLDummy
     api_mod.STLFlowLatencyStats = STLDummy
@@ -51,6 +52,7 @@ except ImportError:
     api_mod.STLScVmRaw = STLDummy
     api_mod.STLStream = STLDummy
     api_mod.STLTXCont = STLDummy
+    api_mod.STLTXMultiBurst = STLDummy
     api_mod.STLVmFixChecksumHw = STLDummy
     api_mod.STLVmFixIpv4 = STLDummy
     api_mod.STLVmFlowVar = STLDummy

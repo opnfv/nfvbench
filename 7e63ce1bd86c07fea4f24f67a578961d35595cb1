@@ -73,6 +73,24 @@
     },
     {
       "key": {
+        "uuid": "19da3e12_5df502ec",
+        "filename": "nfvbench/chain_router.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 82,
+      "author": {
+        "id": 7461
+      },
+      "writtenOn": "2020-04-27T19:44:37Z",
+      "side": 1,
+      "message": "In our case we need it because of HA. When router created it\u0027s automatically connected to one more network where VRRP tracks on which node router active. Also it could be useful when user wants to connect nfvebnch router manually to one more network for debugging purpose let\u0027s say.",
+      "parentUuid": "2f2dd78d_b0eb41e0",
+      "revId": "7e63ce1bd86c07fea4f24f67a578961d35595cb1",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "d579fff0_9db9d547",
         "filename": "nfvbench/chain_router.py",
         "patchSetId": 2
@@ -173,6 +191,24 @@
       "side": 1,
       "message": "Comprehension is ok but a comment explaining what the code is doing would help.\nExplain why we need to exclude some networks.",
       "parentUuid": "fdba4f14_f73027fc",
+      "revId": "7e63ce1bd86c07fea4f24f67a578961d35595cb1",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f2596116_2b5e9c04",
+        "filename": "nfvbench/chaining.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 928,
+      "author": {
+        "id": 7461
+      },
+      "writtenOn": "2020-04-27T19:44:37Z",
+      "side": 1,
+      "message": "This string filters networks connected to TG, in case of l3-router feature we have 4 networks instead of 2 as a result wrong parameters  assigned to TG without network filtering, so basically that was a bug.",
+      "parentUuid": "d0af4078_f1dfdfe2",
       "revId": "7e63ce1bd86c07fea4f24f67a578961d35595cb1",
       "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
       "unresolved": true

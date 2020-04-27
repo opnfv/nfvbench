@@ -149,19 +149,21 @@ def get_intel_pci(nic_slot=None, nic_ports=None):
             continue
 
         matches.sort()
+        device_list = list(x[0].split('.')[0] for x in matches)
+        device_ports_list = {i: {'ports': device_list.count(i)} for i in device_list}
         for port in matches:
             intf_name = glob.glob("/sys/bus/pci/devices/%s/net/*" % port[0])
-            if not intf_name:
-                # Interface is not bind to kernel driver, so take it
-                pcis.append(port[1])
-            else:
+            if intf_name:
                 intf_name = intf_name[0][intf_name[0].rfind('/') + 1:]
                 process = subprocess.Popen(['ip', '-o', '-d', 'link', 'show', intf_name],
                                            stdout=subprocess.PIPE,
                                            stderr=subprocess.PIPE)
                 intf_info, _ = process.communicate()
-                if not re.search('team_slave|bond_slave', intf_info.decode("utf-8")):
-                    pcis.append(port[1])
+                if re.search('team_slave|bond_slave', intf_info.decode("utf-8")):
+                    device_ports_list[port[0].split('.')[0]]['busy'] = True
+        for port in matches:
+            if not device_ports_list[port[0].split('.')[0]].get('busy'):
+                pcis.append(port[1])
             if len(pcis) == 2:
                 break
 

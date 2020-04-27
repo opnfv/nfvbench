@@ -52,6 +52,7 @@ except ImportError:
     api_mod.STLStream = STLDummy
     api_mod.STLTXCont = STLDummy
     api_mod.STLVmFixChecksumHw = STLDummy
+    api_mod.STLVmFixIpv4 = STLDummy
     api_mod.STLVmFlowVar = STLDummy
     api_mod.STLVmFlowVarRepeatableRandom = STLDummy
     api_mod.STLVmWrFlowVar = STLDummy

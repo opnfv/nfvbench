@@ -79,7 +79,7 @@ Used parameters:
 
 
 TRex force restart
-------------------------------------
+------------------
 
 NFVbench allows to restart TRex traffic generator between runs.
 It runs the whole test, but restart TRex instance before generating new traffic.
@@ -94,6 +94,17 @@ Used parameters:
 
 * ``--restart`` : restart traffic generator (TRex)
 
+Rate Units
+^^^^^^^^^^
+
+Parameter ``--rate`` accepts different types of values:
+
+* packets per second (pps, kpps, mpps), e.g. ``1000pps`` or ``10kpps``
+* load percentage (%), e.g. ``50%``
+* bits per second (bps, kbps, Mbps, Gbps), e.g. ``1Gbps``, ``1000bps``
+* NDR/PDR (ndr, pdr, ndr_pdr), e.g. ``ndr_pdr``
+
+NDR/PDR is the default rate when not specified.
 
 Fixed Rate Run
 --------------
@@ -139,18 +150,59 @@ Used parameters:
 
 .. note:: When parameter ``--inter-node`` is not used or there aren't enough compute nodes, VMs are on the same compute node.
 
+A fixed rate run can also be used to check the running drop rate while traffic is being generated. In that case the --interval option can be used
+to specify the reporting interval in seconds (minimum is 1 second). This can be useful for example to see how packet drop rate
+evolves over time. One common use case is to see the drop rate when there is a network degradation (e.g. one of the 2 links in a bond
+goes down).
+The console output will show at every reporting interval the number of packets transmitted, received and estimated drop rate for the last reporting interval.
+The smaller is the interval the more precise is the drop rate.
 
-Rate Units
-^^^^^^^^^^
+Example of output where the reporting interval is set to 1 (second):
 
-Parameter ``--rate`` accepts different types of values:
+.. code-block:: bash
 
-* packets per second (pps, kpps, mpps), e.g. ``1000pps`` or ``10kpps``
-* load percentage (%), e.g. ``50%``
-* bits per second (bps, kbps, Mbps, Gbps), e.g. ``1Gbps``, ``1000bps``
-* NDR/PDR (ndr, pdr, ndr_pdr), e.g. ``ndr_pdr``
+    2020-04-25 12:59:16,618 INFO TX:   1,878,719,266; RX:   1,666,641,890; (Est.) Dropped:            2; Drop rate:   0.0000%
+    2020-04-25 12:59:17,625 INFO TX:   1,883,740,078; RX:   1,671,662,706; (Est.) Dropped:           -4; Drop rate:  -0.0001%
+    2020-04-25 12:59:18,632 INFO TX:   1,888,764,404; RX:   1,676,686,993; (Est.) Dropped:           39; Drop rate:   0.0008%
+    2020-04-25 12:59:19,639 INFO TX:   1,893,785,063; RX:   1,681,276,714; (Est.) Dropped:      430,938; Drop rate:   8.5833%
+    2020-04-25 12:59:20,645 INFO TX:   1,898,805,769; RX:   1,683,782,636; (Est.) Dropped:    2,514,784; Drop rate:  50.0883%
+    2020-04-25 12:59:21,652 INFO TX:   1,903,829,191; RX:   1,686,289,860; (Est.) Dropped:    2,516,198; Drop rate:  50.0893%
+    2020-04-25 12:59:22,658 INFO TX:   1,908,850,478; RX:   1,691,283,008; (Est.) Dropped:       28,139; Drop rate:   0.5604%
+    2020-04-25 12:59:23,665 INFO TX:   1,913,870,692; RX:   1,696,301,242; (Est.) Dropped:        1,980; Drop rate:   0.0394%
+    2020-04-25 12:59:24,672 INFO TX:   1,918,889,696; RX:   1,698,806,224; (Est.) Dropped:    2,514,022; Drop rate:  50.0901%
+    2020-04-25 12:59:25,680 INFO TX:   1,923,915,470; RX:   1,701,314,663; (Est.) Dropped:    2,517,335; Drop rate:  50.0885%
+    2020-04-25 12:59:26,687 INFO TX:   1,928,944,879; RX:   1,705,886,869; (Est.) Dropped:      457,203; Drop rate:   9.0906%
+    2020-04-25 12:59:27,696 INFO TX:   1,933,969,377; RX:   1,710,911,346; (Est.) Dropped:           21; Drop rate:   0.0004%
+    2020-04-25 12:59:28,702 INFO TX:   1,938,998,536; RX:   1,713,843,740; (Est.) Dropped:    2,096,765; Drop rate:  41.6922%
+    2020-04-25 12:59:29,710 INFO TX:   1,944,019,920; RX:   1,718,226,356; (Est.) Dropped:      638,768; Drop rate:  12.7210%
+    2020-04-25 12:59:30,718 INFO TX:   1,949,050,206; RX:   1,723,256,639; (Est.) Dropped:            3; Drop rate:   0.0001%
+    2020-04-25 12:59:31,725 INFO TX:   1,954,075,270; RX:   1,728,281,726; (Est.) Dropped:          -23; Drop rate:  -0.0005%
+    2020-04-25 12:59:32,732 INFO TX:   1,959,094,908; RX:   1,733,301,290; (Est.) Dropped:           74; Drop rate:   0.0015%
+    2020-04-25 12:59:33,739 INFO TX:   1,964,118,902; RX:   1,738,325,357; (Est.) Dropped:          -73; Drop rate:  -0.0015%
+    2020-04-25 12:59:34,746 INFO TX:   1,969,143,790; RX:   1,743,350,230; (Est.) Dropped:           15; Drop rate:   0.0003%
+    2020-04-25 12:59:35,753 INFO TX:   1,974,165,773; RX:   1,748,372,291; (Est.) Dropped:          -78; Drop rate:  -0.0016%
+    2020-04-25 12:59:36,759 INFO TX:   1,979,188,496; RX:   1,753,394,957; (Est.) Dropped:           57; Drop rate:   0.0011%
+    2020-04-25 12:59:37,767 INFO TX:   1,984,208,956; RX:   1,757,183,844; (Est.) Dropped:    1,231,573; Drop rate:  24.5311%
+    2020-04-25 12:59:38,773 INFO TX:   1,989,233,595; RX:   1,761,729,705; (Est.) Dropped:      478,778; Drop rate:   9.5286%
+    2020-04-25 12:59:39,780 INFO TX:   1,994,253,350; RX:   1,766,749,467; (Est.) Dropped:           -7; Drop rate:  -0.0001%
+    2020-04-25 12:59:40,787 INFO TX:   1,999,276,622; RX:   1,771,772,738; (Est.) Dropped:            1; Drop rate:   0.0000%
+    2020-04-25 12:59:41,794 INFO TX:   2,004,299,940; RX:   1,776,796,065; (Est.) Dropped:           -9; Drop rate:  -0.0002%
+    2020-04-25 12:59:42,800 INFO TX:   2,009,320,453; RX:   1,781,816,583; (Est.) Dropped:           -5; Drop rate:  -0.0001%
+    2020-04-25 12:59:43,807 INFO TX:   2,014,340,581; RX:   1,786,503,172; (Est.) Dropped:      333,539; Drop rate:   6.6440%
+    2020-04-25 12:59:44,814 INFO TX:   2,019,362,996; RX:   1,789,009,857; (Est.) Dropped:    2,515,730; Drop rate:  50.0900%
+    2020-04-25 12:59:45,821 INFO TX:   2,024,386,346; RX:   1,791,517,070; (Est.) Dropped:    2,516,137; Drop rate:  50.0888%
 
-NDR/PDR is the default rate when not specified.
+
+How to read each line:
+
+.. code-block:: bash
+
+    2020-04-25 10:46:41,276 INFO TX:       4,004,436; RX:       4,004,381; (Est.) Dropped:           55; Drop rate:   0.0014%
+
+At this poing in time, NFvbench has sent 4,004,436 and received 4,004,381 since the start of the run.
+There is deficit of 55 packets on reception which corresponds to 0.0014% of all packets sent during that reporting window interval (last 1 second)
+A negative value means that the RX count is higher than the tx count in that window – this is possible since the RX and TX reads are not atomic.
+
 
 NDR and PDR
 -----------

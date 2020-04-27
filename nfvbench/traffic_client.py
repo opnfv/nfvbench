@@ -1108,25 +1108,29 @@ class TrafficClient(object):
         LOG.info('Average drop rate: %f', stats['overall']['drop_rate_percent'])
         return stats, current_traffic_config['direction-total']
 
-    @staticmethod
-    def log_stats(stats):
+    def log_stats(self, stats):
         """Log estimated stats during run."""
-        report = {
-            'datetime': str(datetime.now()),
-            'tx_packets': stats['overall']['tx']['total_pkts'],
-            'rx_packets': stats['overall']['rx']['total_pkts'],
-            'drop_packets': stats['overall']['rx']['dropped_pkts'],
-            'drop_rate_percent': stats['overall']['drop_rate_percent']
-        }
-        LOG.info('TX: %(tx_packets)d; '
-                 'RX: %(rx_packets)d; '
-                 'Est. Dropped: %(drop_packets)d; '
-                 'Est. Drop rate: %(drop_rate_percent).4f%%',
-                 report)
+        # Calculate a rolling drop rate based on differential to
+        # the previous reading
+        cur_tx = stats['overall']['tx']['total_pkts']
+        cur_rx = stats['overall']['rx']['total_pkts']
+        delta_tx = cur_tx - self.prev_tx
+        delta_rx = cur_rx - self.prev_rx
+        drops = delta_tx - delta_rx
+        drop_rate_pct = 100 * (delta_tx - delta_rx)/delta_tx
+        self.prev_tx = cur_tx
+        self.prev_rx = cur_rx
+        LOG.info('TX: %15s; RX: %15s; (Est.) Dropped: %12s; Drop rate: %8.4f%%',
+                 format(cur_tx, ',d'),
+                 format(cur_rx, ',d'),
+                 format(drops, ',d'),
+                 drop_rate_pct)
 
     def run_traffic(self):
         """Start traffic and return intermediate stats for each interval."""
         stats = self.runner.run()
+        self.prev_tx = 0
+        self.prev_rx = 0
         while self.runner.is_running:
             self.log_stats(stats)
             yield stats

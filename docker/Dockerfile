@@ -23,16 +23,14 @@ RUN apt-get update && apt-get install -y \
        iproute2 \
        libelf1 \
        && ln -s /usr/bin/python3.6 /usr/local/bin/python3 \
-       && mkdir -p /opt/trex/$TREX_VER \
+       && mkdir -p /opt/trex \
        && mkdir /var/log/nfvbench \
-       && mkdir /tmp/trex \
-       && wget --no-cache https://github.com/cisco-system-traffic-generator/trex-core/archive/$TREX_VER.tar.gz \
-       && tar xzf $TREX_VER.tar.gz --strip-components=1 -C /tmp/trex \
+       && wget --no-cache --no-check-certificate https://trex-tgn.cisco.com/trex/release/$TREX_VER.tar.gz \
+       && tar xzf $TREX_VER.tar.gz -C /opt/trex \
        && rm -f /$TREX_VER.tar.gz \
-       && cp -a /tmp/trex/scripts/automation/trex_control_plane/interactive/trex /usr/local/lib/python3.6/dist-packages/ \
-       && cp -a /tmp/trex/scripts/* /opt/trex/$TREX_VER/ \
+       && rm -f /opt/trex/$TREX_VER/trex_client_$TREX_VER.tar.gz \
+       && cp -a /opt/trex/$TREX_VER/automation/trex_control_plane/interactive/trex /usr/local/lib/python3.6/dist-packages/ \
        && rm -rf /opt/trex/$TREX_VER/automation/trex_control_plane/interactive/trex \
-       && rm -rf /tmp/trex \
        && wget https://bootstrap.pypa.io/get-pip.py \
        && python3 get-pip.py \
        && pip3 install -U pbr \

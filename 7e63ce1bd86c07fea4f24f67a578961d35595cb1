@@ -55,6 +55,24 @@
     },
     {
       "key": {
+        "uuid": "2f2dd78d_b0eb41e0",
+        "filename": "nfvbench/chain_router.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 82,
+      "author": {
+        "id": 5807
+      },
+      "writtenOn": "2020-04-27T14:24:48Z",
+      "side": 1,
+      "message": "I agree we need at least a comment to explain what is happening \nsay the we need to filter further the list of interfaces and describe in plain english why",
+      "parentUuid": "10bd854b_b712ad36",
+      "revId": "7e63ce1bd86c07fea4f24f67a578961d35595cb1",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "d579fff0_9db9d547",
         "filename": "nfvbench/chain_router.py",
         "patchSetId": 2
@@ -90,6 +108,24 @@
     },
     {
       "key": {
+        "uuid": "3a9e1d31_9fcd975e",
+        "filename": "nfvbench/chain_router.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 129,
+      "author": {
+        "id": 5807
+      },
+      "writtenOn": "2020-04-27T14:24:48Z",
+      "side": 1,
+      "message": "same as above",
+      "parentUuid": "bfd8e8c8_564ab53c",
+      "revId": "7e63ce1bd86c07fea4f24f67a578961d35595cb1",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "9de54f88_520e0426",
         "filename": "nfvbench/chaining.py",
         "patchSetId": 2
@@ -119,6 +155,24 @@
       "side": 1,
       "message": "this x.router_name derives exactly from comprehension... where x is a network, please take a look more carefully. Probably I can rewrite comprehension if looks very confusing please let me know.",
       "parentUuid": "9de54f88_520e0426",
+      "revId": "7e63ce1bd86c07fea4f24f67a578961d35595cb1",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d0af4078_f1dfdfe2",
+        "filename": "nfvbench/chaining.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 928,
+      "author": {
+        "id": 5807
+      },
+      "writtenOn": "2020-04-27T14:24:48Z",
+      "side": 1,
+      "message": "Comprehension is ok but a comment explaining what the code is doing would help.\nExplain why we need to exclude some networks.",
+      "parentUuid": "fdba4f14_f73027fc",
       "revId": "7e63ce1bd86c07fea4f24f67a578961d35595cb1",
       "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
       "unresolved": true

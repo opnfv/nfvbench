@@ -24,7 +24,7 @@ import fcntl
 from functools import wraps
 import json
 from .log import LOG
-
+from nfvbench.traffic_gen.traffic_utils import multiplier_map
 
 class TimeoutError(Exception):
     pass
@@ -70,22 +70,6 @@ def save_json_result(result, json_file, std_json_path, service_chain, service_ch
                           sort_keys=True,
                           separators=(',', ': '),
                           default=lambda obj: obj.to_json())
-
-
-def byteify(data, ignore_dicts=False):
-    # if this is a unicode string, return its string representation
-    if isinstance(data, str):
-        return data.encode('utf-8')
-    # if this is a list of values, return list of byteified values
-    if isinstance(data, list):
-        return [byteify(item, ignore_dicts=ignore_dicts) for item in data]
-    # if this is a dictionary, return dictionary of byteified keys and values
-    # but only if we haven't already byteified it
-    if isinstance(data, dict) and not ignore_dicts:
-        return {byteify(key, ignore_dicts=ignore_dicts): byteify(value, ignore_dicts=ignore_dicts)
-                for key, value in list(data.items())}
-    # if it's anything else, return it in its original form
-    return data
 
 
 def dict_to_json_dict(record):
@@ -170,12 +154,6 @@ def get_intel_pci(nic_slot=None, nic_ports=None):
     return pcis
 
 
-multiplier_map = {
-    'K': 1000,
-    'M': 1000000,
-    'G': 1000000000
-}
-
 
 def parse_flow_count(flow_count):
     flow_count = str(flow_count)
@@ -194,7 +172,8 @@ def parse_flow_count(flow_count):
 
 
 def cast_integer(value):
-    return int(value) if not isnan(value) else value
+    # force 0 value if NaN value from TRex to avoid error in JSON result parsing
+    return int(value) if not isnan(value) else 0
 
 
 class RunLock(object):

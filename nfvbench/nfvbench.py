@@ -24,6 +24,7 @@ import sys
 import traceback
 
 from attrdict import AttrDict
+from logging import FileHandler
 import pbr.version
 from pkg_resources import resource_string
 
@@ -173,6 +174,24 @@ class NFVBench(object):
         Sanity check on the config is done here as well.
         """
         self.config = AttrDict(dict(self.base_config))
+        # Update log file handler if needed after a config update (REST mode)
+        if 'log_file' in opts:
+            if opts['log_file']:
+                (path, _filename) = os.path.split(opts['log_file'])
+                if not os.path.exists(path):
+                    LOG.warning(
+                        'Path %s does not exist. Please verify root path is shared with host. Path '
+                        'will be created.', path)
+                    os.makedirs(path)
+                    LOG.info('%s is created.', path)
+                for h in log.getLogger().handlers:
+                    if isinstance(h, FileHandler) and h.baseFilename != opts['log_file']:
+                        # clean log file handler
+                        log.getLogger().removeHandler(h)
+                # add handler if not existing to avoid duplicates handlers
+                if len(log.getLogger().handlers) == 1:
+                    log.add_file_logger(opts['log_file'])
+
         self.config.update(opts)
         config = self.config
 
@@ -184,6 +203,15 @@ class NFVBench(object):
             config.service_chain = ChainType.EXT
             config.no_arp = True
             LOG.info('Running L2 loopback: using EXT chain/no ARP')
+
+        # traffic profile override options
+        if 'frame_sizes' in opts:
+            unidir = False
+            if 'unidir' in opts:
+                unidir = opts['unidir']
+            override_custom_traffic(config, opts['frame_sizes'], unidir)
+            LOG.info("Frame size has been set to %s for current configuration", opts['frame_sizes'])
+
         config.flow_count = utils.parse_flow_count(config.flow_count)
         required_flow_count = config.service_chain_count * 2
         if config.flow_count < required_flow_count:

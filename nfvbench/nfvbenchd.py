@@ -26,7 +26,6 @@ from flask import request
 from .summarizer import NFVBenchSummarizer
 
 from .log import LOG
-from .utils import byteify
 from .utils import RunLock
 
 from .__init__ import __version__
@@ -48,7 +47,7 @@ def result_json(status, message, request_id=None):
 
 
 def load_json(data):
-    return json.loads(json.dumps(data), object_hook=byteify)
+    return json.loads(json.dumps(data))
 
 
 def get_uuid():
@@ -211,6 +210,8 @@ class WebServer(object):
             try:
                 summary = NFVBenchSummarizer(results['result'], self.fluent_logger)
                 LOG.info(str(summary))
+                if 'json' in config and 'result' in results and results['status']:
+                    self.nfvbench_runner.save(results['result'])
             except KeyError:
                 # in case of error, 'result' might be missing
                 if 'error_message' in results:

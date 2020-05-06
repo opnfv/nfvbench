@@ -147,6 +147,10 @@ class DummyTG(AbstractTrafficGenerator):
             total_tx_pps += tx_pps
         # actual total tx rate in pps
         result['total_tx_rate'] = total_tx_pps
+        # actual offered tx rate in bps
+        avg_packet_size = utils.get_average_packet_size(self.l2_frame_size)
+        total_tx_bps = utils.pps_to_bps(total_tx_pps, avg_packet_size)
+        result['offered_tx_rate_bps'] = total_tx_bps
         return result
 
     def get_stream_stats(self, tg_stats, if_stats, latencies, chain_idx):

@@ -923,7 +923,8 @@ class TrafficClient(object):
     def get_stats(self):
         """Collect final stats for previous run."""
         stats = self.gen.get_stats()
-        retDict = {'total_tx_rate': stats['total_tx_rate']}
+        retDict = {'total_tx_rate': stats['total_tx_rate'],
+                   'offered_tx_rate_bps': stats['offered_tx_rate_bps']}
 
         tx_keys = ['total_pkts', 'total_pkt_bytes', 'pkt_rate', 'pkt_bit_rate']
         rx_keys = tx_keys + ['dropped_pkts']

@@ -14,7 +14,6 @@
 
 
 import bitmath
-from nfvbench.utils import multiplier_map
 
 # IMIX frame size including the 4-byte FCS field
 IMIX_L2_SIZES = [64, 594, 1518]
@@ -23,6 +22,11 @@ IMIX_RATIOS = [7, 4, 1]
 IMIX_AVG_L2_FRAME_SIZE = sum(
     [1.0 * imix[0] * imix[1] for imix in zip(IMIX_L2_SIZES, IMIX_RATIOS)]) / sum(IMIX_RATIOS)
 
+multiplier_map = {
+    'K': 1000,
+    'M': 1000000,
+    'G': 1000000000
+}
 
 def convert_rates(l2frame_size, rate, intf_speed):
     """Convert a given rate unit into the other rate units.

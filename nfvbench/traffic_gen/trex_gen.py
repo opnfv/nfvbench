@@ -95,6 +95,7 @@ class TRex(AbstractTrafficGenerator):
         self.rates = []
         self.capture_id = None
         self.packet_list = []
+        self.l2_frame_size = 0
 
     def get_version(self):
         """Get the Trex version."""
@@ -151,6 +152,10 @@ class TRex(AbstractTrafficGenerator):
 
         total_tx_pkts = result[0]['tx']['total_pkts'] + result[1]['tx']['total_pkts']
         result["total_tx_rate"] = cast_integer(total_tx_pkts / self.config.duration_sec)
+        # actual offered tx rate in bps
+        avg_packet_size = utils.get_average_packet_size(self.l2_frame_size)
+        total_tx_bps = utils.pps_to_bps(result["total_tx_rate"], avg_packet_size)
+        result['offered_tx_rate_bps'] = total_tx_bps
         result["flow_stats"] = in_stats["flow_stats"]
         result["latency"] = in_stats["latency"]
         return result
@@ -812,6 +817,7 @@ class TRex(AbstractTrafficGenerator):
                 .format(pps=r['rate_pps'],
                         bps=r['rate_bps'],
                         load=r['rate_percent']))
+        self.l2_frame_size = l2frame_size
         # a dict of list of streams indexed by port#
         # in case of fixed size, has self.chain_count * 2 * 2 streams
         # (1 normal + 1 latency stream per direction per chain)

@@ -393,11 +393,19 @@ class TRex(AbstractTrafficGenerator):
         udp_args = {}
         if stream_cfg['udp_src_port']:
             udp_args['sport'] = int(stream_cfg['udp_src_port'])
-            udp_args['sport_step'] = int(stream_cfg['udp_port_step'])
+            if stream_cfg['udp_port_step'] == 'random':
+                step = 1
+            else:
+                step = stream_cfg['udp_port_step']
+            udp_args['sport_step'] = int(step)
             udp_args['sport_max'] = int(stream_cfg['udp_src_port_max'])
         if stream_cfg['udp_dst_port']:
             udp_args['dport'] = int(stream_cfg['udp_dst_port'])
-            udp_args['dport_step'] = int(stream_cfg['udp_port_step'])
+            if stream_cfg['udp_port_step'] == 'random':
+                step = 1
+            else:
+                step = stream_cfg['udp_port_step']
+            udp_args['dport_step'] = int(step)
             udp_args['dport_max'] = int(stream_cfg['udp_dst_port_max'])
 
         pkt_base /= IP(src=stream_cfg['ip_src_addr'], dst=stream_cfg['ip_dst_addr']) / \
@@ -444,7 +452,7 @@ class TRex(AbstractTrafficGenerator):
                 max_value=udp_args['sport_max'],
                 size=2,
                 seed=random.randint(0, 32767),
-                limit=udp_args['udp_src_count'])
+                limit=stream_cfg['udp_src_count'])
             dst_fv_port = STLVmFlowVarRepeatableRandom(
                 name="p_dst",
                 min_value=udp_args['dport'],

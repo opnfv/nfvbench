@@ -246,11 +246,8 @@ class Device(object):
         else:
             self.ip_block = IpBlock(self.ip, step, self.ip_size)
 
-        if generator_config.gen_config.udp_port_step == 'random':
-            step = 1
-        else:
-            step = generator_config.gen_config.udp_port_step
-        self.udp_ports = UdpPorts(src_min, src_max, dst_min, dst_max, step)
+        self.udp_ports = UdpPorts(src_min, src_max, dst_min, dst_max,
+                                  generator_config.gen_config.udp_port_step)
         self.gw_ip_block = IpBlock(generator_config.gateway_ips[port],
                                    generator_config.gateway_ip_addrs_step,
                                    self.chain_count)

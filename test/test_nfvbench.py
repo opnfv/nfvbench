@@ -27,12 +27,12 @@ from nfvbench.credentials import Credentials
 from nfvbench.fluentd import FluentLogHandler
 import nfvbench.log
 import nfvbench.nfvbench
-from nfvbench.traffic_client import Device
+from nfvbench.traffic_client import Device, TrafficClientException
 from nfvbench.traffic_client import GeneratorConfig
 from nfvbench.traffic_client import IpBlock
 from nfvbench.traffic_client import TrafficClient
 import nfvbench.traffic_gen.traffic_utils as traffic_utils
-
+import nfvbench.utils as utils
 
 # just to get rid of the unused function warning
 no_op()
@@ -194,22 +194,39 @@ def test_ip_block():
 
 
 def test_lcm():
-    assert Device.lcm(10, 2) == 10
-    assert Device.lcm(1, 256) == 256
-    assert Device.lcm(10, 256) == 1280
-    assert Device.lcm(Device.lcm(10, 2), Device.lcm(1, 256))
+    assert utils.lcm(10, 2) == 10
+    assert utils.lcm(1, 256) == 256
+    assert utils.lcm(10, 256) == 1280
+    assert utils.lcm(utils.lcm(10, 2), utils.lcm(1, 256))
     with pytest.raises(TypeError):
-        Device.lcm(0, 0)
+        utils.lcm(0, 0)
 
 
-def test_check_ipsize():
-    assert Device.check_ipsize(256, 1) == 256
-    assert Device.check_ipsize(256, 3) == 86
-    assert Device.check_ipsize(256, 4) == 64
-    assert Device.check_ipsize(16, 10) == 2
-    assert Device.check_ipsize(1, 10) == 1
+def test_flow_count_limit():
+    # lcm ip src and dst /32
+    lcm_ip = utils.lcm(1, 1) == 1
+    # port udp src = 1 port udp dst [1,29]
+    src_min = 1
+    src_max = 1
+    dst_min = 1
+    dst_max = 29
+    udp_step = 3
+    udp_src_size = Device.check_range_size(int(src_max) - int(src_min) + 1,
+                                           udp_step)
+    udp_dst_size = Device.check_range_size(int(dst_max) - int(dst_min) + 1,
+                                           udp_step)
+    lcm_port = utils.lcm(udp_src_size, udp_dst_size)
+    assert utils.lcm(lcm_ip, lcm_port) < 29
+
+
+def test_check_range_size():
+    assert Device.check_range_size(256, 1) == 256
+    assert Device.check_range_size(256, 3) == 86
+    assert Device.check_range_size(256, 4) == 64
+    assert Device.check_range_size(16, 10) == 2
+    assert Device.check_range_size(1, 10) == 1
     with pytest.raises(ZeroDivisionError):
-        Device.check_ipsize(256, 0)
+        Device.check_range_size(256, 0)
 
 
 def test_reserve_ip_range():
@@ -241,12 +258,18 @@ def check_stream_configs(gen_config):
     stream_configs = gen_config.devices[0].get_stream_configs()
     for index in range(config['service_chain_count']):
         stream_cfg = stream_configs[index]
-        assert stream_cfg['ip_src_count'] == stream_cfg['ip_dst_count']
+        # ip_src_static == True
+        assert stream_cfg['ip_src_count'] == 1
+        if index == 0:
+            assert stream_cfg['ip_dst_count'] == 4999
+        else:
+            assert stream_cfg['ip_dst_count'] == 5000
+        assert stream_cfg['ip_src_addr'] == Device.int_to_ip(sip)
         assert Device.ip_to_int(stream_cfg['ip_src_addr']) == sip
         assert Device.ip_to_int(stream_cfg['ip_dst_addr']) == dip
-        count = stream_cfg['ip_src_count']
+        count = stream_cfg['ip_dst_count']
         cfc += count
-        sip += count * step
+        sip += step
         dip += count * step
     assert cfc == int(config['flow_count'] / 2)
 
@@ -260,54 +283,89 @@ def test_device_flow_config():
     _check_device_flow_config('0.0.0.2')
 
 
-def check_udp_stream_configs(gen_config, expected):
+def check_udp_stream_configs(gen_config, expected_cfg):
     """Verify that the range for each chain have adjacent UDP ports without holes between chains."""
     config = gen_config.config
     stream_configs = gen_config.devices[0].get_stream_configs()
     for index in range(config['service_chain_count']):
         stream_cfg = stream_configs[index]
+        expected = expected_cfg[index]
         assert stream_cfg['ip_src_addr'] == expected['ip_src_addr']
         assert stream_cfg['ip_src_addr_max'] == expected['ip_src_addr_max']
+        assert stream_cfg['ip_src_count'] == expected['ip_src_count']
+
         assert stream_cfg['ip_dst_addr'] == expected['ip_dst_addr']
         assert stream_cfg['ip_dst_addr_max'] == expected['ip_dst_addr_max']
+        assert stream_cfg['ip_dst_count'] == expected['ip_dst_count']
+
         assert stream_cfg['udp_src_port'] == expected['udp_src_port']
         assert stream_cfg['udp_src_port_max'] == expected['udp_src_port_max']
         assert stream_cfg['udp_src_count'] == expected['udp_src_count']
+
         assert stream_cfg['udp_dst_port'] == expected['udp_dst_port']
         assert stream_cfg['udp_dst_port_max'] == expected['udp_dst_port_max']
         assert stream_cfg['udp_dst_count'] == expected['udp_dst_count']
 
+        lcm_ip = utils.lcm(stream_cfg['ip_src_count'], stream_cfg['ip_dst_count'])
+        udp_src_size = int(stream_cfg['udp_src_port_max']) - int(stream_cfg['udp_src_port']) +1
+        udp_dst_size = int(stream_cfg['udp_dst_port_max']) - int(stream_cfg['udp_dst_port']) +1
+        lcm_udp = utils.lcm(udp_src_size, udp_dst_size)
+        assert utils.lcm(lcm_ip, lcm_udp) >= stream_cfg['count']
 
-def _check_device_udp_flow_config(param, expected):
+
+def _check_device_udp_flow_config(param, expected_cfg):
     config = _get_dummy_tg_config('PVP', '1Mpps',
+                                  scc=param['scc'],
                                   ip_src_static=param['ip_src_static'],
                                   fc=param['flow_count'],
                                   ip0=param['ip_src_addr'],
                                   ip1=param['ip_dst_addr'],
+                                  step_ip=param['ip_addrs_step'],
                                   src_udp=param['udp_src_port'],
-                                  dst_udp=param['udp_dst_port'])
+                                  dst_udp=param['udp_dst_port'],
+                                  step_udp=param['udp_port_step'])
     gen_config = GeneratorConfig(config)
-    check_udp_stream_configs(gen_config, expected)
+    check_udp_stream_configs(gen_config, expected_cfg)
 
 
-def test_device_udp_flow_config():
+def __get_udp_params():
     param = {'ip_src_static': True,
              'ip_src_addr': '110.0.0.0/32',
              'ip_dst_addr': '120.0.0.0/32',
+             'ip_addrs_step': '0.0.0.1',
              'udp_src_port': 53,
              'udp_dst_port': 53,
-             'flow_count': 2}
+             'flow_count': 2,
+             'scc': 1,
+             'udp_port_step': '1'}
+    return param
+
+
+def __get_udp_expected_list():
     expected = {'ip_src_addr': '110.0.0.0',
                 'ip_src_addr_max': '110.0.0.0',
+                'ip_src_count': 1,
                 'ip_dst_addr': '120.0.0.0',
                 'ip_dst_addr_max': '120.0.0.0',
+                'ip_dst_count': 1,
                 'udp_src_port': 53,
                 'udp_src_port_max': 53,
                 'udp_src_count': 1,
                 'udp_dst_port': 53,
                 'udp_dst_port_max': 53,
                 'udp_dst_count': 1}
-    _check_device_udp_flow_config(param, expected)
+    return expected
+
+
+def test_device_udp_flow_config_single_ip_single_port():
+    param = __get_udp_params()
+    expected = __get_udp_expected_list()
+    _check_device_udp_flow_config(param, [expected])
+
+
+def test_device_udp_flow_config_single_ip_multiple_src_ports():
+    param = __get_udp_params()
+    expected = __get_udp_expected_list()
     # Overwrite the udp_src_port value to define a large range of ports
     # instead of a single port, in order to check if the imposed
     # flow count is respected. Notice that udp range >> flow count.
@@ -315,20 +373,512 @@ def test_device_udp_flow_config():
     param['flow_count'] = 10
     expected['udp_src_port_max'] = 57
     expected['udp_src_count'] = 5
-    _check_device_udp_flow_config(param, expected)
+    _check_device_udp_flow_config(param, [expected])
+
+
+def test_device_udp_flow_config_multiple_ip_src_single_port():
+    param = __get_udp_params()
+    expected = __get_udp_expected_list()
     # Re affect the default udp_src_port values and
     # overwrite the ip_dst_addr value to define a large range of addresses
     # instead of a single one, in order to check if the imposed
     # flow count is respected. Notice that the netmask allows a very larger
     # range of possible addresses than the flow count value.
     param['udp_src_port'] = 53
-    expected['udp_src_port_max'] = 53
-    expected['udp_src_count'] = 1
+    param['flow_count'] = 10
     param['ip_src_static'] = False
     param['ip_dst_addr'] = '120.0.0.0/24'
+
+    expected['udp_src_port_max'] = 53
+    expected['udp_src_count'] = 1
     expected['ip_dst_addr'] = '120.0.0.0'
     expected['ip_dst_addr_max'] = '120.0.0.4'
-    _check_device_udp_flow_config(param, expected)
+    expected['ip_dst_count'] = 5
+    _check_device_udp_flow_config(param, [expected])
+
+
+def test_device_udp_flow_config_multiple_ip_src_dst_multiple_src_dst_ports():
+    param = __get_udp_params()
+    expected = __get_udp_expected_list()
+
+    param['udp_src_port'] = [49000, 49031]
+    param['udp_dst_port'] = [50000, 50033]
+    param['ip_src_static'] = False
+    param['flow_count'] = 1000
+    param['ip_src_addr'] = '110.0.0.0/16'
+    param['ip_dst_addr'] = '120.0.0.0/16'
+
+    expected['udp_src_port'] = 49000
+    expected['udp_src_port_max'] = 49024
+    expected['udp_dst_port'] = 50000
+    expected['udp_dst_port_max'] = 50024
+    expected['udp_src_count'] = 25
+    expected['udp_dst_count'] = 25
+    expected['ip_src_addr_max'] = '110.0.1.243'
+    expected['ip_src_count'] = 500
+    expected['ip_dst_addr'] = '120.0.0.0'
+    expected['ip_dst_addr_max'] = '120.0.1.243'
+    expected['ip_dst_count'] = 500
+    _check_device_udp_flow_config(param, [expected])
+
+
+def test_device_udp_flow_config_single_ip_src_dst_multiple_src_dst_ports():
+    param = __get_udp_params()
+    expected = __get_udp_expected_list()
+
+    param['udp_src_port'] = [49152, 49154]
+    param['udp_dst_port'] = [50001, 50005]
+    param['ip_src_static'] = False
+    param['flow_count'] = 10
+    param['ip_src_addr'] = '110.0.0.0/32'
+    param['ip_dst_addr'] = '120.0.0.0/32'
+
+    expected['udp_src_port'] = 49152
+    expected['udp_src_port_max'] = 49152
+    expected['udp_dst_port'] = 50001
+    expected['udp_dst_port_max'] = 50005
+    expected['udp_src_count'] = 1
+    expected['udp_dst_count'] = 5
+    expected['ip_src_addr_max'] = '110.0.0.0'
+    expected['ip_src_count'] = 1
+    expected['ip_dst_addr'] = '120.0.0.0'
+    expected['ip_dst_addr_max'] = '120.0.0.0'
+    expected['ip_dst_count'] = 1
+    _check_device_udp_flow_config(param, [expected])
+
+
+def test_device_udp_flow_config_single_ip_src_dst_single_src_multiple_dst_ports():
+    param = __get_udp_params()
+    expected = __get_udp_expected_list()
+
+    param['udp_src_port'] = 49152
+    param['udp_dst_port'] = [50001, 50029]
+    param['udp_port_step'] = '3'
+    param['flow_count'] = 58
+    param['ip_src_addr'] = '110.0.0.0/32'
+    param['ip_dst_addr'] = '120.0.0.0/32'
+
+    expected['udp_src_port'] = 49152
+    expected['udp_src_port_max'] = 49152
+    expected['udp_dst_port'] = 50001
+    expected['udp_dst_port_max'] = 50029
+    expected['udp_src_count'] = 1
+    expected['udp_dst_count'] = 29
+    expected['ip_src_addr_max'] = '110.0.0.0'
+    expected['ip_src_count'] = 1
+    expected['ip_dst_addr'] = '120.0.0.0'
+    expected['ip_dst_addr_max'] = '120.0.0.0'
+    expected['ip_dst_count'] = 1
+    with pytest.raises(TrafficClientException):
+        _check_device_udp_flow_config(param, [expected])
+
+
+def test_device_udp_flow_config_scc3():
+    param = __get_udp_params()
+    expected = __get_udp_expected_list()
+
+    param['scc'] = 3
+    param['udp_src_port'] = [49000, 49031]
+    param['udp_dst_port'] = [50000, 50033]
+    param['ip_src_static'] = False
+    param['flow_count'] = 10000
+    param['ip_src_addr'] = '110.0.0.0/16'
+    param['ip_dst_addr'] = '120.0.0.0/16'
+
+    expected_cfg = []
+    # chain 0
+    expected_scc0 = dict(expected)
+    expected_scc0['udp_src_port'] = 49000
+    expected_scc0['udp_src_port_max'] = 49016
+    expected_scc0['udp_dst_port'] = 50000
+    expected_scc0['udp_dst_port_max'] = 50033
+    expected_scc0['udp_src_count'] = 17
+    expected_scc0['udp_dst_count'] = 34
+    expected_scc0['ip_src_addr_max'] = '110.0.6.129'
+    expected_scc0['ip_src_count'] = 1666
+    expected_scc0['ip_dst_addr'] = '120.0.0.0'
+    expected_scc0['ip_dst_addr_max'] = '120.0.6.129'
+    expected_scc0['ip_dst_count'] = 1666
+    expected_cfg.append(expected_scc0)
+
+    # chain 1
+    expected_scc1 = dict(expected)
+    expected_scc1['udp_src_port'] = 49000
+    expected_scc1['udp_src_port_max'] = 49000
+    expected_scc1['udp_dst_port'] = 50000
+    expected_scc1['udp_dst_port_max'] = 50000
+    expected_scc1['udp_src_count'] = 1
+    expected_scc1['udp_dst_count'] = 1
+    expected_scc1['ip_src_addr'] = '110.0.6.130'
+    expected_scc1['ip_src_addr_max'] = '110.0.13.4'
+    expected_scc1['ip_src_count'] = 1667
+    expected_scc1['ip_dst_addr'] = '120.0.6.130'
+    expected_scc1['ip_dst_addr_max'] = '120.0.13.4'
+    expected_scc1['ip_dst_count'] = 1667
+    expected_cfg.append(expected_scc1)
+
+    # chain 2
+    expected_scc2 = dict(expected)
+    expected_scc2['udp_src_port'] = 49000
+    expected_scc2['udp_src_port_max'] = 49000
+    expected_scc2['udp_dst_port'] = 50000
+    expected_scc2['udp_dst_port_max'] = 50000
+    expected_scc2['udp_src_count'] = 1
+    expected_scc2['udp_dst_count'] = 1
+    expected_scc2['ip_src_addr'] = '110.0.13.5'
+    expected_scc2['ip_src_addr_max'] = '110.0.19.135'
+    expected_scc2['ip_src_count'] = 1667
+    expected_scc2['ip_dst_addr'] = '120.0.13.5'
+    expected_scc2['ip_dst_addr_max'] = '120.0.19.135'
+    expected_scc2['ip_dst_count'] = 1667
+    expected_cfg.append(expected_scc2)
+
+    _check_device_udp_flow_config(param, expected_cfg)
+
+
+def test_device_udp_flow_config_doc_example1(caplog):
+    caplog.clear()
+    caplog.set_level(logging.INFO)
+    param = __get_udp_params()
+    expected = __get_udp_expected_list()
+
+    # Multiflow unitary test corresponding to first example in documentation
+    param['scc'] = 3
+    param['udp_src_port'] = 53
+    param['udp_dst_port'] = 53
+    param['ip_src_static'] = True
+    param['flow_count'] = 100
+    param['ip_src_addr'] = '110.0.0.0/8'
+    param['ip_dst_addr'] = '120.0.0.0/8'
+
+    expected_cfg = []
+    # chain 0
+    expected_scc0 = dict(expected)
+    expected_scc0['udp_src_port'] = 53
+    expected_scc0['udp_src_port_max'] = 53
+    expected_scc0['udp_dst_port'] = 53
+    expected_scc0['udp_dst_port_max'] = 53
+    expected_scc0['udp_src_count'] = 1
+    expected_scc0['udp_dst_count'] = 1
+    expected_scc0['ip_src_addr'] = '110.0.0.0'
+    expected_scc0['ip_src_addr_max'] = '110.0.0.0'
+    expected_scc0['ip_src_count'] = 1
+    expected_scc0['ip_dst_addr'] = '120.0.0.0'
+    expected_scc0['ip_dst_addr_max'] = '120.0.0.15'
+    expected_scc0['ip_dst_count'] = 16
+    expected_cfg.append(expected_scc0)
+
+    # chain 1
+    expected_scc1 = dict(expected)
+    expected_scc1['udp_src_port'] = 53
+    expected_scc1['udp_src_port_max'] = 53
+    expected_scc1['udp_dst_port'] = 53
+    expected_scc1['udp_dst_port_max'] = 53
+    expected_scc1['udp_src_count'] = 1
+    expected_scc1['udp_dst_count'] = 1
+    expected_scc1['ip_src_addr'] = '110.0.0.1'
+    expected_scc1['ip_src_addr_max'] = '110.0.0.1'
+    expected_scc1['ip_src_count'] = 1
+    expected_scc1['ip_dst_addr'] = '120.0.0.16'
+    expected_scc1['ip_dst_addr_max'] = '120.0.0.32'
+    expected_scc1['ip_dst_count'] = 17
+    expected_cfg.append(expected_scc1)
+
+    # chain 2
+    expected_scc2 = dict(expected)
+    expected_scc2['udp_src_port'] = 53
+    expected_scc2['udp_src_port_max'] = 53
+    expected_scc2['udp_dst_port'] = 53
+    expected_scc2['udp_dst_port_max'] = 53
+    expected_scc2['udp_src_count'] = 1
+    expected_scc2['udp_dst_count'] = 1
+    expected_scc2['ip_src_addr'] = '110.0.0.2'
+    expected_scc2['ip_src_addr_max'] = '110.0.0.2'
+    expected_scc2['ip_src_count'] = 1
+    expected_scc2['ip_dst_addr'] = '120.0.0.33'
+    expected_scc2['ip_dst_addr_max'] = '120.0.0.49'
+    expected_scc2['ip_dst_count'] = 17
+    expected_cfg.append(expected_scc2)
+
+    _check_device_udp_flow_config(param, expected_cfg)
+    assert "Current values of ip_addrs_step and/or udp_port_step properties" not in caplog.text
+
+
+def test_device_udp_flow_config_doc_example2(caplog):
+    caplog.clear()
+    caplog.set_level(logging.INFO)
+    param = __get_udp_params()
+    expected = __get_udp_expected_list()
+
+    # Multiflow unitary test corresponding to second example in documentation
+    param['scc'] = 3
+    param['udp_src_port'] = 53
+    param['udp_dst_port'] = 53
+    param['ip_src_static'] = True
+    param['ip_addrs_step'] = 'random'
+    param['flow_count'] = 100
+    param['ip_src_addr'] = '110.0.0.0/8'
+    param['ip_dst_addr'] = '120.0.0.0/8'
+
+    expected_cfg = []
+    # chain 0
+    expected_scc0 = dict(expected)
+    expected_scc0['udp_src_port'] = 53
+    expected_scc0['udp_src_port_max'] = 53
+    expected_scc0['udp_dst_port'] = 53
+    expected_scc0['udp_dst_port_max'] = 53
+    expected_scc0['udp_src_count'] = 1
+    expected_scc0['udp_dst_count'] = 1
+    expected_scc0['ip_src_addr'] = '110.0.0.0'
+    expected_scc0['ip_src_addr_max'] = '110.0.0.0'
+    expected_scc0['ip_src_count'] = 1
+    expected_scc0['ip_dst_addr'] = '120.0.0.0'
+    expected_scc0['ip_dst_addr_max'] = '120.0.0.15'
+    expected_scc0['ip_dst_count'] = 16
+    expected_cfg.append(expected_scc0)
+
+    # chain 1
+    expected_scc1 = dict(expected)
+    expected_scc1['udp_src_port'] = 53
+    expected_scc1['udp_src_port_max'] = 53
+    expected_scc1['udp_dst_port'] = 53
+    expected_scc1['udp_dst_port_max'] = 53
+    expected_scc1['udp_src_count'] = 1
+    expected_scc1['udp_dst_count'] = 1
+    expected_scc1['ip_src_addr'] = '110.0.0.1'
+    expected_scc1['ip_src_addr_max'] = '110.0.0.1'
+    expected_scc1['ip_src_count'] = 1
+    expected_scc1['ip_dst_addr'] = '120.0.0.16'
+    expected_scc1['ip_dst_addr_max'] = '120.0.0.32'
+    expected_scc1['ip_dst_count'] = 17
+    expected_cfg.append(expected_scc1)
+
+    # chain 2
+    expected_scc2 = dict(expected)
+    expected_scc2['udp_src_port'] = 53
+    expected_scc2['udp_src_port_max'] = 53
+    expected_scc2['udp_dst_port'] = 53
+    expected_scc2['udp_dst_port_max'] = 53
+    expected_scc2['udp_src_count'] = 1
+    expected_scc2['udp_dst_count'] = 1
+    expected_scc2['ip_src_addr'] = '110.0.0.2'
+    expected_scc2['ip_src_addr_max'] = '110.0.0.2'
+    expected_scc2['ip_src_count'] = 1
+    expected_scc2['ip_dst_addr'] = '120.0.0.33'
+    expected_scc2['ip_dst_addr_max'] = '120.0.0.49'
+    expected_scc2['ip_dst_count'] = 17
+    expected_cfg.append(expected_scc2)
+
+    _check_device_udp_flow_config(param, expected_cfg)
+    assert "Current values of ip_addrs_step and/or udp_port_step properties" not in caplog.text
+
+
+def test_device_udp_flow_config_doc_example3(caplog):
+    caplog.clear()
+    param = __get_udp_params()
+    expected = __get_udp_expected_list()
+
+    # Multiflow unitary test corresponding to third example in documentation
+    param['scc'] = 3
+    param['udp_src_port'] = 53
+    param['udp_dst_port'] = 53
+    param['ip_src_static'] = True
+    param['ip_addrs_step'] = '0.0.0.5'
+    param['flow_count'] = 100
+    param['ip_src_addr'] = '110.0.0.0/8'
+    param['ip_dst_addr'] = '120.0.0.0/8'
+
+    expected_cfg = []
+    # chain 0
+    expected_scc0 = dict(expected)
+    expected_scc0['udp_src_port'] = 53
+    expected_scc0['udp_src_port_max'] = 53
+    expected_scc0['udp_dst_port'] = 53
+    expected_scc0['udp_dst_port_max'] = 53
+    expected_scc0['udp_src_count'] = 1
+    expected_scc0['udp_dst_count'] = 1
+    expected_scc0['ip_src_addr'] = '110.0.0.0'
+    expected_scc0['ip_src_addr_max'] = '110.0.0.0'
+    expected_scc0['ip_src_count'] = 1
+    expected_scc0['ip_dst_addr'] = '120.0.0.0'
+    expected_scc0['ip_dst_addr_max'] = '120.0.0.75'
+    expected_scc0['ip_dst_count'] = 16
+    expected_cfg.append(expected_scc0)
+
+    # chain 1
+    expected_scc1 = dict(expected)
+    expected_scc1['udp_src_port'] = 53
+    expected_scc1['udp_src_port_max'] = 53
+    expected_scc1['udp_dst_port'] = 53
+    expected_scc1['udp_dst_port_max'] = 53
+    expected_scc1['udp_src_count'] = 1
+    expected_scc1['udp_dst_count'] = 1
+    expected_scc1['ip_src_addr'] = '110.0.0.5'
+    expected_scc1['ip_src_addr_max'] = '110.0.0.5'
+    expected_scc1['ip_src_count'] = 1
+    expected_scc1['ip_dst_addr'] = '120.0.0.80'
+    expected_scc1['ip_dst_addr_max'] = '120.0.0.160'
+    expected_scc1['ip_dst_count'] = 17
+    expected_cfg.append(expected_scc1)
+
+    # chain 2
+    expected_scc2 = dict(expected)
+    expected_scc2['udp_src_port'] = 53
+    expected_scc2['udp_src_port_max'] = 53
+    expected_scc2['udp_dst_port'] = 53
+    expected_scc2['udp_dst_port_max'] = 53
+    expected_scc2['udp_src_count'] = 1
+    expected_scc2['udp_dst_count'] = 1
+    expected_scc2['ip_src_addr'] = '110.0.0.10'
+    expected_scc2['ip_src_addr_max'] = '110.0.0.10'
+    expected_scc2['ip_src_count'] = 1
+    expected_scc2['ip_dst_addr'] = '120.0.0.165'
+    expected_scc2['ip_dst_addr_max'] = '120.0.0.245'
+    expected_scc2['ip_dst_count'] = 17
+    expected_cfg.append(expected_scc2)
+
+    caplog.set_level(logging.INFO)
+    _check_device_udp_flow_config(param, expected_cfg)
+    assert "Current values of ip_addrs_step and/or udp_port_step properties" not in caplog.text
+
+
+def test_device_udp_flow_config_doc_example4(caplog):
+    caplog.clear()
+    param = __get_udp_params()
+    expected = __get_udp_expected_list()
+
+    # Multiflow unitary test corresponding to fourth example in documentation
+    param['scc'] = 3
+    param['udp_src_port'] = [10, 14]
+    param['udp_dst_port'] = [20, 25]
+    param['ip_src_static'] = True
+    param['ip_addrs_step'] = '0.0.0.1'
+    param['udp_port_step'] = 'random'
+    param['flow_count'] = 100
+    param['ip_src_addr'] = '110.0.0.0/29'
+    param['ip_dst_addr'] = '120.0.0.0/30'
+
+    expected_cfg = []
+    # chain 0
+    expected_scc0 = dict(expected)
+    expected_scc0['udp_src_port'] = 10
+    expected_scc0['udp_src_port_max'] = 14
+    expected_scc0['udp_dst_port'] = 20
+    expected_scc0['udp_dst_port_max'] = 25
+    expected_scc0['udp_src_count'] = 5
+    expected_scc0['udp_dst_count'] = 6
+    expected_scc0['ip_src_addr'] = '110.0.0.0'
+    expected_scc0['ip_src_addr_max'] = '110.0.0.0'
+    expected_scc0['ip_src_count'] = 1
+    expected_scc0['ip_dst_addr'] = '120.0.0.0'
+    expected_scc0['ip_dst_addr_max'] = '120.0.0.0'
+    expected_scc0['ip_dst_count'] = 1
+    expected_cfg.append(expected_scc0)
+
+    # chain 1
+    expected_scc1 = dict(expected)
+    expected_scc1['udp_src_port'] = 10
+    expected_scc1['udp_src_port_max'] = 14
+    expected_scc1['udp_dst_port'] = 20
+    expected_scc1['udp_dst_port_max'] = 25
+    expected_scc1['udp_src_count'] = 5
+    expected_scc1['udp_dst_count'] = 6
+    expected_scc1['ip_src_addr'] = '110.0.0.1'
+    expected_scc1['ip_src_addr_max'] = '110.0.0.1'
+    expected_scc1['ip_src_count'] = 1
+    expected_scc1['ip_dst_addr'] = '120.0.0.1'
+    expected_scc1['ip_dst_addr_max'] = '120.0.0.1'
+    expected_scc1['ip_dst_count'] = 1
+    expected_cfg.append(expected_scc1)
+
+    # chain 2
+    expected_scc2 = dict(expected)
+    expected_scc2['udp_src_port'] = 10
+    expected_scc2['udp_src_port_max'] = 14
+    expected_scc2['udp_dst_port'] = 20
+    expected_scc2['udp_dst_port_max'] = 25
+    expected_scc2['udp_src_count'] = 5
+    expected_scc2['udp_dst_count'] = 6
+    expected_scc2['ip_src_addr'] = '110.0.0.2'
+    expected_scc2['ip_src_addr_max'] = '110.0.0.2'
+    expected_scc2['ip_src_count'] = 1
+    expected_scc2['ip_dst_addr'] = '120.0.0.2'
+    expected_scc2['ip_dst_addr_max'] = '120.0.0.2'
+    expected_scc2['ip_dst_count'] = 1
+    expected_cfg.append(expected_scc2)
+    caplog.set_level(logging.INFO)
+    _check_device_udp_flow_config(param, expected_cfg)
+    assert "Current values of ip_addrs_step and/or udp_port_step properties" in caplog.text
+    assert "udp_port_step='1' (previous value: udp_port_step='random'" in caplog.text
+
+
+def test_device_udp_flow_config_no_random_steps_overridden(caplog):
+    caplog.clear()
+    param = __get_udp_params()
+    expected = __get_udp_expected_list()
+
+    # Multiflow unitary test corresponding to fifth example in documentation
+    param['scc'] = 3
+    param['udp_src_port'] = [10, 14]
+    param['udp_dst_port'] = [20, 25]
+    param['ip_src_static'] = True
+    param['ip_addrs_step'] = 'random'
+    param['udp_port_step'] = 'random'
+    param['flow_count'] = 100
+    param['ip_src_addr'] = '110.0.0.0/29'
+    param['ip_dst_addr'] = '120.0.0.0/30'
+
+    expected_cfg = []
+    # chain 0
+    expected_scc0 = dict(expected)
+    expected_scc0['udp_src_port'] = 10
+    expected_scc0['udp_src_port_max'] = 14
+    expected_scc0['udp_dst_port'] = 20
+    expected_scc0['udp_dst_port_max'] = 25
+    expected_scc0['udp_src_count'] = 5
+    expected_scc0['udp_dst_count'] = 6
+    expected_scc0['ip_src_addr'] = '110.0.0.0'
+    expected_scc0['ip_src_addr_max'] = '110.0.0.0'
+    expected_scc0['ip_src_count'] = 1
+    expected_scc0['ip_dst_addr'] = '120.0.0.0'
+    expected_scc0['ip_dst_addr_max'] = '120.0.0.0'
+    expected_scc0['ip_dst_count'] = 1
+    expected_cfg.append(expected_scc0)
+
+    # chain 1
+    expected_scc1 = dict(expected)
+    expected_scc1['udp_src_port'] = 10
+    expected_scc1['udp_src_port_max'] = 14
+    expected_scc1['udp_dst_port'] = 20
+    expected_scc1['udp_dst_port_max'] = 25
+    expected_scc1['udp_src_count'] = 5
+    expected_scc1['udp_dst_count'] = 6
+    expected_scc1['ip_src_addr'] = '110.0.0.1'
+    expected_scc1['ip_src_addr_max'] = '110.0.0.1'
+    expected_scc1['ip_src_count'] = 1
+    expected_scc1['ip_dst_addr'] = '120.0.0.1'
+    expected_scc1['ip_dst_addr_max'] = '120.0.0.1'
+    expected_scc1['ip_dst_count'] = 1
+    expected_cfg.append(expected_scc1)
+
+    # chain 2
+    expected_scc2 = dict(expected)
+    expected_scc2['udp_src_port'] = 10
+    expected_scc2['udp_src_port_max'] = 14
+    expected_scc2['udp_dst_port'] = 20
+    expected_scc2['udp_dst_port_max'] = 25
+    expected_scc2['udp_src_count'] = 5
+    expected_scc2['udp_dst_count'] = 6
+    expected_scc2['ip_src_addr'] = '110.0.0.2'
+    expected_scc2['ip_src_addr_max'] = '110.0.0.2'
+    expected_scc2['ip_src_count'] = 1
+    expected_scc2['ip_dst_addr'] = '120.0.0.2'
+    expected_scc2['ip_dst_addr_max'] = '120.0.0.2'
+    expected_scc2['ip_dst_count'] = 1
+    expected_cfg.append(expected_scc2)
+    caplog.set_level(logging.INFO)
+    _check_device_udp_flow_config(param, expected_cfg)
+    assert "Current values of ip_addrs_step and/or udp_port_step properties" not in caplog.text
 
 
 def test_config():
@@ -420,7 +970,7 @@ def assert_ndr_pdr(stats, ndr, ndr_dr, pdr, pdr_dr):
 
 def _get_dummy_tg_config(chain_type, rate, scc=1, fc=10, step_ip='0.0.0.1',
                          ip0='10.0.0.0/8', ip1='20.0.0.0/8',
-                         step_udp=1, src_udp=None, dst_udp=None, ip_src_static=True):
+                         step_udp='1', src_udp=None, dst_udp=None, ip_src_static=True):
     return AttrDict({
         'traffic_generator': {'host_name': 'nfvbench_tg',
                               'default_profile': 'dummy',

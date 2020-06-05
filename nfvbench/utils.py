@@ -13,6 +13,7 @@
 #    under the License.
 
 import glob
+from math import gcd
 from math import isnan
 import os
 import re
@@ -203,3 +204,46 @@ class RunLock(object):
             os.unlink(self._path)
         except (OSError, IOError):
             pass
+
+
+def get_divisors(n):
+    for i in range(1, int(n / 2) + 1):
+        if n % i == 0:
+            yield i
+    yield n
+
+
+def lcm(a, b):
+    """
+    Calculate the maximum possible value for both IP and ports,
+    eventually for maximum possible flow.
+    """
+    if a != 0 and b != 0:
+        lcm_value = a * b // gcd(a, b)
+        return lcm_value
+    raise TypeError(" IP size or port range can't be zero !")
+
+
+def find_tuples_equal_to_lcm_value(a, b, lcm_value):
+    """
+    Find numbers from two list matching a LCM value.
+    """
+    for x in a:
+        for y in b:
+            if lcm(x, y) == lcm_value:
+                yield (x, y)
+
+
+def find_max_size(max_size, tuples, flow):
+    if tuples:
+        if max_size > tuples[-1][0]:
+            max_size = tuples[-1][0]
+            return int(max_size)
+        if max_size > tuples[-1][1]:
+            max_size = tuples[-1][1]
+            return int(max_size)
+
+    for i in range(max_size, 1, -1):
+        if flow % i == 0:
+            return int(i)
+    return 1

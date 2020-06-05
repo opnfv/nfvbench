@@ -55,6 +55,7 @@ except ImportError:
     api_mod.STLVmFixIpv4 = STLDummy
     api_mod.STLVmFlowVar = STLDummy
     api_mod.STLVmFlowVarRepeatableRandom = STLDummy
+    api_mod.STLVmTupleGen = STLDummy
     api_mod.STLVmWrFlowVar = STLDummy
     api_mod.UDP = STLDummy
     api_mod.bind_layers = STLDummy

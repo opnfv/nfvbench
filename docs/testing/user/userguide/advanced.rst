@@ -321,7 +321,7 @@ UDP ports can be controlled with the following NFVbench configuration options:
 
     udp_src_port: ['1024', '65000']
     udp_dst_port: 53
-    udp_port_step: 1
+    udp_port_step: '1'
 
 ``udp_src_port`` and ``udp_dst_port`` are the UDP port value used by the traffic generators.
 These can be written for unique port or range ports for all flow.
@@ -332,6 +332,250 @@ The corresponding ``udp_port_step`` is used for ranging the UDP port.
 NB:
     Use of UDP range will increase possible values of flows (based on ip src/dst and port src/dst tuple).
     NFVBench will calculate the least common multiple for this tuple to adapt flows generation to ``flow_count`` parameter.
+
+Examples of multiflow
+^^^^^^^^^^^^^^^^^^^^^
+
+1. Source IP is static and one UDP port used (default configuration)
+
+NFVbench configuration options:
+
+.. code-block:: bash
+
+    ip_addrs: ['110.0.0.0/8', '120.0.0.0/8']
+    ip_addrs_step: 0.0.0.1
+    tg_gateway_ip_addrs: ['1.1.0.100', '2.2.0.100']
+    tg_gateway_ip_addrs_step: 0.0.0.1
+    gateway_ip_addrs: ['1.1.0.2', '2.2.0.2']
+    gateway_ip_addrs_step: 0.0.0.1
+
+To run NFVbench with 3 chains and 100 flows, use the following command:
+
+.. code-block:: bash
+
+    nfvbench -c nfvbench.cfg --rate 10000pps -scc 3 -fc 100
+
+The least common multiple for this configuration is lcm(16 777 216, 16 777 216, 1, 1) = 16 777 216.
+.. note:: LCM method used IP pools sizes and UDP source and destination range sizes
+
+Requested flow count is lower than configuration capacity. So, NFVbench will limit IP range to generate accurate flows:
+
+.. code-block:: bash
+
+    2020-06-17 07:37:47,012 INFO Port 0, chain 0: IP src range [110.0.0.0,110.0.0.0]
+    2020-06-17 07:37:47,012 INFO Port 0, chain 0: IP dst range [120.0.0.0,120.0.0.15]
+    2020-06-17 07:37:47,012 INFO Port 0, chain 0: UDP src range [53,53]
+    2020-06-17 07:37:47,012 INFO Port 0, chain 0: UDP dst range [53,53]
+    2020-06-17 07:37:47,015 INFO Port 1, chain 0: IP src range [120.0.0.0,120.0.0.0]
+    2020-06-17 07:37:47,015 INFO Port 1, chain 0: IP dst range [110.0.0.0,110.0.0.15]
+    2020-06-17 07:37:47,015 INFO Port 1, chain 0: UDP src range [53,53]
+    2020-06-17 07:37:47,015 INFO Port 1, chain 0: UDP dst range [53,53]
+
+    2020-06-17 07:38:47,012 INFO Port 0, chain 1: IP src range [110.0.0.1,110.0.0.1]
+    2020-06-17 07:38:47,012 INFO Port 0, chain 1: IP dst range [120.0.0.16,120.0.0.32]
+    2020-06-17 07:38:47,012 INFO Port 0, chain 1: UDP src range [53,53]
+    2020-06-17 07:38:47,012 INFO Port 0, chain 1: UDP dst range [53,53]
+    2020-06-17 07:38:47,015 INFO Port 1, chain 1: IP src range [120.0.0.1,120.0.0.1]
+    2020-06-17 07:38:47,015 INFO Port 1, chain 1: IP dst range [110.0.0.16,110.0.0.32]
+    2020-06-17 07:38:47,015 INFO Port 1, chain 1: UDP src range [53,53]
+    2020-06-17 07:38:47,015 INFO Port 1, chain 1: UDP dst range [53,53]
+
+    2020-06-17 07:39:47,012 INFO Port 0, chain 1: IP src range [110.0.0.2,110.0.0.2]
+    2020-06-17 07:39:47,012 INFO Port 0, chain 1: IP dst range [120.0.0.33,120.0.0.49]
+    2020-06-17 07:39:47,012 INFO Port 0, chain 1: UDP src range [53,53]
+    2020-06-17 07:39:47,012 INFO Port 0, chain 1: UDP dst range [53,53]
+    2020-06-17 07:39:47,015 INFO Port 1, chain 1: IP src range [120.0.0.2,120.0.0.2]
+    2020-06-17 07:39:47,015 INFO Port 1, chain 1: IP dst range [110.0.0.33,110.0.0.49]
+    2020-06-17 07:39:47,015 INFO Port 1, chain 1: UDP src range [53,53]
+    2020-06-17 07:39:47,015 INFO Port 1, chain 1: UDP dst range [53,53]
+
+
+2. Source IP is static, IP step is random and one UDP port used
+
+NFVbench configuration options:
+
+.. code-block:: bash
+
+    ip_addrs: ['110.0.0.0/8', '120.0.0.0/8']
+    ip_addrs_step: 'random'
+    tg_gateway_ip_addrs: ['1.1.0.100', '2.2.0.100']
+    tg_gateway_ip_addrs_step: 0.0.0.1
+    gateway_ip_addrs: ['1.1.0.2', '2.2.0.2']
+    gateway_ip_addrs_step: 0.0.0.1
+
+To run NFVbench with 3 chains and 100 flows, use the following command:
+
+.. code-block:: bash
+
+    nfvbench -c nfvbench.cfg --rate 10000pps -scc 3 -fc 100
+
+The least common multiple for this configuration is lcm(16 777 216, 16 777 216, 1, 1) = 16 777 216.
+.. note:: LCM method used IP pools sizes and UDP source and destination range sizes
+
+Requested flow count is lower than configuration capacity. So, NFVbench will limit IP range to generate accurate flows:
+
+.. code-block:: bash
+
+    2020-06-17 07:37:47,012 INFO Port 0, chain 0: IP src range [110.0.0.0,110.0.0.0]
+    2020-06-17 07:37:47,012 INFO Port 0, chain 0: IP dst range [120.0.0.0,120.0.0.15]
+    2020-06-17 07:37:47,012 INFO Port 0, chain 0: UDP src range [53,53]
+    2020-06-17 07:37:47,012 INFO Port 0, chain 0: UDP dst range [53,53]
+    2020-06-17 07:37:47,015 INFO Port 1, chain 0: IP src range [120.0.0.0,120.0.0.0]
+    2020-06-17 07:37:47,015 INFO Port 1, chain 0: IP dst range [110.0.0.0,110.0.0.15]
+    2020-06-17 07:37:47,015 INFO Port 1, chain 0: UDP src range [53,53]
+    2020-06-17 07:37:47,015 INFO Port 1, chain 0: UDP dst range [53,53]
+
+    2020-06-17 07:38:47,012 INFO Port 0, chain 1: IP src range [110.0.0.1,110.0.0.1]
+    2020-06-17 07:38:47,012 INFO Port 0, chain 1: IP dst range [120.0.0.16,120.0.0.32]
+    2020-06-17 07:38:47,012 INFO Port 0, chain 1: UDP src range [53,53]
+    2020-06-17 07:38:47,012 INFO Port 0, chain 1: UDP dst range [53,53]
+    2020-06-17 07:38:47,015 INFO Port 1, chain 1: IP src range [120.0.0.1,120.0.0.1]
+    2020-06-17 07:38:47,015 INFO Port 1, chain 1: IP dst range [110.0.0.16,110.0.0.32]
+    2020-06-17 07:38:47,015 INFO Port 1, chain 1: UDP src range [53,53]
+    2020-06-17 07:38:47,015 INFO Port 1, chain 1: UDP dst range [53,53]
+
+    2020-06-17 07:39:47,012 INFO Port 0, chain 1: IP src range [110.0.0.2,110.0.0.2]
+    2020-06-17 07:39:47,012 INFO Port 0, chain 1: IP dst range [120.0.0.33,120.0.0.49]
+    2020-06-17 07:39:47,012 INFO Port 0, chain 1: UDP src range [53,53]
+    2020-06-17 07:39:47,012 INFO Port 0, chain 1: UDP dst range [53,53]
+    2020-06-17 07:39:47,015 INFO Port 1, chain 1: IP src range [120.0.0.2,120.0.0.2]
+    2020-06-17 07:39:47,015 INFO Port 1, chain 1: IP dst range [110.0.0.33,110.0.0.49]
+    2020-06-17 07:39:47,015 INFO Port 1, chain 1: UDP src range [53,53]
+    2020-06-17 07:39:47,015 INFO Port 1, chain 1: UDP dst range [53,53]
+    2020-06-17 07:39:47,015 WARNING Using random step, the number of flows can be less than the requested number of flows due to repeatable multivariate random generation which can reproduce the same pattern of values
+
+By using a random step the number of generated flows may be less than the number of requested flows. This is due to the probability of drawing the same value several times (Bernouillian drawing) from the IP range used and thus generating the same flow sequence.
+By using a high range of UDP ports couple with ``udp_port_step='random'`` the probability to reach the requested flow counts is greater.
+As latency stream is a separate stream than data one and have his own random draw, NFVbench will use only one packet signature (same IP and ports used for all latency packets) to avoid flow count overflow.
+So in some cases, generated flow count can be equal to the requested flow count + 1 (latency stream).
+
+**For deterministic flow count we recommend to use a step different from random.**
+
+
+3. Source IP is static, IP step is 5 and one UDP port used
+
+NFVbench configuration options:
+
+.. code-block:: bash
+
+    ip_addrs: ['110.0.0.0/8', '120.0.0.0/8']
+    ip_addrs_step: '0.0.0.5'
+    tg_gateway_ip_addrs: ['1.1.0.100', '2.2.0.100']
+    tg_gateway_ip_addrs_step: 0.0.0.1
+    gateway_ip_addrs: ['1.1.0.2', '2.2.0.2']
+    gateway_ip_addrs_step: 0.0.0.1
+
+To run NFVbench with 3 chains and 100 flows, use the following command:
+
+.. code-block:: bash
+
+    nfvbench -c nfvbench.cfg --rate 10000pps -scc 3 -fc 100
+
+The least common multiple for this configuration is lcm(16 777 216, 16 777 216, 1, 1) = 16 777 216.
+.. note:: LCM method used IP pools sizes and UDP source and destination range sizes
+
+Requested flow count is lower than configuration capacity. So, NFVbench will limit IP range to generate accurate flows:
+
+.. code-block:: bash
+
+    2020-06-17 07:37:47,012 INFO Port 0, chain 0: IP src range [110.0.0.0,110.0.0.0]
+    2020-06-17 07:37:47,012 INFO Port 0, chain 0: IP dst range [120.0.0.0,120.0.0.75]
+    2020-06-17 07:37:47,012 INFO Port 0, chain 0: UDP src range [53,53]
+    2020-06-17 07:37:47,012 INFO Port 0, chain 0: UDP dst range [53,53]
+    2020-06-17 07:37:47,015 INFO Port 1, chain 0: IP src range [120.0.0.0,120.0.0.0]
+    2020-06-17 07:37:47,015 INFO Port 1, chain 0: IP dst range [110.0.0.0,110.0.0.75]
+    2020-06-17 07:37:47,015 INFO Port 1, chain 0: UDP src range [53,53]
+    2020-06-17 07:37:47,015 INFO Port 1, chain 0: UDP dst range [53,53]
+
+    2020-06-17 07:38:47,012 INFO Port 0, chain 1: IP src range [110.0.0.5,110.0.0.5]
+    2020-06-17 07:38:47,012 INFO Port 0, chain 1: IP dst range [120.0.0.80,120.0.0.160]
+    2020-06-17 07:38:47,012 INFO Port 0, chain 1: UDP src range [53,53]
+    2020-06-17 07:38:47,012 INFO Port 0, chain 1: UDP dst range [53,53]
+    2020-06-17 07:38:47,015 INFO Port 1, chain 1: IP src range [120.0.0.5,120.0.0.5]
+    2020-06-17 07:38:47,015 INFO Port 1, chain 1: IP dst range [110.0.0.80,110.0.0.160]
+    2020-06-17 07:38:47,015 INFO Port 1, chain 1: UDP src range [53,53]
+    2020-06-17 07:38:47,015 INFO Port 1, chain 1: UDP dst range [53,53]
+
+    2020-06-17 07:39:47,012 INFO Port 0, chain 1: IP src range [110.0.0.10,110.0.0.10]
+    2020-06-17 07:39:47,012 INFO Port 0, chain 1: IP dst range [120.0.0.165,120.0.0.245]
+    2020-06-17 07:39:47,012 INFO Port 0, chain 1: UDP src range [53,53]
+    2020-06-17 07:39:47,012 INFO Port 0, chain 1: UDP dst range [53,53]
+    2020-06-17 07:39:47,015 INFO Port 1, chain 1: IP src range [120.0.0.10,120.0.0.10]
+    2020-06-17 07:39:47,015 INFO Port 1, chain 1: IP dst range [110.0.0.165,110.0.0.245]
+    2020-06-17 07:39:47,015 INFO Port 1, chain 1: UDP src range [53,53]
+    2020-06-17 07:39:47,015 INFO Port 1, chain 1: UDP dst range [53,53]
+
+4. Source IP is static, IP and UDP ranges sizes lether than requested flow count, UDP step is random
+
+NFVbench configuration options:
+
+.. code-block:: bash
+
+    ip_addrs: ['110.0.0.0/29', '120.0.0.0/30']
+    tg_gateway_ip_addrs: ['1.1.0.100', '2.2.0.100']
+    tg_gateway_ip_addrs_step: 0.0.0.1
+    gateway_ip_addrs: ['1.1.0.2', '2.2.0.2']
+    gateway_ip_addrs_step: 0.0.0.1
+    udp_src_port: ['10', '14']
+    udp_dst_port: ['20', '25']
+    udp_port_step: 'random'
+
+To run NFVbench with 3 chains and 100 flows, use the following command:
+
+.. code-block:: bash
+
+    nfvbench -c nfvbench.cfg --rate 10000pps -scc 3 -fc 100
+
+The least common multiple for this configuration is lcm(8, 4, 5, 6) = 120.
+.. note:: LCM method used IP pools sizes and UDP source and destination range sizes
+
+Requested flow count is higher than IP range (8 and 4 IP addresses available) and UDP (5 and 6 ports available) configuration capacity.
+As the combination of ranges does not permit to obtain an accurate flow count, NFVbench will override the `udp_port_step` property to '1' (was 'random') to allow flows creation.
+A warning log will appear to inform NFVbench user that step properties will be overriden
+So, NFVbench will determine each pool size to generate accurate flows:
+
+.. code-block:: bash
+
+    2020-06-17 07:37:47,010 WARNING Current values of ip_addrs_step and/or udp_port_step properties do not allow to control an accurate flow count. Values will be overridden as follows:
+    2020-06-17 07:37:47,011 INFO udp_port_step='1' (previous value: udp_port_step='random'
+    2020-06-17 07:37:47,012 INFO Port 0, chain 0: IP src range [110.0.0.0,110.0.0.0]
+    2020-06-17 07:37:47,012 INFO Port 0, chain 0: IP dst range [120.0.0.0,120.0.0.0]
+    2020-06-17 07:37:47,012 INFO Port 0, chain 0: UDP src range [10,14]
+    2020-06-17 07:37:47,012 INFO Port 0, chain 0: UDP dst range [20,25]
+    2020-06-17 07:37:47,013 WARNING Current values of ip_addrs_step and/or udp_port_step properties do not allow to control an accurate flow count. Values will be overridden as follows:
+    2020-06-17 07:37:47,013 INFO udp_port_step='1' (previous value: udp_port_step='random'
+    2020-06-17 07:37:47,015 INFO Port 1, chain 0: IP src range [120.0.0.0,120.0.0.0]
+    2020-06-17 07:37:47,015 INFO Port 1, chain 0: IP dst range [110.0.0.0,110.0.0.0]
+    2020-06-17 07:37:47,015 INFO Port 1, chain 0: UDP src range [10,14]
+    2020-06-17 07:37:47,015 INFO Port 1, chain 0: UDP dst range [20,25]
+
+    2020-06-17 07:38:47,010 WARNING Current values of ip_addrs_step and/or udp_port_step properties do not allow to control an accurate flow count. Values will be overridden as follows:
+    2020-06-17 07:38:47,011 INFO udp_port_step='1' (previous value: udp_port_step='random'
+    2020-06-17 07:38:47,012 INFO Port 0, chain 1: IP src range [110.0.0.1,110.0.0.1]
+    2020-06-17 07:38:47,012 INFO Port 0, chain 1: IP dst range [120.0.0.1,120.0.0.1]
+    2020-06-17 07:38:47,012 INFO Port 0, chain 1: UDP src range [10,14]
+    2020-06-17 07:38:47,012 INFO Port 0, chain 1: UDP dst range [20,25]
+    2020-06-17 07:38:47,013 WARNING Current values of ip_addrs_step and/or udp_port_step properties do not allow to control an accurate flow count. Values will be overridden as follows:
+    2020-06-17 07:38:47,013 INFO udp_port_step='1' (previous value: udp_port_step='random'
+    2020-06-17 07:38:47,015 INFO Port 1, chain 1: IP src range [120.0.0.1,120.0.0.1]
+    2020-06-17 07:38:47,015 INFO Port 1, chain 1: IP dst range [110.0.0.1,110.0.0.1]
+    2020-06-17 07:38:47,015 INFO Port 1, chain 1: UDP src range [10,14]
+    2020-06-17 07:38:47,015 INFO Port 1, chain 1: UDP dst range [20,25]
+
+    2020-06-17 07:39:47,010 WARNING Current values of ip_addrs_step and/or udp_port_step properties do not allow to control an accurate flow count. Values will be overridden as follows:
+    2020-06-17 07:39:47,011 INFO udp_port_step='1' (previous value: udp_port_step='random'
+    2020-06-17 07:39:47,012 INFO Port 0, chain 1: IP src range [110.0.0.2,110.0.0.2]
+    2020-06-17 07:39:47,012 INFO Port 0, chain 1: IP dst range [120.0.0.2,120.0.0.2]
+    2020-06-17 07:39:47,012 INFO Port 0, chain 1: UDP src range [10,14]
+    2020-06-17 07:39:47,012 INFO Port 0, chain 1: UDP dst range [20,25]
+    2020-06-17 07:39:47,013 WARNING Current values of ip_addrs_step and/or udp_port_step properties do not allow to control an accurate flow count. Values will be overridden as follows:
+    2020-06-17 07:39:47,013 INFO udp_port_step='1' (previous value: udp_port_step='random'
+    2020-06-17 07:39:47,015 INFO Port 1, chain 1: IP src range [120.0.0.2,120.0.0.2]
+    2020-06-17 07:39:47,015 INFO Port 1, chain 1: IP dst range [110.0.0.2,110.0.0.2]
+    2020-06-17 07:39:47,015 INFO Port 1, chain 1: UDP src range [10,14]
+    2020-06-17 07:39:47,015 INFO Port 1, chain 1: UDP dst range [20,25]
+
+
 
 
 Traffic Configuration via CLI
@@ -436,7 +680,7 @@ Example of use :
 
 .. note:: It is preferable to define the minimum rate (2002 pps) to have a better capture
 
-In another bash window, you should connect to the TRex console doing :
+In another bash window, you should connect to the TRex console doing:
 
 .. code-block:: bash
 
@@ -448,7 +692,7 @@ In another bash window, you should connect to the TRex console doing :
     # to stop capture
     capture monitor stop
 
-Start this capture once you have started the NFVBench test, and you will observe packets on the TRex console :
+Start this capture once you have started the NFVBench test, and you will observe packets on the TRex console:
 
 .. code-block:: bash
 
@@ -492,7 +736,7 @@ Start this capture once you have started the NFVBench test, and you will observe
         ###[ Padding ]###
             load      = '6\x85'
 
-Check on the NFVBench window that the following log appears just before the testing phase :
+Check on the NFVBench window that the following log appears just before the testing phase:
 
 .. code-block:: bash
 
@@ -501,3 +745,47 @@ Check on the NFVBench window that the following log appears just before the test
     2019-10-21 09:38:51,541 INFO ``Service mode is enabled``
     2019-10-21 09:38:52,552 INFO TX: 2004; RX: 2003; Est. Dropped: 1; Est. Drop rate: 0.0499%
     2019-10-21 09:38:53,559 INFO TX: 4013; RX: 4011; Est. Dropped: 2; Est. Drop rate: 0.0498%
+
+Recording packet using service mode for TRex
+--------------------------------------------
+
+Check on the NFVBench window that the following log appears just before the testing phase:
+
+.. code-block:: bash
+
+    2019-10-21 09:38:51,532 INFO Starting to generate traffic...
+    2019-10-21 09:38:51,532 INFO Running traffic generator
+    2019-10-21 09:38:51,541 INFO ``Service mode is enabled``
+    2019-10-21 09:38:52,552 INFO TX: 2004; RX: 2003; Est. Dropped: 1; Est. Drop rate: 0.0499%
+
+In another bash window, you should connect to the TRex console doing :
+
+.. code-block:: bash
+
+    cd /opt/trex/vX.XX/ #use completion here to find your corresponding TRex version
+    ./trex-console -r
+    capture start record --rx [port number] --limit 10000
+.. note::Start this capture once traffic generation is started (after ``Service mode is enabled`` log)
+
+Check on the TRex window that the following log appears just after capture is started:
+
+.. code-block:: bash
+
+    Starting packet capturing up to 10000 packets               [SUCCESS]
+    *** Capturing ID is set to '8' ***
+    *** Please call 'capture record stop --id 8 -o <out.pcap>' when done ***
+
+Then **before end of traffic generation**, stop capture and save it as a PCAP file:
+
+.. code-block:: bash
+
+    capture record stop --id 8 -o /tmp/nfvb/record.pcap
+.. note:: Provide a shared path with between NFVbench container and your host to retrieve pcap file
+
+Check on the TRex window that the following log appears just after capture is started:
+
+.. code-block:: bash
+
+    Stopping packet capture 8                                    [SUCCESS]
+    Writing up to 10000 packets to '/tmp/nfvb/record.pcap'       [SUCCESS]
+    Removing PCAP capture 8 from server                          [SUCCESS]

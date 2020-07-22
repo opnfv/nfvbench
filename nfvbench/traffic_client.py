@@ -13,7 +13,6 @@
 #    under the License.
 
 """Interface to the traffic generator clients including NDR/PDR binary search."""
-
 from math import gcd
 import socket
 import struct
@@ -21,6 +20,7 @@ import time
 
 from attrdict import AttrDict
 import bitmath
+from hdrh.histogram import HdrHistogram
 from netaddr import IPNetwork
 # pylint: disable=import-error
 from trex.stl.api import Ether
@@ -919,7 +919,7 @@ class TrafficClient(object):
 
     def get_stats(self):
         """Collect final stats for previous run."""
-        stats = self.gen.get_stats()
+        stats = self.gen.get_stats(self.ifstats)
         retDict = {'total_tx_rate': stats['total_tx_rate'],
                    'offered_tx_rate_bps': stats['offered_tx_rate_bps']}
 
@@ -967,6 +967,17 @@ class TrafficClient(object):
             for key in ['pkt_bit_rate', 'pkt_rate']:
                 for dirc in ['tx', 'rx']:
                     retDict['overall'][dirc][key] /= 2.0
+                retDict['overall']['hdrh'] = stats.get('hdrh', None)
+                if retDict['overall']['hdrh']:
+                    decoded_histogram = HdrHistogram.decode(retDict['overall']['hdrh'])
+                    # override min max and avg from hdrh
+                    retDict['overall']['rx']['min_delay_usec'] = decoded_histogram.get_min_value()
+                    retDict['overall']['rx']['max_delay_usec'] = decoded_histogram.get_max_value()
+                    retDict['overall']['rx']['avg_delay_usec'] = decoded_histogram.get_mean_value()
+                    for percentile in self.config.lat_percentiles:
+                        retDict['overall']['rx']['lat_' + str(percentile) + '%ile_usec'] = \
+                            decoded_histogram.get_value_at_percentile(percentile)
+
         else:
             retDict['overall'] = retDict[ports[0]]
         retDict['overall']['drop_rate_percent'] = self.__get_dropped_rate(retDict['overall'])
@@ -996,6 +1007,19 @@ class TrafficClient(object):
                 'max_delay_usec': interface['rx']['max_delay_usec'],
                 'min_delay_usec': interface['rx']['min_delay_usec'],
             }
+
+            if key == 'overall':
+                stats[key]['hdrh'] = interface.get('hdrh', None)
+                if stats[key]['hdrh']:
+                    decoded_histogram = HdrHistogram.decode(stats[key]['hdrh'])
+                    # override min max and avg from hdrh
+                    stats[key]['min_delay_usec'] = decoded_histogram.get_min_value()
+                    stats[key]['max_delay_usec'] = decoded_histogram.get_max_value()
+                    stats[key]['avg_delay_usec'] = decoded_histogram.get_mean_value()
+                    for percentile in self.config.lat_percentiles:
+                        stats[key]['lat_' + str(percentile) + '%ile_usec'] = decoded_histogram.\
+                            get_value_at_percentile(percentile)
+
 
         return stats
 
@@ -1214,7 +1238,7 @@ class TrafficClient(object):
                         for chain_idx in range(self.config.service_chain_count)]
         # note that we need to make a copy of the ifs list so that any modification in the
         # list from pps will not change the list saved in self.ifstats
-        self.pps_list = [PacketPathStats(list(ifs)) for ifs in self.ifstats]
+        self.pps_list = [PacketPathStats(self.config, list(ifs)) for ifs in self.ifstats]
         # insert the corresponding pps in the passed list
         pps_list.extend(self.pps_list)
 
@@ -1233,7 +1257,7 @@ class TrafficClient(object):
         ]
         """
         if diff:
-            stats = self.gen.get_stats()
+            stats = self.gen.get_stats(self.ifstats)
             for chain_idx, ifs in enumerate(self.ifstats):
                 # each ifs has exactly 2 InterfaceStats and 2 Latency instances
                 # corresponding to the

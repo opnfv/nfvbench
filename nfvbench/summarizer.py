@@ -227,6 +227,9 @@ class NFVBenchSummarizer(Summarizer):
         ('Avg Drop Rate', Formatter.suffix('%')),
         ('Avg Latency (usec)', Formatter.standard),
         ('Min Latency (usec)', Formatter.standard),
+        ('Q1 lat.', Formatter.standard),
+        ('Q3 lat.', Formatter.standard),
+        ('99 %ile lat.', Formatter.standard),
         ('Max Latency (usec)', Formatter.standard)
     ]
 
@@ -235,6 +238,9 @@ class NFVBenchSummarizer(Summarizer):
         ('Drop Rate', Formatter.suffix('%')),
         ('Avg Latency (usec)', Formatter.standard),
         ('Min Latency (usec)', Formatter.standard),
+        ('Q1 lat.', Formatter.standard),
+        ('Q3 lat.', Formatter.standard),
+        ('99 %ile lat.', Formatter.standard),
         ('Max Latency (usec)', Formatter.standard)
     ]
 
@@ -402,17 +408,28 @@ class NFVBenchSummarizer(Summarizer):
                     analysis['ndr']['stats']['overall']['drop_percentage'],
                     analysis['ndr']['stats']['overall']['avg_delay_usec'],
                     analysis['ndr']['stats']['overall']['min_delay_usec'],
+                    analysis['ndr']['stats']['overall'].get('lat_25%ile_usec', '--'),
+                    analysis['ndr']['stats']['overall'].get('lat_75%ile_usec', '--'),
+                    analysis['ndr']['stats']['overall'].get('lat_99%ile_usec', '--'),
                     analysis['ndr']['stats']['overall']['max_delay_usec']
                 ])
-                self.__record_data_put(frame_size, {'ndr': {
+                ndr_data = {
                     'type': 'NDR',
                     'rate_bps': analysis['ndr']['rate_bps'],
                     'rate_pps': analysis['ndr']['rate_pps'],
+                    'offered_tx_rate_bps': analysis['ndr']['stats']['offered_tx_rate_bps'],
                     'drop_percentage': analysis['ndr']['stats']['overall']['drop_percentage'],
                     'avg_delay_usec': analysis['ndr']['stats']['overall']['avg_delay_usec'],
                     'min_delay_usec': analysis['ndr']['stats']['overall']['min_delay_usec'],
                     'max_delay_usec': analysis['ndr']['stats']['overall']['max_delay_usec']
-                }})
+                }
+
+                for percentile in self.config.lat_percentiles:
+                    lat_percentile = analysis['ndr']['stats']['overall']\
+                        .get('lat_' + str(percentile) + '%ile_usec', None)
+                    if lat_percentile:
+                        ndr_data['lat_' + str(percentile) + '%ile_usec'] = lat_percentile
+                self.__record_data_put(frame_size, {'ndr': ndr_data})
         if self.config['pdr_run']:
             for frame_size, analysis in list(traffic_result.items()):
                 if frame_size == 'warning':
@@ -425,17 +442,27 @@ class NFVBenchSummarizer(Summarizer):
                     analysis['pdr']['stats']['overall']['drop_percentage'],
                     analysis['pdr']['stats']['overall']['avg_delay_usec'],
                     analysis['pdr']['stats']['overall']['min_delay_usec'],
+                    analysis['pdr']['stats']['overall'].get('lat_25%ile_usec', '--'),
+                    analysis['pdr']['stats']['overall'].get('lat_75%ile_usec', '--'),
+                    analysis['pdr']['stats']['overall'].get('lat_99%ile_usec', '--'),
                     analysis['pdr']['stats']['overall']['max_delay_usec']
                 ])
-                self.__record_data_put(frame_size, {'pdr': {
+                pdr_data = {
                     'type': 'PDR',
                     'rate_bps': analysis['pdr']['rate_bps'],
                     'rate_pps': analysis['pdr']['rate_pps'],
+                    'offered_tx_rate_bps': analysis['pdr']['stats']['offered_tx_rate_bps'],
                     'drop_percentage': analysis['pdr']['stats']['overall']['drop_percentage'],
                     'avg_delay_usec': analysis['pdr']['stats']['overall']['avg_delay_usec'],
                     'min_delay_usec': analysis['pdr']['stats']['overall']['min_delay_usec'],
                     'max_delay_usec': analysis['pdr']['stats']['overall']['max_delay_usec']
-                }})
+                }
+                for percentile in self.config.lat_percentiles:
+                    lat_percentile = analysis['pdr']['stats']['overall']\
+                        .get('lat_' + str(percentile) + '%ile_usec', None)
+                    if lat_percentile:
+                        pdr_data['lat_' + str(percentile) + '%ile_usec'] = lat_percentile
+                self.__record_data_put(frame_size, {'pdr': pdr_data})
         if self.config['single_run']:
             for frame_size, analysis in list(traffic_result.items()):
                 summary_table.add_row([
@@ -443,16 +470,27 @@ class NFVBenchSummarizer(Summarizer):
                     analysis['stats']['overall']['drop_rate_percent'],
                     analysis['stats']['overall']['rx']['avg_delay_usec'],
                     analysis['stats']['overall']['rx']['min_delay_usec'],
+                    analysis['stats']['overall']['rx'].get('lat_25%ile_usec', '--'),
+                    analysis['stats']['overall']['rx'].get('lat_75%ile_usec', '--'),
+                    analysis['stats']['overall']['rx'].get('lat_99%ile_usec', '--'),
                     analysis['stats']['overall']['rx']['max_delay_usec']
                 ])
-                self.__record_data_put(frame_size, {'single_run': {
+                single_run_data = {
                     'type': 'single_run',
+                    'offered_tx_rate_bps': analysis['stats']['offered_tx_rate_bps'],
                     'drop_rate_percent': analysis['stats']['overall']['drop_rate_percent'],
                     'avg_delay_usec': analysis['stats']['overall']['rx']['avg_delay_usec'],
                     'min_delay_usec': analysis['stats']['overall']['rx']['min_delay_usec'],
                     'max_delay_usec': analysis['stats']['overall']['rx']['max_delay_usec']
-                }})
+                }
+                for percentile in self.config.lat_percentiles:
+                    lat_percentile = analysis['stats']['overall']['rx']\
+                        .get('lat_' + str(percentile) + '%ile_usec', None)
+                    if lat_percentile:
+                        single_run_data['lat_' + str(percentile) + '%ile_usec'] = lat_percentile
+                self.__record_data_put(frame_size, {'single_run': single_run_data})
         return summary_table
+
 
     def __get_config_table(self, run_config, frame_size):
         config_table = Table(self.config_header)
@@ -502,9 +540,13 @@ class NFVBenchSummarizer(Summarizer):
         lat_keys = []
         lat_map = {'lat_avg_usec': 'Avg lat.',
                    'lat_min_usec': 'Min lat.',
+                   'lat_25%ile_usec': 'Q1 lat.',
+                   'lat_75%ile_usec': 'Q3 lat.',
+                   'lat_99%ile_usec': '99 %ile lat.',
                    'lat_max_usec': 'Max lat.'}
         if 'lat_avg_usec' in chains['0']:
-            lat_keys = ['lat_avg_usec', 'lat_min_usec', 'lat_max_usec']
+            lat_keys = ['lat_avg_usec', 'lat_min_usec', 'lat_25%ile_usec', 'lat_75%ile_usec',
+                        'lat_99%ile_usec', 'lat_max_usec']
             for key in lat_keys:
                 header.append((lat_map[key], Formatter.standard))
 
@@ -512,7 +554,10 @@ class NFVBenchSummarizer(Summarizer):
         for chain in sorted(list(chains.keys()), key=str):
             row = [chain] + chains[chain]['packets']
             for lat_key in lat_keys:
-                row.append('{:,} usec'.format(chains[chain][lat_key]))
+                if chains[chain].get(lat_key, None):
+                    row.append('{:,} usec'.format(chains[chain][lat_key]))
+                else:
+                    row.append('--')
             table.add_row(row)
         return table
 

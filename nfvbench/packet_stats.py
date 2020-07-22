@@ -21,6 +21,7 @@ PacketPathStatsManager manages all packet path stats for all chains.
 
 import copy
 
+from hdrh.histogram import HdrHistogram
 from .traffic_gen.traffic_base import Latency
 
 class InterfaceStats(object):
@@ -141,7 +142,7 @@ class PacketPathStats(object):
     chain.
     """
 
-    def __init__(self, if_stats, aggregate=False):
+    def __init__(self, config, if_stats, aggregate=False):
         """Create a packet path stats intance with the list of associated if stats.
 
         if_stats: a list of interface stats that compose this packet path stats
@@ -150,6 +151,7 @@ class PacketPathStats(object):
         Aggregate packet path stats are the only one that should show counters for shared
         interface stats
         """
+        self.config = config
         self.if_stats = if_stats
         # latency for packets sent from port 0 and 1
         self.latencies = [Latency(), Latency()]
@@ -170,7 +172,7 @@ class PacketPathStats(object):
                 ifstats.add_if_stats(pps.if_stats[index])
 
     @staticmethod
-    def get_agg_packet_path_stats(pps_list):
+    def get_agg_packet_path_stats(config, pps_list):
         """Get the aggregated packet path stats from a list of packet path stats.
 
         Interface counters are added, latency stats are updated.
@@ -179,7 +181,7 @@ class PacketPathStats(object):
         for pps in pps_list:
             if agg_pps is None:
                 # Get a clone of the first in the list
-                agg_pps = PacketPathStats(pps.get_cloned_if_stats(), aggregate=True)
+                agg_pps = PacketPathStats(config, pps.get_cloned_if_stats(), aggregate=True)
             else:
                 agg_pps.add_packet_path_stats(pps)
         # aggregate all latencies
@@ -239,6 +241,15 @@ class PacketPathStats(object):
                        'lat_avg_usec': latency.avg_usec}
             if latency.hdrh:
                 results['hdrh'] = latency.hdrh
+                decoded_histogram = HdrHistogram.decode(latency.hdrh)
+                # override min max and avg from hdrh
+                results['lat_min_usec'] = decoded_histogram.get_min_value()
+                results['lat_max_usec'] = decoded_histogram.get_max_value()
+                results['lat_avg_usec'] = decoded_histogram.get_mean_value()
+                for percentile in self.config.lat_percentiles:
+                    results['lat_' + str(percentile) + '%ile_usec'] = decoded_histogram.\
+                        get_value_at_percentile(percentile)
+
         else:
             results = {}
         results['packets'] = counters
@@ -251,12 +262,13 @@ class PacketPathStatsManager(object):
     Each run will generate packet path stats for 1 or more chains.
     """
 
-    def __init__(self, pps_list):
+    def __init__(self, config, pps_list):
         """Create a packet path stats intance with the list of associated if stats.
 
         pps_list: a list of packet path stats indexed by the chain id.
         All packet path stats must have the same length.
         """
+        self.config = config
         self.pps_list = pps_list
 
     def insert_pps_list(self, chain_index, if_stats):
@@ -288,7 +300,7 @@ class PacketPathStatsManager(object):
         chains = {}
         # insert the aggregated row if applicable
         if len(self.pps_list) > 1:
-            agg_pps = PacketPathStats.get_agg_packet_path_stats(self.pps_list)
+            agg_pps = PacketPathStats.get_agg_packet_path_stats(self.config, self.pps_list)
             chains['total'] = agg_pps.get_stats(reverse)
 
         for index, pps in enumerate(self.pps_list):

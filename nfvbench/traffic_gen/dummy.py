@@ -102,7 +102,7 @@ class DummyTG(AbstractTrafficGenerator):
     def clear_streamblock(self):
         pass
 
-    def get_stats(self):
+    def get_stats(self, ifstats):
         """Get stats from current run.
 
         The binary search mainly looks at 2 results to make the decision:

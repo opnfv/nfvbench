@@ -35,7 +35,7 @@ class StatsManager(object):
         if self.config.single_run:
             pps_list = []
             self.traffic_client.insert_interface_stats(pps_list)
-            self.pps_mgr = PacketPathStatsManager(pps_list)
+            self.pps_mgr = PacketPathStatsManager(self.config, pps_list)
         else:
             self.pps_mgr = None
         self.worker = None

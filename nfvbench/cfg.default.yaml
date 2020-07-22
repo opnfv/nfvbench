@@ -348,6 +348,10 @@ mbuf_factor: 0.2
 # hdrh is enabled by default and requires TRex v2.58 or higher
 disable_hdrh: false
 
+# List of latency percentiles values returned using hdrh
+# elements should be int or float between 0.0 and 100.0
+lat_percentiles: [25, 75, 99]
+
 # -----------------------------------------------------------------------------
 # These variables are not likely to be changed
 

@@ -23,3 +23,4 @@ flask>=0.12
 fluent-logger>=0.5.3
 netaddr>=0.7.19
 xtesting>=0.87.0
+hdrhistogram>=0.8.0

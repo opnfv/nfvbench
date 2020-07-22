@@ -22,6 +22,9 @@ RUN apt-get update && apt-get install -y \
        net-tools \
        iproute2 \
        libelf1 \
+       python3-dev \
+       libpython3.6-dev \
+       gcc \
        && ln -s /usr/bin/python3.6 /usr/local/bin/python3 \
        && mkdir -p /opt/trex \
        && mkdir /var/log/nfvbench \
@@ -43,7 +46,7 @@ RUN apt-get update && apt-get install -y \
        && cp xtesting/testcases.yaml /usr/local/lib/python3.6/dist-packages/xtesting/ci/testcases.yaml \
        && python3 ./docker/cleanup_generators.py \
        && rm -rf /nfvbench/.git \
-       && apt-get remove -y wget git \
+       && apt-get remove -y wget git python3-dev libpython3.6-dev gcc \
        && apt-get autoremove -y && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 ENV TREX_EXT_LIBS "/opt/trex/$TREX_VER/external_libs"

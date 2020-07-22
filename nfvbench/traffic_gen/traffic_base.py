@@ -82,7 +82,7 @@ class AbstractTrafficGenerator(object):
         LOG.info('Modified traffic stream for port %s, new rate=%s.', port, self.rates[port_index])
 
     @abc.abstractmethod
-    def get_stats(self):
+    def get_stats(self, ifstats):
         # Must be implemented by sub classes
         return None
 

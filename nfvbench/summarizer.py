@@ -259,6 +259,12 @@ class NFVBenchSummarizer(Summarizer):
         self.record_header = None
         self.record_data = None
         self.sender = sender
+
+        # add percentiles headers if hdrh enabled
+        if not self.config.disable_hdrh:
+            for percentile in self.config.lat_percentiles:
+                self.ndr_pdr_header.append((str(percentile) + ' %ile lat.', Formatter.standard))
+                self.single_run_header.append((str(percentile) + ' %ile lat.', Formatter.standard))
         # if sender is available initialize record
         if self.sender:
             self.__record_init()
@@ -394,7 +400,8 @@ class NFVBenchSummarizer(Summarizer):
             for frame_size, analysis in list(traffic_result.items()):
                 if frame_size == 'warning':
                     continue
-                summary_table.add_row([
+
+                row_data = [
                     'NDR',
                     frame_size,
                     analysis['ndr']['rate_bps'],
@@ -403,21 +410,32 @@ class NFVBenchSummarizer(Summarizer):
                     analysis['ndr']['stats']['overall']['avg_delay_usec'],
                     analysis['ndr']['stats']['overall']['min_delay_usec'],
                     analysis['ndr']['stats']['overall']['max_delay_usec']
-                ])
-                self.__record_data_put(frame_size, {'ndr': {
+                ]
+                if not self.config.disable_hdrh:
+                    self.extract_hdrh_percentiles(
+                        analysis['ndr']['stats']['overall']['lat_percentile'], row_data)
+                summary_table.add_row(row_data)
+
+                ndr_data = {
                     'type': 'NDR',
                     'rate_bps': analysis['ndr']['rate_bps'],
                     'rate_pps': analysis['ndr']['rate_pps'],
+                    'offered_tx_rate_bps': analysis['ndr']['stats']['offered_tx_rate_bps'],
                     'drop_percentage': analysis['ndr']['stats']['overall']['drop_percentage'],
                     'avg_delay_usec': analysis['ndr']['stats']['overall']['avg_delay_usec'],
                     'min_delay_usec': analysis['ndr']['stats']['overall']['min_delay_usec'],
                     'max_delay_usec': analysis['ndr']['stats']['overall']['max_delay_usec']
-                }})
+                }
+                if not self.config.disable_hdrh:
+                    self.extract_hdrh_percentiles(
+                        analysis['ndr']['stats']['overall']['lat_percentile'], ndr_data, True)
+                self.__record_data_put(frame_size, {'ndr': ndr_data})
         if self.config['pdr_run']:
             for frame_size, analysis in list(traffic_result.items()):
                 if frame_size == 'warning':
                     continue
-                summary_table.add_row([
+
+                row_data = [
                     'PDR',
                     frame_size,
                     analysis['pdr']['rate_bps'],
@@ -426,33 +444,61 @@ class NFVBenchSummarizer(Summarizer):
                     analysis['pdr']['stats']['overall']['avg_delay_usec'],
                     analysis['pdr']['stats']['overall']['min_delay_usec'],
                     analysis['pdr']['stats']['overall']['max_delay_usec']
-                ])
-                self.__record_data_put(frame_size, {'pdr': {
+                ]
+                if not self.config.disable_hdrh:
+                    self.extract_hdrh_percentiles(
+                        analysis['pdr']['stats']['overall']['lat_percentile'], row_data)
+                summary_table.add_row(row_data)
+
+                pdr_data = {
                     'type': 'PDR',
                     'rate_bps': analysis['pdr']['rate_bps'],
                     'rate_pps': analysis['pdr']['rate_pps'],
+                    'offered_tx_rate_bps': analysis['pdr']['stats']['offered_tx_rate_bps'],
                     'drop_percentage': analysis['pdr']['stats']['overall']['drop_percentage'],
                     'avg_delay_usec': analysis['pdr']['stats']['overall']['avg_delay_usec'],
                     'min_delay_usec': analysis['pdr']['stats']['overall']['min_delay_usec'],
                     'max_delay_usec': analysis['pdr']['stats']['overall']['max_delay_usec']
-                }})
+                }
+                if not self.config.disable_hdrh:
+                    self.extract_hdrh_percentiles(
+                        analysis['pdr']['stats']['overall']['lat_percentile'], pdr_data, True)
+                self.__record_data_put(frame_size, {'pdr': pdr_data})
         if self.config['single_run']:
             for frame_size, analysis in list(traffic_result.items()):
-                summary_table.add_row([
+                row_data = [
                     frame_size,
                     analysis['stats']['overall']['drop_rate_percent'],
                     analysis['stats']['overall']['rx']['avg_delay_usec'],
                     analysis['stats']['overall']['rx']['min_delay_usec'],
                     analysis['stats']['overall']['rx']['max_delay_usec']
-                ])
-                self.__record_data_put(frame_size, {'single_run': {
+                ]
+                if not self.config.disable_hdrh:
+                    self.extract_hdrh_percentiles(
+                        analysis['stats']['overall']['rx']['lat_percentile'], row_data)
+                summary_table.add_row(row_data)
+                single_run_data = {
                     'type': 'single_run',
+                    'offered_tx_rate_bps': analysis['stats']['offered_tx_rate_bps'],
                     'drop_rate_percent': analysis['stats']['overall']['drop_rate_percent'],
                     'avg_delay_usec': analysis['stats']['overall']['rx']['avg_delay_usec'],
                     'min_delay_usec': analysis['stats']['overall']['rx']['min_delay_usec'],
                     'max_delay_usec': analysis['stats']['overall']['rx']['max_delay_usec']
-                }})
+                }
+                if not self.config.disable_hdrh:
+                    self.extract_hdrh_percentiles(
+                        analysis['stats']['overall']['rx']['lat_percentile'], single_run_data, True)
+                self.__record_data_put(frame_size, {'single_run': single_run_data})
         return summary_table
+
+    def extract_hdrh_percentiles(self, lat_percentile, data, add_key=False):
+        if add_key:
+            data['lat_percentile'] = {}
+        for percentile in self.config.lat_percentiles:
+            if add_key:
+                data['lat_percentile_' + str(percentile)] = lat_percentile[percentile]
+            else:
+                data.append(lat_percentile[percentile])
 
     def __get_config_table(self, run_config, frame_size):
         config_table = Table(self.config_header)
@@ -498,21 +544,35 @@ class NFVBenchSummarizer(Summarizer):
         _annotate_chain_stats(chains)
         header = [('Chain', Formatter.standard)] + \
                  [(ifname, Formatter.standard) for ifname in chain_stats['interfaces']]
-        # add latency columns if available Avg, Min, Max
+        # add latency columns if available Avg, Min, Max and percentiles
         lat_keys = []
         lat_map = {'lat_avg_usec': 'Avg lat.',
                    'lat_min_usec': 'Min lat.',
                    'lat_max_usec': 'Max lat.'}
         if 'lat_avg_usec' in chains['0']:
-            lat_keys = ['lat_avg_usec', 'lat_min_usec', 'lat_max_usec']
-            for key in lat_keys:
+            lat_keys = ['lat_avg_usec', 'lat_min_usec', 'lat_max_usec', 'lat_percentile']
+
+            if not self.config.disable_hdrh:
+                for percentile in self.config.lat_percentiles:
+                    lat_map['lat_' + str(percentile) + '_percentile'] = str(
+                        percentile) + ' %ile lat.'
+
+            for key in lat_map:
                 header.append((lat_map[key], Formatter.standard))
 
         table = Table(header)
         for chain in sorted(list(chains.keys()), key=str):
             row = [chain] + chains[chain]['packets']
             for lat_key in lat_keys:
-                row.append('{:,} usec'.format(chains[chain][lat_key]))
+                if chains[chain].get(lat_key, None):
+                    if lat_key == 'lat_percentile':
+                        if not self.config.disable_hdrh:
+                            for percentile in chains[chain][lat_key]:
+                                row.append(Formatter.standard(chains[chain][lat_key][percentile]))
+                    else:
+                        row.append(Formatter.standard(chains[chain][lat_key]))
+                else:
+                    row.append('--')
             table.add_row(row)
         return table
 

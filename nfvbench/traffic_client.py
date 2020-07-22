@@ -917,9 +917,9 @@ class TrafficClient(object):
             return float('inf')
         return float(dropped_pkts) / total_pkts * 100
 
-    def get_stats(self):
+    def get_stats(self, ):
         """Collect final stats for previous run."""
-        stats = self.gen.get_stats()
+        stats = self.gen.get_stats(self.ifstats)
         retDict = {'total_tx_rate': stats['total_tx_rate'],
                    'offered_tx_rate_bps': stats['offered_tx_rate_bps']}
 
@@ -967,6 +967,13 @@ class TrafficClient(object):
             for key in ['pkt_bit_rate', 'pkt_rate']:
                 for dirc in ['tx', 'rx']:
                     retDict['overall'][dirc][key] /= 2.0
+            # hdrh can return KeyError if hdrh is disabled
+            try:
+                retDict['overall']['hdrh'] = stats['hdrh']
+            except KeyError:
+                pass
+
+
         else:
             retDict['overall'] = retDict[ports[0]]
         retDict['overall']['drop_rate_percent'] = self.__get_dropped_rate(retDict['overall'])
@@ -996,6 +1003,12 @@ class TrafficClient(object):
                 'max_delay_usec': interface['rx']['max_delay_usec'],
                 'min_delay_usec': interface['rx']['min_delay_usec'],
             }
+
+            if key == 'overall':
+                try:
+                    stats[key]['hdrh'] = interface['hdrh']
+                except KeyError:
+                    pass
 
         return stats
 
@@ -1233,7 +1246,7 @@ class TrafficClient(object):
         ]
         """
         if diff:
-            stats = self.gen.get_stats()
+            stats = self.gen.get_stats(self.ifstats)
             for chain_idx, ifs in enumerate(self.ifstats):
                 # each ifs has exactly 2 InterfaceStats and 2 Latency instances
                 # corresponding to the

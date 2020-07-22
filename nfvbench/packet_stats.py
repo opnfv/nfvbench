@@ -21,6 +21,7 @@ PacketPathStatsManager manages all packet path stats for all chains.
 
 import copy
 
+from hdrh.histogram import HdrHistogram
 from .traffic_gen.traffic_base import Latency
 
 class InterfaceStats(object):
@@ -239,6 +240,11 @@ class PacketPathStats(object):
                        'lat_avg_usec': latency.avg_usec}
             if latency.hdrh:
                 results['hdrh'] = latency.hdrh
+                decoded_histogram = HdrHistogram.decode(latency.hdrh)
+                results['lat_q1_usec'] = decoded_histogram.get_value_at_percentile(25)
+                results['lat_q3_usec'] = decoded_histogram.get_value_at_percentile(75)
+                results['lat_99_percentiles_usec'] = decoded_histogram.get_value_at_percentile(99)
+
         else:
             results = {}
         results['packets'] = counters

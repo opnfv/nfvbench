@@ -17,6 +17,7 @@
 from contextlib import contextmanager
 from datetime import datetime
 import math
+from hdrh.histogram import HdrHistogram
 
 import bitmath
 import pytz
@@ -227,6 +228,9 @@ class NFVBenchSummarizer(Summarizer):
         ('Avg Drop Rate', Formatter.suffix('%')),
         ('Avg Latency (usec)', Formatter.standard),
         ('Min Latency (usec)', Formatter.standard),
+        ('Q1 lat.', Formatter.standard),
+        ('Q3 lat.', Formatter.standard),
+        ('99 %ile lat.', Formatter.standard),
         ('Max Latency (usec)', Formatter.standard)
     ]
 
@@ -235,6 +239,9 @@ class NFVBenchSummarizer(Summarizer):
         ('Drop Rate', Formatter.suffix('%')),
         ('Avg Latency (usec)', Formatter.standard),
         ('Min Latency (usec)', Formatter.standard),
+        ('Q1 lat.', Formatter.standard),
+        ('Q3 lat.', Formatter.standard),
+        ('99 %ile lat.', Formatter.standard),
         ('Max Latency (usec)', Formatter.standard)
     ]
 
@@ -394,6 +401,8 @@ class NFVBenchSummarizer(Summarizer):
             for frame_size, analysis in list(traffic_result.items()):
                 if frame_size == 'warning':
                     continue
+                q1_delay_usec, q3_delay_usec, delay_99_percentiles_usec = \
+                    self.__decode_hdr_histogram(analysis['ndr']['stats']['overall'])
                 summary_table.add_row([
                     'NDR',
                     frame_size,
@@ -402,21 +411,32 @@ class NFVBenchSummarizer(Summarizer):
                     analysis['ndr']['stats']['overall']['drop_percentage'],
                     analysis['ndr']['stats']['overall']['avg_delay_usec'],
                     analysis['ndr']['stats']['overall']['min_delay_usec'],
+                    q1_delay_usec,
+                    q3_delay_usec,
+                    delay_99_percentiles_usec,
                     analysis['ndr']['stats']['overall']['max_delay_usec']
                 ])
-                self.__record_data_put(frame_size, {'ndr': {
+                ndr_data = {
                     'type': 'NDR',
                     'rate_bps': analysis['ndr']['rate_bps'],
                     'rate_pps': analysis['ndr']['rate_pps'],
+                    'offered_tx_rate_bps': analysis['ndr']['stats']['offered_tx_rate_bps'],
                     'drop_percentage': analysis['ndr']['stats']['overall']['drop_percentage'],
                     'avg_delay_usec': analysis['ndr']['stats']['overall']['avg_delay_usec'],
                     'min_delay_usec': analysis['ndr']['stats']['overall']['min_delay_usec'],
                     'max_delay_usec': analysis['ndr']['stats']['overall']['max_delay_usec']
-                }})
+                }
+                if q1_delay_usec != '--':
+                    ndr_data['q1_delay_usec'] = q1_delay_usec
+                    ndr_data['q3_delay_usec'] = q3_delay_usec
+                    ndr_data['99%ile__delay_usec'] = delay_99_percentiles_usec
+                self.__record_data_put(frame_size, {'ndr': ndr_data})
         if self.config['pdr_run']:
             for frame_size, analysis in list(traffic_result.items()):
                 if frame_size == 'warning':
                     continue
+                q1_delay_usec, q3_delay_usec, delay_99_percentiles_usec = \
+                    self.__decode_hdr_histogram(analysis['pdr']['stats']['overall'])
                 summary_table.add_row([
                     'PDR',
                     frame_size,
@@ -425,34 +445,64 @@ class NFVBenchSummarizer(Summarizer):
                     analysis['pdr']['stats']['overall']['drop_percentage'],
                     analysis['pdr']['stats']['overall']['avg_delay_usec'],
                     analysis['pdr']['stats']['overall']['min_delay_usec'],
+                    q1_delay_usec,
+                    q3_delay_usec,
+                    delay_99_percentiles_usec,
                     analysis['pdr']['stats']['overall']['max_delay_usec']
                 ])
-                self.__record_data_put(frame_size, {'pdr': {
+                pdr_data = {
                     'type': 'PDR',
                     'rate_bps': analysis['pdr']['rate_bps'],
                     'rate_pps': analysis['pdr']['rate_pps'],
+                    'offered_tx_rate_bps': analysis['pdr']['stats']['offered_tx_rate_bps'],
                     'drop_percentage': analysis['pdr']['stats']['overall']['drop_percentage'],
                     'avg_delay_usec': analysis['pdr']['stats']['overall']['avg_delay_usec'],
                     'min_delay_usec': analysis['pdr']['stats']['overall']['min_delay_usec'],
                     'max_delay_usec': analysis['pdr']['stats']['overall']['max_delay_usec']
-                }})
+                }
+                if q1_delay_usec != '--':
+                    pdr_data['q1_delay_usec'] = q1_delay_usec
+                    pdr_data['q3_delay_usec'] = q3_delay_usec
+                    pdr_data['99%ile__delay_usec'] = delay_99_percentiles_usec
+                self.__record_data_put(frame_size, {'pdr': pdr_data})
         if self.config['single_run']:
             for frame_size, analysis in list(traffic_result.items()):
+                q1_delay_usec, q3_delay_usec, delay_99_percentiles_usec = \
+                    self.__decode_hdr_histogram(analysis['stats']['overall'])
                 summary_table.add_row([
                     frame_size,
                     analysis['stats']['overall']['drop_rate_percent'],
                     analysis['stats']['overall']['rx']['avg_delay_usec'],
                     analysis['stats']['overall']['rx']['min_delay_usec'],
+                    q1_delay_usec,
+                    q3_delay_usec,
+                    delay_99_percentiles_usec,
                     analysis['stats']['overall']['rx']['max_delay_usec']
                 ])
-                self.__record_data_put(frame_size, {'single_run': {
+                single_run_data = {
                     'type': 'single_run',
+                    'offered_tx_rate_bps': analysis['stats']['offered_tx_rate_bps'],
                     'drop_rate_percent': analysis['stats']['overall']['drop_rate_percent'],
                     'avg_delay_usec': analysis['stats']['overall']['rx']['avg_delay_usec'],
                     'min_delay_usec': analysis['stats']['overall']['rx']['min_delay_usec'],
                     'max_delay_usec': analysis['stats']['overall']['rx']['max_delay_usec']
-                }})
+                }
+                if q1_delay_usec != '--':
+                    single_run_data['q1_delay_usec'] = q1_delay_usec
+                    single_run_data['q3_delay_usec'] = q3_delay_usec
+                    single_run_data['99%ile__delay_usec'] = delay_99_percentiles_usec
+                self.__record_data_put(frame_size, {'single_run': single_run_data})
         return summary_table
+
+    def __decode_hdr_histogram(self, overall):
+        try:
+            decoded_histogram = HdrHistogram.decode(overall['hdrh'])
+            return decoded_histogram.get_value_at_percentile(25), \
+                decoded_histogram.get_value_at_percentile(75), \
+                decoded_histogram.get_value_at_percentile(99)
+        except KeyError:
+            # hdrh is not enable return empty values
+            return '--', '--', '--'
 
     def __get_config_table(self, run_config, frame_size):
         config_table = Table(self.config_header)
@@ -502,9 +552,13 @@ class NFVBenchSummarizer(Summarizer):
         lat_keys = []
         lat_map = {'lat_avg_usec': 'Avg lat.',
                    'lat_min_usec': 'Min lat.',
+                   'lat_q1_usec': 'Q1 lat.',
+                   'lat_q3_usec': 'Q3 lat.',
+                   'lat_99_percentiles_usec': '99 %ile lat.',
                    'lat_max_usec': 'Max lat.'}
         if 'lat_avg_usec' in chains['0']:
-            lat_keys = ['lat_avg_usec', 'lat_min_usec', 'lat_max_usec']
+            lat_keys = ['lat_avg_usec', 'lat_min_usec', 'lat_q1_usec', 'lat_q3_usec',
+                        'lat_99_percentiles_usec', 'lat_max_usec']
             for key in lat_keys:
                 header.append((lat_map[key], Formatter.standard))
 

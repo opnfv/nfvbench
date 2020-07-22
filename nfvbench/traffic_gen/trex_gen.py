@@ -18,6 +18,7 @@ import os
 import random
 import time
 import traceback
+from functools import reduce
 
 from itertools import count
 # pylint: disable=import-error
@@ -28,6 +29,8 @@ from nfvbench.traffic_server import TRexTrafficServer
 from nfvbench.utils import cast_integer
 from nfvbench.utils import timeout
 from nfvbench.utils import TimeoutError
+
+from hdrh.histogram import HdrHistogram
 
 # pylint: disable=import-error
 from trex.common.services.trex_service_arp import ServiceARP
@@ -116,7 +119,7 @@ class TRex(AbstractTrafficGenerator):
         pg_id = port * TRex.PORT_PG_ID_MASK | chain_id
         return pg_id, pg_id | TRex.LATENCY_PG_ID_MASK
 
-    def extract_stats(self, in_stats):
+    def extract_stats(self, in_stats, ifstats):
         """Extract stats from dict returned by Trex API.
 
         :param in_stats: dict as returned by TRex api
@@ -158,6 +161,30 @@ class TRex(AbstractTrafficGenerator):
         result['offered_tx_rate_bps'] = total_tx_bps
         result["flow_stats"] = in_stats["flow_stats"]
         result["latency"] = in_stats["latency"]
+
+        # Merge HDRHistogram to have an overall value for all chains and ports
+        try:
+            hdrh_list = []
+            if ifstats:
+                for chain_id, _ in enumerate(ifstats):
+                    for ph in self.port_handle:
+                        _, lat_pg_id = self.get_pg_id(ph, chain_id)
+                        hdrh_list.append(
+                            HdrHistogram.decode(in_stats['latency'][lat_pg_id]['latency']['hdrh']))
+            else:
+                for pg_id in in_stats['latency']:
+                    if pg_id != 'global':
+                        hdrh_list.append(
+                            HdrHistogram.decode(in_stats['latency'][pg_id]['latency']['hdrh']))
+
+            def add_hdrh(x, y):
+                x.add(y)
+                return x
+            decoded_hdrh = reduce(add_hdrh, hdrh_list)
+            result["hdrh"] = HdrHistogram.encode(decoded_hdrh).decode('utf-8')
+        except KeyError:
+            pass
+
         return result
 
     def get_stream_stats(self, trex_stats, if_stats, latencies, chain_idx):
@@ -865,10 +892,10 @@ class TRex(AbstractTrafficGenerator):
         self.client.reset(self.port_handle)
         LOG.info('Cleared all existing streams')
 
-    def get_stats(self):
+    def get_stats(self, if_stats=None):
         """Get stats from Trex."""
         stats = self.client.get_stats()
-        return self.extract_stats(stats)
+        return self.extract_stats(stats, if_stats)
 
     def get_macs(self):
         """Return the Trex local port MAC addresses.

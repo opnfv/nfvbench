@@ -1,0 +1,89 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "76ee2e6b_02b96586",
+        "filename": "nfvbench/packet_stats.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 246,
+      "author": {
+        "id": 5807
+      },
+      "writtenOn": "2020-07-26T15:45:39Z",
+      "side": 1,
+      "message": "a) if hdrh is available, it is also better to get the min/max/avg from hdrh as it is a lot more precise.\n\nb) it would be a lot more flexible to have a default list of percentile set to [25, 75, 99] and have it available in the config to override by the user. List elements should be float between 0.0 and 100.0,\nresults for each percentile would be a dict:\nresults[lat_percentile] \u003d {\n   25: ...,\n   75: ...,\n   99: ...\n}",
+      "revId": "ced9fc7a18812df0044216f24da88a02e1c71e42",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4fa778dd_b49c1f7a",
+        "filename": "nfvbench/traffic_client.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 920,
+      "author": {
+        "id": 5807
+      },
+      "writtenOn": "2020-07-26T15:45:39Z",
+      "side": 1,
+      "message": "trailing \",\"",
+      "revId": "ced9fc7a18812df0044216f24da88a02e1c71e42",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "258ec066_3207ff82",
+        "filename": "nfvbench/traffic_client.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 972,
+      "author": {
+        "id": 5807
+      },
+      "writtenOn": "2020-07-26T15:45:39Z",
+      "side": 1,
+      "message": "if key is missing, might be better to still put a value? Replace try/catch with\n\n... \u003d stats.get(\u0027hdrh\u0027, None)",
+      "revId": "ced9fc7a18812df0044216f24da88a02e1c71e42",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9d68cf6d_3e4e6d4f",
+        "filename": "nfvbench/traffic_client.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 1011,
+      "author": {
+        "id": 5807
+      },
+      "writtenOn": "2020-07-26T15:45:39Z",
+      "side": 1,
+      "message": "ditto",
+      "revId": "ced9fc7a18812df0044216f24da88a02e1c71e42",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e7b3a868_d83734d3",
+        "filename": "nfvbench/traffic_gen/trex_gen.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 186,
+      "author": {
+        "id": 5807
+      },
+      "writtenOn": "2020-07-26T15:45:39Z",
+      "side": 1,
+      "message": "I think this is fine to have a combined summary for both directions and all chains.\nIn the case of fixed rate, there is actually a per chain/per direction summary table, which may\ntake advantage of per chain latency stats as well, but this can be done as a future enhancement.",
+      "revId": "ced9fc7a18812df0044216f24da88a02e1c71e42",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": true
+    }
+  ]
+}

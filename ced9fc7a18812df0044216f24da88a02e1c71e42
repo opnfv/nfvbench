@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "0f75cf3b_a6cd1447",
+        "filename": "nfvbench/packet_stats.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 246,
+      "author": {
+        "id": 7465
+      },
+      "writtenOn": "2020-07-27T12:28:47Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "76ee2e6b_02b96586",
+      "revId": "ced9fc7a18812df0044216f24da88a02e1c71e42",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "4fa778dd_b49c1f7a",
         "filename": "nfvbench/traffic_client.py",
         "patchSetId": 2
@@ -33,6 +51,24 @@
       "revId": "ced9fc7a18812df0044216f24da88a02e1c71e42",
       "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e3d484e7_069f14a1",
+        "filename": "nfvbench/traffic_client.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 920,
+      "author": {
+        "id": 7465
+      },
+      "writtenOn": "2020-07-27T12:28:47Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "4fa778dd_b49c1f7a",
+      "revId": "ced9fc7a18812df0044216f24da88a02e1c71e42",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": false
     },
     {
       "key": {
@@ -53,6 +89,24 @@
     },
     {
       "key": {
+        "uuid": "054ddf39_4d42c3b9",
+        "filename": "nfvbench/traffic_client.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 972,
+      "author": {
+        "id": 7465
+      },
+      "writtenOn": "2020-07-27T12:28:47Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "258ec066_3207ff82",
+      "revId": "ced9fc7a18812df0044216f24da88a02e1c71e42",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9d68cf6d_3e4e6d4f",
         "filename": "nfvbench/traffic_client.py",
         "patchSetId": 2
@@ -70,6 +124,24 @@
     },
     {
       "key": {
+        "uuid": "98076ec3_dafb888e",
+        "filename": "nfvbench/traffic_client.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 1011,
+      "author": {
+        "id": 7465
+      },
+      "writtenOn": "2020-07-27T12:28:47Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9d68cf6d_3e4e6d4f",
+      "revId": "ced9fc7a18812df0044216f24da88a02e1c71e42",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "e7b3a868_d83734d3",
         "filename": "nfvbench/traffic_gen/trex_gen.py",
         "patchSetId": 2
@@ -81,6 +153,24 @@
       "writtenOn": "2020-07-26T15:45:39Z",
       "side": 1,
       "message": "I think this is fine to have a combined summary for both directions and all chains.\nIn the case of fixed rate, there is actually a per chain/per direction summary table, which may\ntake advantage of per chain latency stats as well, but this can be done as a future enhancement.",
+      "revId": "ced9fc7a18812df0044216f24da88a02e1c71e42",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a676e4d4_3777d02d",
+        "filename": "nfvbench/traffic_gen/trex_gen.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 186,
+      "author": {
+        "id": 7465
+      },
+      "writtenOn": "2020-07-27T12:28:47Z",
+      "side": 1,
+      "message": "For me it is managed by PacketPathStats class.\nExample of output with fixed rate:\n            Run Summary:\n\n              +-----------------+-------------+----------------------+----------------------+-----------+-----------+----------------+----------------------+\n              |   L2 Frame Size |  Drop Rate  |   Avg Latency (usec) |   Min Latency (usec) |  Q1 lat.  |  Q3 lat.  |   99 %ile lat. |   Max Latency (usec) |\n              +\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d+\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d+\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d+\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d+\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d+\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d+\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d+\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d+\n              |              64 |   0.0000%   |                31.28 |                   22 |    --     |    --     |             42 |                   42 |\n              +-----------------+-------------+----------------------+----------------------+-----------+-----------+----------------+----------------------+\n\n\n            L2 frame size: 64\n\n            Run Config:\n\n              +-------------+---------------------------+------------------------+-----------------+---------------------------+------------------------+-----------------+\n              |  Direction  |  Requested TX Rate (bps)  |  Actual TX Rate (bps)  |  RX Rate (bps)  |  Requested TX Rate (pps)  |  Actual TX Rate (pps)  |  RX Rate (pps)  |\n              +\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d+\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d+\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d+\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d+\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d+\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d+\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d+\n              |   Forward   |        3.3600 Mbps        |      3.3550 Mbps       |   3.3550 Mbps   |         5,000 pps         |       4,992 pps        |    4,992 pps    |\n              +-------------+---------------------------+------------------------+-----------------+---------------------------+------------------------+-----------------+\n              |   Reverse   |        3.3600 Mbps        |      3.3566 Mbps       |   3.3566 Mbps   |         5,000 pps         |       4,995 pps        |    4,995 pps    |\n              +-------------+---------------------------+------------------------+-----------------+---------------------------+------------------------+-----------------+\n              |    Total    |        6.7200 Mbps        |      6.7116 Mbps       |   6.7116 Mbps   |        10,000 pps         |       9,987 pps        |    9,987 pps    |\n              +-------------+---------------------------+------------------------+-----------------+---------------------------+------------------------+-----------------+\n\n            Forward Chain Packet Counters and Latency:\n\n              +---------+--------------+--------------+------------+------------+-----------+-----------+----------------+------------+\n              |   Chain |  TRex.TX.p0  |  TRex.RX.p1  |  Avg lat.  |  Min lat.  |  Q1 lat.  |  Q3 lat.  |  99 %ile lat.  |  Max lat.  |\n              +\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d+\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d+\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d+\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d+\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d+\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d+\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d+\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d+\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d+\n              |       0 |    9,985     |    9,985     |  37 usec   |  23 usec   |    --     |    --     |    42 usec     |  42 usec   |\n              +---------+--------------+--------------+------------+------------+-----------+-----------+----------------+------------+\n\n            Reverse Chain Packet Counters and Latency:\n\n              +---------+--------------+--------------+------------+------------+-----------+-----------+----------------+------------+\n              |   Chain |  TRex.TX.p1  |  TRex.RX.p0  |  Avg lat.  |  Min lat.  |  Q1 lat.  |  Q3 lat.  |  99 %ile lat.  |  Max lat.  |\n              +\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d+\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d+\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d+\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d+\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d+\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d+\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d+\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d+\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d+\n              |       0 |    9,990     |    9,990     |  21 usec   |  22 usec   |    --     |    --     |    23 usec     |  40 usec   |\n              +---------+--------------+--------------+------------+------------+-----------+-----------+----------------+------------+",
+      "parentUuid": "e7b3a868_d83734d3",
       "revId": "ced9fc7a18812df0044216f24da88a02e1c71e42",
       "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
       "unresolved": true

@@ -1,0 +1,89 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5f97a154_db73aa18",
+        "filename": "nfvbench/packet_stats.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 251,
+      "author": {
+        "id": 5807
+      },
+      "writtenOn": "2020-07-30T21:16:38Z",
+      "side": 1,
+      "message": "instead of a variable string key, might be more convenient for tooling to have a key that is set to the percentile value (int):\n results[\u0027lat_percentile\u0027][percentile] \u003d ...\n\nthat way no need to extract the percentile value from the key.",
+      "revId": "1e0e3a7fd344c57023853fb204002fd388d166e5",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "af841281_9ff12b7c",
+        "filename": "nfvbench/summarizer.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 243,
+      "author": {
+        "id": 5807
+      },
+      "writtenOn": "2020-07-30T21:16:38Z",
+      "side": 1,
+      "message": "here we can add a loop to insert 1 entry for each percentile in the config list",
+      "revId": "1e0e3a7fd344c57023853fb204002fd388d166e5",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d1dc4173_c28bcbea",
+        "filename": "nfvbench/summarizer.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 413,
+      "author": {
+        "id": 5807
+      },
+      "writtenOn": "2020-07-30T21:16:38Z",
+      "side": 1,
+      "message": "this also needs to be dynamic based on config latency percentile list",
+      "revId": "1e0e3a7fd344c57023853fb204002fd388d166e5",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2532c6e8_b6f049c5",
+        "filename": "nfvbench/summarizer.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 447,
+      "author": {
+        "id": 5807
+      },
+      "writtenOn": "2020-07-30T21:16:38Z",
+      "side": 1,
+      "message": "ditto (hunt for all hardcoding of 25/75/99 percentiles - few other places)",
+      "revId": "1e0e3a7fd344c57023853fb204002fd388d166e5",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9694fc4d_bce88aa9",
+        "filename": "nfvbench/traffic_client.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 1021,
+      "author": {
+        "id": 5807
+      },
+      "writtenOn": "2020-07-30T21:16:38Z",
+      "side": 1,
+      "message": "ditto/add one level and use int percentile as key",
+      "revId": "1e0e3a7fd344c57023853fb204002fd388d166e5",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": true
+    }
+  ]
+}

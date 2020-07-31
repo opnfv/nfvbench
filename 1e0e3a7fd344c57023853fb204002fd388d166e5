@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "ab430f57_710ea9aa",
+        "filename": "nfvbench/packet_stats.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 251,
+      "author": {
+        "id": 7465
+      },
+      "writtenOn": "2020-07-31T15:36:00Z",
+      "side": 1,
+      "message": "float can also be used.\nYes we can add it to JSON output but for fluentd export I don\u0027t think structure is easy to use with Kibana for example",
+      "parentUuid": "5f97a154_db73aa18",
+      "revId": "1e0e3a7fd344c57023853fb204002fd388d166e5",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "af841281_9ff12b7c",
         "filename": "nfvbench/summarizer.py",
         "patchSetId": 3

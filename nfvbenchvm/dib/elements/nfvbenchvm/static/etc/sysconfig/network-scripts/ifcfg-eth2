@@ -1,2 +1,2 @@
-DEVICE="eth1"
+DEVICE="eth2"
 BOOTPROTO="none"

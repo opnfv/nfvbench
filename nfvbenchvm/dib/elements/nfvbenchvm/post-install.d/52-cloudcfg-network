@@ -1,0 +1,49 @@
+#!/bin/bash
+
+if [ ${DIB_DEBUG_TRACE:-0} -gt 0 ]; then
+    set -x
+fi
+set -eu
+set -o pipefail
+
+# Set cloud-init to allow password authentication
+if [ -f "/etc/cloud/cloud.cfg" ]; then
+tee -a /etc/cloud/cloud.cfg << END
+write_files:
+
+  - path: /etc/modprobe.d/vfio.conf
+    permissions: '0644'
+    content: |
+             options vfio enable_unsafe_noiommu_mode=1
+
+  - path: /etc/modules-load.d/vfio-pci.conf
+    permissions: '0644'
+    content: |
+             vfio-pci
+
+  - path: /etc/environment
+    permissions: '0644'
+    content: |
+             export TREX_VER="v2.79"
+             export VM_IMAGE_VER="0.12"
+             export PYTHONIOENCODING="utf8"
+             export TREX_EXT_LIBS="/opt/trex/$TREX_VER/external_libs"
+
+runcmd:
+  - export PYTHONIOENCODING="utf8"
+  - mkdir -p /mnt/huge_1GB
+  - sudo mount -t hugetlbfs nodev /mnt/huge_1GB
+  - echo nodev /mnt/huge_1GB hugetlbfs pagesize=1GB 0 0 | tee -a /etc/fstab
+  - mkdir -p /opt/nfvbench/results/loopback_ndr_test_results
+  - mkdir -p /tmp/nfvbench/results/loopback_ndr_test_results
+  - chmod 0755 /opt/nfvbench/results/loopback_ndr_test_results
+  - chmod 0755 /tmp/nfvbench/results/loopback_ndr_test_results
+  - mkdir -p /opt/nfvbench/config
+  - mkdir -p /tmp/nfvbench/config
+  - chmod 0755 /tmp/nfvbench/config
+  - chmod 0755 /opt/nfvbench/config
+  - sudo sed -i 's/PasswordAuthentication no/PasswordAuthentication yes/g' /etc/ssh/sshd_config
+  - echo "PasswordAuthentication yes" | tee -a /etc/ssh/sshd_config
+  - sudo service sshd restart
+END
+fi

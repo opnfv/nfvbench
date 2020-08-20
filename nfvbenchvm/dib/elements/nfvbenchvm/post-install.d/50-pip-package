@@ -6,3 +6,31 @@ python get-pip.py
 
 pip install setuptools wheel
 pip install pyyaml
+
+cat >> /etc/environment <<EOL
+export TREX_VER="v2.79"
+export VM_IMAGE_VER="0.12"
+export PYTHONIOENCODING="utf8"
+export TREX_EXT_LIBS="/opt/trex/$TREX_VER/external_libs"
+EOL
+sudo chmod 644 /etc/environment
+source /etc/environment
+sudo mkdir -p /opt/trex
+sudo chmod 0777 /opt/trex
+sudo mkdir /var/log/nfvbench
+sudo 0777 /var/log/nfvbench
+sudo sed -i 's/#PasswordAuthentication no/PasswordAuthentication yes/g' /etc/ssh/sshd_config
+echo "PasswordAuthentication yes" | tee -a /etc/ssh/sshd_config
+sudo service sshd restart
+sudo wget --no-cache --no-check-certificate -O /opt/$TREX_VER.tar.gz https://trex-tgn.cisco.com/trex/release/$TREX_VER.tar.gz
+sudo chmod 777 /opt/$TREX_VER.tar.gz
+sudo tar xzf /opt/$TREX_VER.tar.gz -C /opt/trex
+sudo cp -a /opt/trex/$TREX_VER/automation/trex_control_plane/interactive/trex /usr/lib/python3.6/site-packages
+sudo rm -f /opt/v2.79.tar.gz
+sudo rm -f /opt/trex/$TREX_VER/trex_client_$TREX_VER.tar.gz
+pip3 install -U pbr
+pip3 install -U setuptools
+git clone https://gerrit.opnfv.org/gerrit/nfvbench /nfvbench
+sudo chmod 755 /nfvbench
+pip3 install -e /nfvbench
+wget -O /nfvbench/nfvbenchvm-$VM_IMAGE_VER.qcow2 http://artifacts.opnfv.org/nfvbench/images/nfvbenchvm_centos-$VM_IMAGE_VER.qcow2

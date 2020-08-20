@@ -1,6 +1,6 @@
 DEVICE="eth0"
 BOOTPROTO="dhcp"
-ONBOOT="no"
+ONBOOT="yes"
 TYPE="Ethernet"
 USERCTL="yes"
 PEERDNS="yes"

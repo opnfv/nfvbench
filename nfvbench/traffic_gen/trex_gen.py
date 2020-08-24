@@ -640,7 +640,7 @@ class TRex(AbstractTrafficGenerator):
             if server_ip == '127.0.0.1':
                 self.__start_local_server()
             else:
-                raise TrafficGeneratorException(e.message)
+                raise TrafficGeneratorException(e.message) from e
 
         ports = list(self.generator_config.ports)
         self.port_handle = ports
@@ -696,7 +696,7 @@ class TRex(AbstractTrafficGenerator):
                     message = f.read()
             else:
                 message = e.message
-            raise TrafficGeneratorException(message)
+            raise TrafficGeneratorException(message) from e
 
     def __start_server(self):
         server = TRexTrafficServer()

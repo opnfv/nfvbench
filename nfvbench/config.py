@@ -28,7 +28,7 @@ def config_load(file_name, from_cfg=None, whitelist_keys=None):
     except IOError:
         raise Exception("Configuration file at '{}' was not found. Please use correct path "
                         "and verify it is visible to container if you run nfvbench in container."
-                        .format(file_name))
+                        .format(file_name)) from IOError
 
     if from_cfg:
         if not whitelist_keys:
@@ -52,7 +52,7 @@ def config_loads(cfg_text, from_cfg=None, whitelist_keys=None):
         LOG.error("String %s is not well formatted. Please verify your yaml/json string. "
                   "If string is a file path, file was not found. Please use correct path and "
                   "verify it is visible to container if you run nfvbench in container.", cfg_text)
-        raise Exception(e)
+        raise Exception(e) from e
     if from_cfg:
         if not whitelist_keys:
             whitelist_keys = []

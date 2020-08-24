@@ -279,7 +279,7 @@ class ChainNetwork(object):
                 return item_field[index]
             except IndexError:
                 raise ChainException("List %s is too short for chain index %d" %
-                                     (str(item_field), index))
+                                     (str(item_field), index)) from IndexError
         # single value is configured
         if auto_index:
             return item_field + index
@@ -1195,7 +1195,8 @@ class ChainManager(object):
             self.vlans = [self._check_list('vlans[0]', self.config.vlans[0], re_vlan),
                           self._check_list('vlans[1]', self.config.vlans[1], re_vlan)]
         except IndexError:
-            raise ChainException('vlans parameter is mandatory. Set valid value in config file')
+            raise ChainException(
+                'vlans parameter is mandatory. Set valid value in config file') from IndexError
 
     def _get_dest_macs_from_config(self):
         re_mac = "[0-9a-fA-F]{2}([-:])[0-9a-fA-F]{2}(\\1[0-9a-fA-F]{2}){4}$"

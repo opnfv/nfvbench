@@ -166,7 +166,7 @@ def parse_flow_count(flow_count):
     try:
         flow_count = int(flow_count)
     except ValueError:
-        raise Exception("Unknown flow count format '{}'".format(input_fc))
+        raise Exception("Unknown flow count format '{}'".format(input_fc)) from ValueError
 
     return flow_count * multiplier
 
@@ -190,8 +190,8 @@ class RunLock(object):
         try:
             self._fd = os.open(self._path, os.O_CREAT)
             fcntl.flock(self._fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
-        except (OSError, IOError):
-            raise Exception('Other NFVbench process is running. Please wait')
+        except (OSError, IOError) as e:
+            raise Exception('Other NFVbench process is running. Please wait') from e
 
     def __exit__(self, *args):
         fcntl.flock(self._fd, fcntl.LOCK_UN)

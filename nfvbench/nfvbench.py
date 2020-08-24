@@ -571,7 +571,8 @@ def main():
             factory = getattr(factory_module, config['factory_class'])()
         except AttributeError:
             raise Exception("Requested factory module '{m}' or class '{c}' was not found."
-                            .format(m=config['factory_module'], c=config['factory_class']))
+                            .format(m=config['factory_module'],
+                                    c=config['factory_class'])) from AttributeError
         # create config plugin for this platform
         config_plugin = factory.get_config_plugin_class()(config)
         config = config_plugin.get_config()

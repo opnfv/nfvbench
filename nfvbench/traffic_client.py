@@ -288,7 +288,7 @@ class Device(object):
                 value = int((ip_size / step)) + 1
             return value
         except ZeroDivisionError:
-            raise ZeroDivisionError("step can't be zero !")
+            raise ZeroDivisionError("step can't be zero !") from ZeroDivisionError
 
     def set_mac(self, mac):
         """Set the local MAC for this port device."""

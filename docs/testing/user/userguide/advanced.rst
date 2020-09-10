@@ -440,9 +440,13 @@ In another bash window, you should connect to the TRex console doing :
 
 .. code-block:: bash
 
-    cd /opt/trex/vX.XX/ #use completion here to find your corresponding TRex version
-    ./trex-console -r
-    capture start monitor --rx [port number] -v
+    cd /opt/trex/vX.XX/ # use completion here to find your corresponding TRex version
+    ./trex-console --python3 -r
+    # capture on port number 0
+    capture monitor start --rx 0 -v
+
+    # to stop capture
+    capture monitor stop
 
 Start this capture once you have started the NFVBench test, and you will observe packets on the TRex console :
 

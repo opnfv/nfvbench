@@ -861,8 +861,10 @@ class TrafficClient(object):
 
         if self.config.no_latency_streams:
             LOG.info("Latency streams are disabled")
+        # in service mode, we must disable flow stats (e2e=True)
         self.gen.create_traffic(frame_size, self.run_config['rates'], bidirectional,
-                                latency=not self.config.no_latency_streams)
+                                latency=not self.config.no_latency_streams,
+                                e2e=self.runner.service_mode)
 
     def _modify_load(self, load):
         self.current_total_rate = {'rate_percent': str(load)}

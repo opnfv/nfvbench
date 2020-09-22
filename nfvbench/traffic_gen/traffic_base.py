@@ -15,6 +15,8 @@
 import abc
 import sys
 
+import bitmath
+
 from nfvbench.log import LOG
 from . import traffic_utils
 
@@ -126,3 +128,31 @@ class AbstractTrafficGenerator(object):
 
         return: a list of speed in Gbps indexed by the port#
         """
+
+    def get_theoretical_rates(self, avg_packet_size):
+
+        result = {}
+
+        intf_speeds = self.get_port_speed_gbps()
+        tg_if_speed = bitmath.parse_string(str(intf_speeds[0]) + 'Gb').bits
+        intf_speed = tg_if_speed
+
+        if hasattr(self.config, 'intf_speed') and self.config.intf_speed is not None:
+            # in case of limitation due to config, TG speed is not accurate
+            # value is overridden by conf
+            if self.config.intf_speed != tg_if_speed:
+                intf_speed = bitmath.parse_string(self.config.intf_speed.replace('ps', '')).bits
+
+        if hasattr(self.config, 'user_info') and self.config.user_info is not None:
+            if "extra_encapsulation_bytes" in self.config.user_info:
+                frame_size_full_encapsulation = avg_packet_size + self.config.user_info[
+                    "extra_encapsulation_bytes"]
+                result['theoretical_tx_rate_pps'] = traffic_utils.bps_to_pps(
+                    intf_speed, frame_size_full_encapsulation) * 2
+                result['theoretical_tx_rate_bps'] = traffic_utils.pps_to_bps(
+                    result['theoretical_tx_rate_pps'], avg_packet_size)
+        result['theoretical_tx_rate_pps'] = traffic_utils.bps_to_pps(intf_speed,
+                                                                     avg_packet_size) * 2
+        result['theoretical_tx_rate_bps'] = traffic_utils.pps_to_bps(
+            result['theoretical_tx_rate_pps'], avg_packet_size)
+        return result

@@ -30,6 +30,7 @@ except ImportError:
     class STLDummy(Exception):
         """Dummy class."""
 
+
     trex_lib_mod = ModuleType('trex')
     sys.modules['trex'] = trex_lib_mod
     stl_lib_mod = ModuleType('trex.stl')

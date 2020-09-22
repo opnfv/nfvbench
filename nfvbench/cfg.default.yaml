@@ -331,6 +331,26 @@ restart: false
 # if empty defaults to the one specified in generator_profile.cores
 cores:
 
+# Simpler override for the interface speed
+# if empty, the current generator_profile.intf_speed parameter applies
+# if value = 'auto' the auto-detection is forced
+intf_speed:
+
+# 'cores' and 'intf_speed' parameters can be overriden themselves
+# by respective options --cores and --intf-speed on the command-line.
+
+# By default, the real ports line rate is detected and used as
+# the reference for computing the theoretical maximum traffic load (100%).
+# Note that specifying 'intf_speed' allows to artificially lower this
+# reference while not modifying the actual transmission bit rate.
+
+# The values of the following parameters are ignored on entry
+# they are defined here in order to appear in the reported configuration.
+# They will reflect the value active at run-time (after overriding or detection)
+cores_used:
+intf_speed_used:
+intf_speed_detected:
+
 # Add cache size in packet generation for TRex field engine (FE).
 # More information for TRex performance:
 # https://trex-tgn.cisco.com/trex/doc/trex_stateless.html#_tutorial_field_engine_significantly_improve_performance
@@ -338,6 +358,8 @@ cores:
 # If cache_size < 0: cache_size will be set to flow count value
 cache_size: 0
 # The cache size is actually limited by the number of 64B mbufs configured in the trex platform configuration (see Trex manual 6.2.2. Memory section configuration)
+# Note that the resulting value is finally clipped to 10000, whatever the requested size is (by design limitation).
+
 # Trex will use 1 x 64B mbuf per pre-built cached packet, assuming 1 pre-built cached packet per flow, it means for very large number of flows, the number of configured mbuf_64 will need to be set accordingly.
 mbuf_64:
 
@@ -808,14 +830,27 @@ factory_class: 'BasicFactory'
 # Can be overriden by --user-label
 user_label:
 
+# Custom information to be passed to results post-processing,
+# they will be included as is in the json report 'config' branch.
+# Useful for documenting or automating further treatments.
+# The value is any yaml object (=> open usage) - example:
+# |user_info:
+# |    status: explore
+# |    description:
+# |        generator: VM
+# |        attachment: direct
+# |        target: lab-pf
+# |        switch: qfx3500
+# Keys may be merged/overriden using the --user-info command line option
+# (the command-line parameter value is expressed as a json object string)
+user_info:
 
-# THESE FIELDS SHOULD BE USED VERY RARELY
+# THESE FIELDS SHOULD BE USED VERY RARELY OR ON PURPOSE
 
 # Skip vswitch configuration and retrieving of stats
 # Can be overriden by --no-vswitch-access
 # Should be left to the default value (false)
 no_vswitch_access: false
-
 
 # Enable service mode for trafic capture from TRex console (for debugging purpose)
 # Can be overriden by --service-mode

@@ -159,6 +159,9 @@ class TRex(AbstractTrafficGenerator):
         avg_packet_size = utils.get_average_packet_size(self.l2_frame_size)
         total_tx_bps = utils.pps_to_bps(result["total_tx_rate"], avg_packet_size)
         result['offered_tx_rate_bps'] = total_tx_bps
+
+        result.update(self.get_theoretical_rates(avg_packet_size))
+
         result["flow_stats"] = in_stats["flow_stats"]
         result["latency"] = in_stats["latency"]
 

@@ -486,15 +486,24 @@ class GeneratorConfig(object):
             self.cores = config.cores
         else:
             self.cores = gen_config.get('cores', 1)
+        # let's report the value actually used in the end
+        config.cores_used = self.cores
         self.mbuf_factor = config.mbuf_factor
         self.mbuf_64 = config.mbuf_64
         self.hdrh = not config.disable_hdrh
-        if gen_config.intf_speed:
-            # interface speed is overriden from config
-            self.intf_speed = bitmath.parse_string(gen_config.intf_speed.replace('ps', '')).bits
+        if config.intf_speed:
+            # interface speed is overriden from the command line
+            self.intf_speed = config.intf_speed
+        elif gen_config.intf_speed:
+            # interface speed is overriden from the generator config
+            self.intf_speed = gen_config.intf_speed
         else:
+            self.intf_speed = "auto"
+        if self.intf_speed == "auto" or self.intf_speed == "0":
             # interface speed is discovered/provided by the traffic generator
             self.intf_speed = 0
+        else:
+            self.intf_speed = bitmath.parse_string(self.intf_speed.replace('ps', '')).bits
         self.name = gen_config.name
         self.zmq_pub_port = gen_config.get('zmq_pub_port', 4500)
         self.zmq_rpc_port = gen_config.get('zmq_rpc_port', 4501)
@@ -713,13 +722,17 @@ class TrafficClient(object):
             # interface speed is overriden from config
             if self.intf_speed != tg_if_speed:
                 # Warn the user if the speed in the config is different
-                LOG.warning('Interface speed provided is different from actual speed (%d Gbps)',
-                            intf_speeds[0])
+                LOG.warning(
+                    'Interface speed provided (%g Gbps) is different from actual speed (%d Gbps)',
+                    self.intf_speed / 1000000000.0, intf_speeds[0])
         else:
             # interface speed not provisioned by config
             self.intf_speed = tg_if_speed
             # also update the speed in the tg config
             self.generator_config.intf_speed = tg_if_speed
+        # let's report detected and actually used interface speed
+        self.config.intf_speed_detected = tg_if_speed
+        self.config.intf_speed_used = self.intf_speed
 
         # Save the traffic generator local MAC
         for mac, device in zip(self.gen.get_macs(), self.generator_config.devices):
@@ -923,7 +936,9 @@ class TrafficClient(object):
         """Collect final stats for previous run."""
         stats = self.gen.get_stats(self.ifstats)
         retDict = {'total_tx_rate': stats['total_tx_rate'],
-                   'offered_tx_rate_bps': stats['offered_tx_rate_bps']}
+                   'offered_tx_rate_bps': stats['offered_tx_rate_bps'],
+                   'theoretical_tx_rate_bps': stats['theoretical_tx_rate_bps'],
+                   'theoretical_tx_rate_pps': stats['theoretical_tx_rate_pps']}
 
         tx_keys = ['total_pkts', 'total_pkt_bytes', 'pkt_rate', 'pkt_bit_rate']
         rx_keys = tx_keys + ['dropped_pkts']

@@ -274,6 +274,21 @@ class NFVBench(object):
         self.config_plugin.validate_config(config, self.specs.openstack)
 
 
+def bool_arg(x):
+    """ Argument type to be used in parser.add_argument()
+    When a boolean like value is expected to be given """
+    return (str(x).lower() != 'false') \
+        and (str(x).lower() != 'no') \
+        and (str(x).lower() != '0')
+
+
+def int_arg(x):
+    """ Argument type to be used in parser.add_argument()
+    When an integer type value is expected to be given
+    (returns 0 if argument is invalid, hexa accepted)  """
+    return int(x, 0)
+
+
 def _parse_opts_from_cli():
     parser = argparse.ArgumentParser()
 
@@ -476,6 +491,39 @@ def _parse_opts_from_cli():
                         metavar='<vlan>',
                         help='Port to port or port to switch to port L2 loopback with VLAN id')
 
+    """Option to allow for passing custom information to results post-processing"""
+    parser.add_argument('--user-info', dest='user_info',
+                        action='store',
+                        metavar='<data>',
+                        help='Custom data to be included as is in the json report config branch - '
+                                + ' example, pay attention! no space: '
+                                + '--user-info=\'{"status":"explore","description":{"target":"lab"'
+                                + ',"ok":true,"version":2020}\'')
+
+    """Option to allow for overriding the NFVbench 'vlan_tagging' option"""
+    parser.add_argument('--vlan-tagging', dest='vlan_tagging',
+                        type=bool_arg,
+                        metavar='<boolean>',
+                        action='store',
+                        default=None,
+                        help='Override the NFVbench \'vlan_tagging\' parameter')
+
+    """Option to allow for overriding the T-Rex 'intf_speed' parameter"""
+    parser.add_argument('--intf-speed', dest='intf_speed',
+                        metavar='<speed>',
+                        action='store',
+                        default=None,
+                        help='Override the NFVbench \'intf_speed\' parameter '
+                                + '(e.g. 10Gbps, auto, 16.72Gbps)')
+
+    """Option to allow for overriding the T-Rex 'cores' parameter"""
+    parser.add_argument('--cores', dest='cores',
+                        type=int_arg,
+                        metavar='<number>',
+                        action='store',
+                        default=None,
+                        help='Override the T-Rex \'cores\' parameter')
+
     parser.add_argument('--cache-size', dest='cache_size',
                         action='store',
                         default='0',
@@ -600,7 +648,8 @@ def main():
         config.name = ''
         if opts.config:
             # do not check extra_specs in flavor as it can contain any key/value pairs
-            whitelist_keys = ['extra_specs']
+            # the same principle applies also to the optional user_info open property
+            whitelist_keys = ['extra_specs', 'user_info']
             # override default config options with start config at path parsed from CLI
             # check if it is an inline yaml/json config or a file name
             if os.path.isfile(opts.config):
@@ -618,6 +667,17 @@ def main():
                 fluent_logger = FluentLogHandler(config.fluentd)
                 LOG.addHandler(fluent_logger)
                 break
+
+        # convert 'user_info' opt from json string to dictionnary
+        # and merge the result with the current config dictionnary
+        if opts.user_info:
+            opts.user_info = json.loads(opts.user_info)
+            if config.user_info:
+                config.user_info = config.user_info + opts.user_info
+            else:
+                config.user_info = opts.user_info
+            # hide the option to further _update_config()
+            opts.user_info = None
 
         # traffic profile override options
         override_custom_traffic(config, opts.frame_sizes, opts.unidir)

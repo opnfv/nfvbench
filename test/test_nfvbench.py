@@ -466,11 +466,12 @@ def _get_dummy_tg_config(chain_type, rate, scc=1, fc=10, step_ip='0.0.0.1',
         'service_mode': False,
         'no_flow_stats': False,
         'no_latency_stats': False,
-        'no_latency_streams': False
+        'no_latency_streams': False,
+        'intf_speed': '10Gbps'
 
     })
 
-def _get_traffic_client():
+def _get_traffic_client(user_info=None):
     config = _get_dummy_tg_config('PVP', 'ndr_pdr')
     config['vxlan'] = False
     config['mpls'] = False
@@ -478,6 +479,8 @@ def _get_traffic_client():
     config['pdr_run'] = True
     config['generator_profile'] = 'dummy'
     config['single_run'] = False
+    if user_info:
+        config['user_info'] = user_info
     traffic_client = TrafficClient(config)
     traffic_client.start_traffic_generator()
     traffic_client.set_traffic('64', True)
@@ -536,6 +539,22 @@ def test_ndr_pdr_low_cpu():
     # import pprint
     # pp = pprint.PrettyPrinter(indent=4)
     # pp.pprint(results)
+
+@patch.object(TrafficClient, 'skip_sleep', lambda x: True)
+def test_ndr_at_lr_sdn_gw_encapsulation():
+    """Test NDR at line rate with traffic gen outside SUT and connected via SDN GW."""
+    user_info = {'extra_encapsulation_bytes': 28}
+    traffic_client = _get_traffic_client(user_info)
+    tg = traffic_client.gen
+    # this is a perfect sut with no loss at LR
+    tg.set_response_curve(lr_dr=0, ndr=100, max_actual_tx=100, max_11_tx=100)
+    # tx packets should be line rate for 64B and no drops...
+    assert tg.get_tx_pps_dropped_pps(100) == (LR_64B_PPS, 0)
+    # NDR and PDR should be at 100%
+    # traffic_client.ensure_end_to_end()
+    results = traffic_client.get_ndr_and_pdr()
+    assert  results['ndr']['stats']['theoretical_tx_rate_bps'] == 15000000000.0
+    assert_ndr_pdr(results, 200.0, 0.0, 200.0, 0.0)
 
 @patch.object(TrafficClient, 'skip_sleep', lambda x: True)
 def test_no_openstack():

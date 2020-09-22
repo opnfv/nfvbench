@@ -501,3 +501,49 @@ Check on the NFVBench window that the following log appears just before the test
     2019-10-21 09:38:51,541 INFO ``Service mode is enabled``
     2019-10-21 09:38:52,552 INFO TX: 2004; RX: 2003; Est. Dropped: 1; Est. Drop rate: 0.0499%
     2019-10-21 09:38:53,559 INFO TX: 4013; RX: 4011; Est. Dropped: 2; Est. Drop rate: 0.0498%
+
+User info data
+--------------
+
+The ``--user-info`` option allows you to pass custom information as a JSON string.
+This information will be available through JSON output and also exported to ``fluentd`` and can be used in results post-processing.
+
+Example of use :
+
+.. code-block:: bash
+
+    nfvbench ``--user-info='{"status":"explore","description":{"target":"lab","ok":true,"version":2020}'``
+
+.. note:: only JSON string is allowed
+
+``--user-info`` can be used for determining theoretical max rate. In some cases, an overhead encapsulation exists between NFVbench and SUT so NFVbench will not reach line rate inside SUT due to this extra encapsulation.
+To calculate this theoretical line rate inside SUT, NFVbench will use a reserved key: ``extra_encapsulation_bytes`` in ``--user-info`` property.
+
+.. code-block:: bash
+
+    nfvbench ``--user-info='{"extra_encapsulation_bytes": 28}'``
+
+
+As a result, NFVbench will return two values ``theoretical_tx_rate_bps`` and ``theoretical_tx_rate_pps``:
+
+.. code-block:: bash
+
+                                "ndr": {
+                                    "duration_sec": 2.0,
+                                    "initial_rate_type": "rate_percent",
+                                    "l2frame_size": "64",
+                                    "load_percent_per_direction": 100.0,
+                                    "rate_bps": 20000000000.0,
+                                    "rate_percent": 200.0,
+                                    "rate_pps": 29761904,
+                                    "stats": {
+                                        ...
+                                        "offered_tx_rate_bps": 15000000000.0,
+                                        ...
+                                        "theoretical_tx_rate_bps": 15000000000.0,
+                                        "theoretical_tx_rate_pps": 22321428.57142857,
+                                        "total_tx_rate": 22321428
+                                    },
+
+In the above example, line rate is 20Gbps but NFVbench is outside SUT and a SDN gateway add an extra encapsulation of 28 bytes.
+Overall, theoretical line rate inside SUT is only 15 Gbps for 64 bytes packet size and it will be this max capacity treated by the target compute node.

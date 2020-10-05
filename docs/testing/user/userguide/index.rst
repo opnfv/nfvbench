@@ -29,6 +29,7 @@ Table of Content
    mpls
    extchains
    fluentd
+   kibana
    sriov
    server
    faq

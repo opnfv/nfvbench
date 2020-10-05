@@ -1,0 +1,108 @@
+{
+  $schema: "https://vega.github.io/schema/vega-lite/v2.json"
+  title: "Capacity in Gbps - 0.001% loss ratio"
+  data: {
+    url: {
+      %context%: true
+      %timefield%: "@timestamp"
+      index: resu*
+      body: {
+        _source: ["@timestamp", "_source", "offered_tx_rate_bps", "flow_count", "frame_size", "user_label"]
+      },
+      size: 10000
+    },
+    format: { property: "hits.hits" }
+  },
+  transform: [
+    { calculate: "datum._source['offered_tx_rate_bps'] / 1000000000" as: "Offered load (Gbps)"},
+    { calculate: "datum._source['flow_count']" as: "Flow count"},
+    { calculate: "isNaN(toNumber(datum._source['frame_size'])) ? 362 : toNumber(datum._source['frame_size'])" as: "Frame size (bytes)"}
+    { calculate: "datum._source['user_label'] + '-' + datum._source['flow_count']" as: "label"}
+  ],
+  center: true,
+  hconcat: [
+  {
+      width:10,
+      selection: {
+        legendSel: {
+          type: "multi",
+          encodings: [ "color", "shape" ],
+          toggle: "event.shiftKey"
+        }
+      },
+      encoding: {
+        y: {
+          field: "label",
+          type: "nominal",
+          axis: {
+            title: "",
+            domain: false,
+            ticks: false,
+            offset: 10
+          },
+        },
+        color: {
+          condition: {
+            selection: "legendSel",
+            field: "label",
+            type: "nominal",
+            legend: null
+          },
+          value: "lightgrey"
+        }
+      },
+      mark: {
+        type: "square",
+        size: 120,
+        opacity: 1
+      }
+    },
+    {
+      width:500,
+      height:280,
+        transform: [
+          {filter: { selection: "legendSel"}}
+      
+      ],
+      mark: {
+        "type": "point",
+        "tooltip": true
+      },
+      selection: {
+        grid: {
+          type: "interval",
+          resolve: "global",
+          bind: "scales",
+          translate: "[mousedown[!event.shiftKey], window:mouseup] > window:mousemove!",
+          zoom: "wheel![!event.shiftKey]"
+        },
+        pts: {
+          type: "single",
+          fields: ["label"]
+        }
+      },
+      encoding: {
+        x: {
+          field: "Frame size (bytes)",
+          type: "quantitative"
+        }
+        y: {
+          field: "Offered load (Gbps)",
+          type: "quantitative"
+        }
+        color: {
+          field: "label", "type": "nominal",
+               "legend": null
+        }
+        shape: {
+          field: "Flow count",
+          type: "nominal"
+        }
+        tooltip: {
+          "field": "Offered load (Gbps)",
+          "type": "quantitative"
+        }
+      }
+    }
+  ]
+}

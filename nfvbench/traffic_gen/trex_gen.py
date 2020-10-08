@@ -53,6 +53,7 @@ from trex.stl.api import STLVmFixChecksumHw
 from trex.stl.api import STLVmFixIpv4
 from trex.stl.api import STLVmFlowVar
 from trex.stl.api import STLVmFlowVarRepeatableRandom
+from trex.stl.api import STLVmTupleGen
 from trex.stl.api import STLVmWrFlowVar
 from trex.stl.api import ThreeBytesField
 from trex.stl.api import UDP
@@ -375,7 +376,7 @@ class TRex(AbstractTrafficGenerator):
         bind_layers(UDP, VXLAN, dport=4789)
         bind_layers(VXLAN, Ether)
 
-    def _create_pkt(self, stream_cfg, l2frame_size):
+    def _create_pkt(self, stream_cfg, l2frame_size, disable_random_latency_flow=False):
         """Create a packet of given size.
 
         l2frame_size: size of the L2 frame in bytes (including the 32-bit FCS)
@@ -440,81 +441,128 @@ class TRex(AbstractTrafficGenerator):
 
         pkt_base /= IP(src=stream_cfg['ip_src_addr'], dst=stream_cfg['ip_dst_addr']) / \
                     UDP(dport=udp_args['dport'], sport=udp_args['sport'])
-        if stream_cfg['ip_src_static'] is True:
-            src_max_ip_value = stream_cfg['ip_src_addr']
-        else:
-            src_max_ip_value = stream_cfg['ip_src_addr_max']
-        if stream_cfg['ip_addrs_step'] == 'random':
-            src_fv_ip = STLVmFlowVarRepeatableRandom(
-                name="ip_src",
-                min_value=stream_cfg['ip_src_addr'],
-                max_value=src_max_ip_value,
-                size=4,
-                seed=random.randint(0, 32767),
-                limit=stream_cfg['ip_src_count'])
-            dst_fv_ip = STLVmFlowVarRepeatableRandom(
-                name="ip_dst",
-                min_value=stream_cfg['ip_dst_addr'],
-                max_value=stream_cfg['ip_dst_addr_max'],
-                size=4,
-                seed=random.randint(0, 32767),
-                limit=stream_cfg['ip_dst_count'])
-        else:
-            src_fv_ip = STLVmFlowVar(
-                name="ip_src",
-                min_value=stream_cfg['ip_src_addr'],
-                max_value=src_max_ip_value,
-                size=4,
-                op="inc",
-                step=stream_cfg['ip_addrs_step'])
-            dst_fv_ip = STLVmFlowVar(
-                name="ip_dst",
-                min_value=stream_cfg['ip_dst_addr'],
-                max_value=stream_cfg['ip_dst_addr_max'],
-                size=4,
-                op="inc",
-                step=stream_cfg['ip_addrs_step'])
 
-        if stream_cfg['udp_port_step'] == 'random':
-            src_fv_port = STLVmFlowVarRepeatableRandom(
-                name="p_src",
-                min_value=udp_args['sport'],
-                max_value=udp_args['sport_max'],
-                size=2,
-                seed=random.randint(0, 32767),
-                limit=stream_cfg['udp_src_count'])
-            dst_fv_port = STLVmFlowVarRepeatableRandom(
-                name="p_dst",
-                min_value=udp_args['dport'],
-                max_value=udp_args['dport_max'],
-                size=2,
-                seed=random.randint(0, 32767),
-                limit=stream_cfg['udp_dst_count'])
+        # STLVmTupleGen need flow count >= cores used by TRex, if FC < cores we used STLVmFlowVar
+        if stream_cfg['ip_addrs_step'] == '0.0.0.1' and stream_cfg['udp_port_step'] == '1' and \
+                stream_cfg['count'] >= self.generator_config.cores:
+            src_fv = STLVmTupleGen(ip_min=stream_cfg['ip_src_addr'],
+                                   ip_max=stream_cfg['ip_src_addr_max'],
+                                   port_min=udp_args['sport'],
+                                   port_max=udp_args['sport_max'],
+                                   name="tuple_src",
+                                   limit_flows=stream_cfg['count'])
+            dst_fv = STLVmTupleGen(ip_min=stream_cfg['ip_dst_addr'],
+                                   ip_max=stream_cfg['ip_dst_addr_max'],
+                                   port_min=udp_args['dport'],
+                                   port_max=udp_args['dport_max'],
+                                   name="tuple_dst",
+                                   limit_flows=stream_cfg['count'])
+            vm_param = [
+                src_fv,
+                STLVmWrFlowVar(fv_name="tuple_src.ip",
+                               pkt_offset="IP:{}.src".format(encap_level)),
+                STLVmWrFlowVar(fv_name="tuple_src.port",
+                               pkt_offset="UDP:{}.sport".format(encap_level)),
+                dst_fv,
+                STLVmWrFlowVar(fv_name="tuple_dst.ip",
+                               pkt_offset="IP:{}.dst".format(encap_level)),
+                STLVmWrFlowVar(fv_name="tuple_dst.port",
+                               pkt_offset="UDP:{}.dport".format(encap_level)),
+            ]
         else:
-            src_fv_port = STLVmFlowVar(
-                name="p_src",
-                min_value=udp_args['sport'],
-                max_value=udp_args['sport_max'],
-                size=2,
-                op="inc",
-                step=udp_args['sport_step'])
-            dst_fv_port = STLVmFlowVar(
-                name="p_dst",
-                min_value=udp_args['dport'],
-                max_value=udp_args['dport_max'],
-                size=2,
-                op="inc",
-                step=udp_args['dport_step'])
-        vm_param = [
-            src_fv_ip,
-            STLVmWrFlowVar(fv_name="ip_src", pkt_offset="IP:{}.src".format(encap_level)),
-            src_fv_port,
-            STLVmWrFlowVar(fv_name="p_src", pkt_offset="UDP:{}.sport".format(encap_level)),
-            dst_fv_ip,
-            STLVmWrFlowVar(fv_name="ip_dst", pkt_offset="IP:{}.dst".format(encap_level)),
-            dst_fv_port,
-            STLVmWrFlowVar(fv_name="p_dst", pkt_offset="UDP:{}.dport".format(encap_level)),
-        ]
+            if disable_random_latency_flow:
+                src_fv_ip = STLVmFlowVar(
+                    name="ip_src",
+                    min_value=stream_cfg['ip_src_addr'],
+                    max_value=stream_cfg['ip_src_addr'],
+                    size=4)
+                dst_fv_ip = STLVmFlowVar(
+                    name="ip_dst",
+                    min_value=stream_cfg['ip_dst_addr'],
+                    max_value=stream_cfg['ip_dst_addr'],
+                    size=4)
+            elif stream_cfg['ip_addrs_step'] == 'random':
+                src_fv_ip = STLVmFlowVarRepeatableRandom(
+                    name="ip_src",
+                    min_value=stream_cfg['ip_src_addr'],
+                    max_value=stream_cfg['ip_src_addr_max'],
+                    size=4,
+                    seed=random.randint(0, 32767),
+                    limit=stream_cfg['ip_src_count'])
+                dst_fv_ip = STLVmFlowVarRepeatableRandom(
+                    name="ip_dst",
+                    min_value=stream_cfg['ip_dst_addr'],
+                    max_value=stream_cfg['ip_dst_addr_max'],
+                    size=4,
+                    seed=random.randint(0, 32767),
+                    limit=stream_cfg['ip_dst_count'])
+            else:
+                src_fv_ip = STLVmFlowVar(
+                    name="ip_src",
+                    min_value=stream_cfg['ip_src_addr'],
+                    max_value=stream_cfg['ip_src_addr_max'],
+                    size=4,
+                    op="inc",
+                    step=stream_cfg['ip_addrs_step'])
+                dst_fv_ip = STLVmFlowVar(
+                    name="ip_dst",
+                    min_value=stream_cfg['ip_dst_addr'],
+                    max_value=stream_cfg['ip_dst_addr_max'],
+                    size=4,
+                    op="inc",
+                    step=stream_cfg['ip_addrs_step'])
+
+            if disable_random_latency_flow:
+                src_fv_port = STLVmFlowVar(
+                    name="p_src",
+                    min_value=udp_args['sport'],
+                    max_value=udp_args['sport'],
+                    size=2)
+                dst_fv_port = STLVmFlowVar(
+                    name="p_dst",
+                    min_value=udp_args['dport'],
+                    max_value=udp_args['dport'],
+                    size=2)
+            elif stream_cfg['udp_port_step'] == 'random':
+                src_fv_port = STLVmFlowVarRepeatableRandom(
+                    name="p_src",
+                    min_value=udp_args['sport'],
+                    max_value=udp_args['sport_max'],
+                    size=2,
+                    seed=random.randint(0, 32767),
+                    limit=stream_cfg['udp_src_count'])
+                dst_fv_port = STLVmFlowVarRepeatableRandom(
+                    name="p_dst",
+                    min_value=udp_args['dport'],
+                    max_value=udp_args['dport_max'],
+                    size=2,
+                    seed=random.randint(0, 32767),
+                    limit=stream_cfg['udp_dst_count'])
+            else:
+                src_fv_port = STLVmFlowVar(
+                    name="p_src",
+                    min_value=udp_args['sport'],
+                    max_value=udp_args['sport_max'],
+                    size=2,
+                    op="inc",
+                    step=udp_args['sport_step'])
+                dst_fv_port = STLVmFlowVar(
+                    name="p_dst",
+                    min_value=udp_args['dport'],
+                    max_value=udp_args['dport_max'],
+                    size=2,
+                    op="inc",
+                    step=udp_args['dport_step'])
+            vm_param = [
+                src_fv_ip,
+                STLVmWrFlowVar(fv_name="ip_src", pkt_offset="IP:{}.src".format(encap_level)),
+                src_fv_port,
+                STLVmWrFlowVar(fv_name="p_src", pkt_offset="UDP:{}.sport".format(encap_level)),
+                dst_fv_ip,
+                STLVmWrFlowVar(fv_name="ip_dst", pkt_offset="IP:{}.dst".format(encap_level)),
+                dst_fv_port,
+                STLVmWrFlowVar(fv_name="p_dst", pkt_offset="UDP:{}.dport".format(encap_level)),
+            ]
         # Use HW Offload to calculate the outter IP/UDP packet
         vm_param.append(STLVmFixChecksumHw(l3_offset="IP:0",
                                            l4_offset="UDP:0",
@@ -563,7 +611,13 @@ class TRex(AbstractTrafficGenerator):
 
             if latency:
                 # for IMIX, the latency packets have the average IMIX packet size
-                pkt = self._create_pkt(stream_cfg, IMIX_AVG_L2_FRAME_SIZE)
+                if stream_cfg['ip_addrs_step'] == 'random' or \
+                        stream_cfg['udp_port_step'] == 'random':
+                    # Force latency flow to only one flow to avoid creating flows
+                    # over requested flow count
+                    pkt = self._create_pkt(stream_cfg, IMIX_AVG_L2_FRAME_SIZE, True)
+                else:
+                    pkt = self._create_pkt(stream_cfg, IMIX_AVG_L2_FRAME_SIZE)
 
         else:
             l2frame_size = int(l2frame)
@@ -589,8 +643,16 @@ class TRex(AbstractTrafficGenerator):
             # without vlan, the min l2 frame size is 64
             # with vlan it is 68
             # This only applies to the latency stream
-            if latency and stream_cfg['vlan_tag'] and l2frame_size < 68:
-                pkt = self._create_pkt(stream_cfg, 68)
+            if latency:
+                if stream_cfg['vlan_tag'] and l2frame_size < 68:
+                    l2frame_size = 68
+                if stream_cfg['ip_addrs_step'] == 'random' or \
+                        stream_cfg['udp_port_step'] == 'random':
+                        # Force latency flow to only one flow to avoid creating flows
+                        # over requested flow count
+                    pkt = self._create_pkt(stream_cfg, l2frame_size, True)
+                else:
+                    pkt = self._create_pkt(stream_cfg, l2frame_size)
 
         if latency:
             if self.config.no_latency_stats:
@@ -865,6 +927,11 @@ class TRex(AbstractTrafficGenerator):
         for port in self.port_handle:
             streamblock[port] = []
         stream_cfgs = [d.get_stream_configs() for d in self.generator_config.devices]
+        if self.generator_config.ip_addrs_step == 'random' \
+                or self.generator_config.gen_config.udp_port_step == 'random':
+            LOG.warning("Using random step, the number of flows can be less than "
+                        "the requested number of flows due to repeatable multivariate random "
+                        "generation which can reproduce the same pattern of values")
         self.rates = [utils.to_rate_str(rate) for rate in rates]
         for chain_id, (fwd_stream_cfg, rev_stream_cfg) in enumerate(zip(*stream_cfgs)):
             streamblock[0].extend(self.generate_streams(self.port_handle[0],

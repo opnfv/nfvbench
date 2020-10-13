@@ -351,14 +351,15 @@ cores_used:
 intf_speed_used:
 intf_speed_detected:
 
-# Add cache size in packet generation for TRex field engine (FE).
+# A cache size value is passed to the TRex field engine (FE) at packet generation.
+# Can be overridden by --cache-size
 # More information for TRex performance:
 # https://trex-tgn.cisco.com/trex/doc/trex_stateless.html#_tutorial_field_engine_significantly_improve_performance
 # If cache_size = 0 (or empty): no cache will be used by TRex (default)
 # If cache_size < 0: cache_size will be set to flow count value
 cache_size: 0
 # The cache size is actually limited by the number of 64B mbufs configured in the trex platform configuration (see Trex manual 6.2.2. Memory section configuration)
-# Note that the resulting value is finally clipped to 10000, whatever the requested size is (by design limitation).
+# Note that the resulting value is finally capped to 10000, whatever the requested size is (by design limitation).
 
 # Trex will use 1 x 64B mbuf per pre-built cached packet, assuming 1 pre-built cached packet per flow, it means for very large number of flows, the number of configured mbuf_64 will need to be set accordingly.
 mbuf_64:
@@ -795,6 +796,26 @@ debug: false
 # Defaults to disabled
 log_file:
 
+# One can specify a user ID for changing ownership of output log/json files
+#   - empty: depends on file existency
+#     . yes? replacement, owner is unchanged
+#     . no ? creation with root as user
+#   - 0: this is the root user ID
+#   - other: will corresponds (or not) to an existing user/group in the host
+#            (the current user ID can be obtained with the command 'id -u')
+# Can be overriden by --user-id
+# Consider also that the default value below is overridable by a USER_ID env variable,
+# if nfvbench is run into a container, this information can be passed at its creation.
+# The overall precedence rule is: 'default_config (this) < env < config < command_line'
+user_id:
+
+# Similarly, the group ID is defined
+# Can be overriden by --group-id
+# Default may be set through env GROUP_ID
+# Caveat: user and group with a same name may have different numerical IDs
+#         (the current group ID can be obtained with the command 'id -g')
+group_id:
+
 # When enabled, all results and/or logs will be sent to a fluentd servers at the requested IPs and ports
 # A list of one or more fluentd servers identified by their IPs and  port numbers should be given.
 # For each recipient it is possible to enable both sending logs and performance
@@ -844,6 +865,7 @@ user_label:
 # Keys may be merged/overriden using the --user-info command line option
 # (the command-line parameter value is expressed as a json object string)
 user_info:
+
 
 # THESE FIELDS SHOULD BE USED VERY RARELY OR ON PURPOSE
 

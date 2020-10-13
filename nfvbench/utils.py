@@ -51,7 +51,7 @@ def timeout(seconds=10, error_message=os.strerror(errno.ETIME)):
 
 
 def save_json_result(result, json_file, std_json_path, service_chain, service_chain_count,
-                     flow_count, frame_sizes):
+                     flow_count, frame_sizes, user_id=None, group_id=None):
     """Save results in json format file."""
     filepaths = []
     if json_file:
@@ -71,6 +71,11 @@ def save_json_result(result, json_file, std_json_path, service_chain, service_ch
                           sort_keys=True,
                           separators=(',', ': '),
                           default=lambda obj: obj.to_json())
+                # possibly change file ownership
+                if group_id is None:
+                    group_id = user_id
+                if user_id is not None:
+                    os.chown(file_path, user_id, group_id)
 
 
 def dict_to_json_dict(record):
@@ -153,7 +158,6 @@ def get_intel_pci(nic_slot=None, nic_ports=None):
                 break
 
     return pcis
-
 
 
 def parse_flow_count(flow_count):

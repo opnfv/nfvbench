@@ -200,7 +200,8 @@ class NFVBench(object):
         config.service_chain_count = int(config.service_chain_count)
         if config.l2_loopback:
             # force the number of chains to be 1 in case of l2 loopback
-            config.service_chain_count = 1
+            # or to the # of vlan ID pairs configured if tagging enabled
+            config.service_chain_count = len(config.vlans[0]) if config.vlan_tagging else 1
             config.service_chain = ChainType.EXT
             config.no_arp = True
             LOG.info('Running L2 loopback: using EXT chain/no ARP')
@@ -498,16 +499,19 @@ def _parse_opts_from_cli():
 
     parser.add_argument('--l2-loopback', '--l2loopback', dest='l2_loopback',
                         action='store',
-                        metavar='<vlan>',
-                        help='Port to port or port to switch to port L2 loopback with VLAN id')
+                        metavar='<vlan(s)|no-tag|true|false>',
+                        help='Port to port or port to switch to port L2 loopback '
+                               + 'tagged with given VLAN id(s) or not (given \'no-tag\') '
+                               + '\'true\': use current vlans; \'false\': disable this mode.')
 
     parser.add_argument('--user-info', dest='user_info',
-                        action='store',
+                        action='append',
                         metavar='<data>',
                         help='Custom data to be included as is in the json report config branch - '
                                + ' example, pay attention! no space: '
                                + '--user-info=\'{"status":"explore","description":'
-                               + '{"target":"lab","ok":true,"version":2020}}\'')
+                               + '{"target":"lab","ok":true,"version":2020}}\''
+                               + 'this option may be repeated; given data will be merged.')
 
     parser.add_argument('--vlan-tagging', dest='vlan_tagging',
                         type=bool_arg,
@@ -534,32 +538,32 @@ def _parse_opts_from_cli():
                         type=int_arg,
                         metavar='<size>',
                         action='store',
-                        default='0',
+                        default=None,
                         help='Specify the FE cache size (default: 0, flow-count if < 0)')
 
     parser.add_argument('--service-mode', dest='service_mode',
                         action='store_true',
-                        default=False,
+                        default=None,
                         help='Enable T-Rex service mode (for debugging purpose)')
 
     parser.add_argument('--no-e2e-check', dest='no_e2e_check',
                         action='store_true',
-                        default=False,
+                        default=None,
                         help='Skip "end to end" connectivity check (on test purpose)')
 
     parser.add_argument('--no-flow-stats', dest='no_flow_stats',
                         action='store_true',
-                        default=False,
+                        default=None,
                         help='Disable additional flow stats (on high load traffic)')
 
     parser.add_argument('--no-latency-stats', dest='no_latency_stats',
                         action='store_true',
-                        default=False,
+                        default=None,
                         help='Disable flow stats for latency traffic')
 
     parser.add_argument('--no-latency-streams', dest='no_latency_streams',
                         action='store_true',
-                        default=False,
+                        default=None,
                         help='Disable latency measurements (no streams)')
 
     parser.add_argument('--user-id', dest='user_id',
@@ -580,10 +584,10 @@ def _parse_opts_from_cli():
                         type=int_arg,
                         metavar='<mask>',
                         action='store',
-                        default='0x00000000',
+                        default=None,
                         help='General purpose register (debugging flags), '
                                 + 'the hexadecimal notation (0x...) is accepted.'
-                                + 'Designed for development needs.')
+                                + 'Designed for development needs (default: 0).')
 
     opts, unknown_opts = parser.parse_known_args()
     return opts, unknown_opts
@@ -710,65 +714,110 @@ def main():
                 LOG.addHandler(fluent_logger)
                 break
 
-        # convert 'user_info' opt from json string to dictionnary
-        # and merge the result with the current config dictionnary
-        if opts.user_info:
-            opts.user_info = json.loads(opts.user_info)
-            if config.user_info:
-                config.user_info = config.user_info + opts.user_info
-            else:
-                config.user_info = opts.user_info
-            # hide the option to further _update_config()
-            opts.user_info = None
-
         # traffic profile override options
         override_custom_traffic(config, opts.frame_sizes, opts.unidir)
 
-        # copy over cli options that are used in config
+        # Copy over some of the cli options that are used in config.
+        # This explicit copy is sometimes necessary
+        # because some early evaluation depends on them
+        # and cannot wait for _update_config() coming further.
+        # It is good practice then to set them to None (<=> done)
+        # and even required if a specific conversion is performed here
+        # that would be corrupted by a default update (simple copy).
+        # On the other hand, some excessive assignments have been removed
+        # from here, since the _update_config() procedure does them well.
+
         config.generator_profile = opts.generator_profile
-        if opts.sriov:
+        if opts.sriov is not None:
             config.sriov = True
-        if opts.log_file:
+            opts.sriov = None
+        if opts.log_file is not None:
             config.log_file = opts.log_file
-        if opts.service_chain:
+            opts.log_file = None
+        if opts.user_id is not None:
+            config.user_id = opts.user_id
+            opts.user_id = None
+        if opts.group_id is not None:
+            config.group_id = opts.group_id
+            opts.group_id = None
+        if opts.service_chain is not None:
             config.service_chain = opts.service_chain
-        if opts.service_chain_count:
-            config.service_chain_count = opts.service_chain_count
-        if opts.no_vswitch_access:
-            config.no_vswitch_access = opts.no_vswitch_access
-        if opts.hypervisor:
+            opts.service_chain = None
+        if opts.hypervisor is not None:
             # can be any of 'comp1', 'nova:', 'nova:comp1'
             config.compute_nodes = opts.hypervisor
-        if opts.vxlan:
-            config.vxlan = True
-        if opts.mpls:
-            config.mpls = True
-        if opts.restart:
-            config.restart = True
-        if opts.service_mode:
-            config.service_mode = True
-        if opts.no_flow_stats:
-            config.no_flow_stats = True
-        if opts.no_latency_stats:
-            config.no_latency_stats = True
-        if opts.no_latency_streams:
-            config.no_latency_streams = True
-        # port to port loopback (direct or through switch)
-        if opts.l2_loopback:
-            config.l2_loopback = True
-            if config.service_chain != ChainType.EXT:
-                LOG.info('Changing service chain type to EXT')
-                config.service_chain = ChainType.EXT
-            if not config.no_arp:
-                LOG.info('Disabling ARP')
-                config.no_arp = True
-            config.vlans = [int(opts.l2_loopback), int(opts.l2_loopback)]
-            LOG.info('Running L2 loopback: using EXT chain/no ARP')
+            opts.hypervisor = None
+        if opts.debug_mask is not None:
+            config.debug_mask = opts.debug_mask
+            opts.debug_mask = None
 
-        if opts.use_sriov_middle_net:
-            if (not config.sriov) or (config.service_chain != ChainType.PVVP):
-                raise Exception("--use-sriov-middle-net is only valid for PVVP with SRIOV")
-            config.use_sriov_middle_net = True
+        # convert 'user_info' opt from json string to dictionnary
+        # and merge the result with the current config dictionnary
+        if opts.user_info is not None:
+            for user_info_json in opts.user_info:
+                user_info_dict = json.loads(user_info_json)
+                if config.user_info:
+                    config.user_info = config.user_info + user_info_dict
+                else:
+                    config.user_info = user_info_dict
+            opts.user_info = None
+
+        # port to port loopback (direct or through switch)
+        # we accept the following syntaxes for the CLI argument
+        #   'false'   : mode not enabled
+        #   'no-tag'  : mode enabled with no vlan tagging
+        #   'true'    : mode enabled with currently defined vlan IDs
+        #   <vlan IDs>: mode enabled using the given vlan ID (pairs)
+        #     examples 'a' | 'a,b' | 'a_x' | 'a,b,c_x,y,z'
+        # Note besides that the service chains # will be in fine
+        # determined by the number of vlan IDs pairs configured.
+
+        if opts.l2_loopback is not None:
+            arg_pair = opts.l2_loopback.lower().split('_')
+            if arg_pair[0] == 'false':
+                config.l2_loopback = False
+            else:
+                config.l2_loopback = True
+                if config.service_chain != ChainType.EXT:
+                    LOG.info('Changing service chain type to EXT')
+                    config.service_chain = ChainType.EXT
+                if not config.no_arp:
+                    LOG.info('Disabling ARP')
+                    config.no_arp = True
+                if arg_pair[0] == 'no-tag':
+                    config.vlan_tagging = False
+                else:
+                    config.vlan_tagging = True
+                    if len(arg_pair) == 1 or not arg_pair[1]:
+                        arg_pair = [arg_pair[0], arg_pair[0]]
+                    vlans = [[], []]
+
+                    def append_vlan(port, vlan_id):
+                        vlanid = int(vlan_id)
+                        # a vlan tag value must be in [0..4095]
+                        if vlanid not in range(0, 4096):
+                            raise ValueError
+                        vlans[port].append(vlanid)
+                    try:
+                        for port in [0, 1]:
+                            vlan_ids = arg_pair[port].split(',')
+                            for vlan_id in vlan_ids:
+                                append_vlan(port, vlan_id)
+                    except ValueError:
+                        # at least one invalid tag <=> no tagging
+                        config.vlan_tagging = False
+                    if config.vlan_tagging:
+                        config.vlans = vlans
+            opts.l2_loopback = None
+
+        if config.use_sriov_middle_net is None:
+            config.use_sriov_middle_net = False
+        if opts.use_sriov_middle_net is not None:
+            config.use_sriov_middle_net = opts.use_sriov_middle_net
+            opts.use_sriov_middle_net = None
+        if (config.use_sriov_middle_net and (
+                (not config.sriov) or (config.service_chain != ChainType.PVVP))):
+            raise Exception("--use-sriov-middle-net is only valid for PVVP with SRIOV")
 
         if config.sriov and config.service_chain != ChainType.EXT:
             # if sriov is requested (does not apply to ext chains)

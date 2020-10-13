@@ -869,8 +869,10 @@ class TRex(AbstractTrafficGenerator):
                           chain_count)
                 break
 
-        # if the capture from the TRex console was started before the arp request step,
-        # it keeps 'service_mode' enabled, otherwise, it disables the 'service_mode'
+        # A traffic capture may have been started (from a T-Rex console) at this time.
+        # If asked so, we keep the service mode enabled here, and disable it otherwise.
+        #  | Disabling the service mode while a capture is in progress
+        #  | would cause the application to stop/crash with an error.
         if not self.config.service_mode:
             self.client.set_service_mode(ports=self.port_handle, enabled=False)
         if len(arp_dest_macs) == len(self.port_handle):
@@ -889,7 +891,8 @@ class TRex(AbstractTrafficGenerator):
                     total_rate += int(r['rate_pps'])
             else:
                 mult = 1
-                total_rate = utils.convert_rates(l2frame_size, rates[0], intf_speed)
+                r = utils.convert_rates(l2frame_size, rates[0], intf_speed)
+                total_rate = int(r['rate_pps'])
             # rate must be enough for latency stream and at least 1 pps for base stream per chain
             required_rate = (self.LATENCY_PPS + 1) * self.config.service_chain_count * mult
             result = utils.convert_rates(l2frame_size,
@@ -1020,8 +1023,10 @@ class TRex(AbstractTrafficGenerator):
         if self.capture_id:
             self.client.stop_capture(capture_id=self.capture_id['id'])
             self.capture_id = None
-            # if the capture from TRex console was started before the connectivity step,
-            # it keeps 'service_mode' enabled, otherwise, it disables the 'service_mode'
+            # A traffic capture may have been started (from a T-Rex console) at this time.
+            # If asked so, we keep the service mode enabled here, and disable it otherwise.
+            #  | Disabling the service mode while a capture is in progress
+            #  | would cause the application to stop/crash with an error.
             if not self.config.service_mode:
                 self.client.set_service_mode(ports=self.port_handle, enabled=False)
 
@@ -1036,5 +1041,5 @@ class TRex(AbstractTrafficGenerator):
                 pass
 
     def set_service_mode(self, enabled=True):
-        """Enable/disable the 'service_mode'."""
+        """Enable/disable the 'service' mode."""
         self.client.set_service_mode(ports=self.port_handle, enabled=enabled)

@@ -88,8 +88,7 @@ class NFVBench(object):
         try:
             # recalc the running config based on the base config and options for this run
             self._update_config(opts)
-            if int(self.config.cache_size) < 0:
-                self.config.cache_size = self.config.flow_count
+
             # check that an empty openrc file (no OpenStack) is only allowed
             # with EXT chain
             if not self.config.openrc_file and self.config.service_chain != ChainType.EXT:
@@ -223,6 +222,14 @@ class NFVBench(object):
         if config.flow_count % 2:
             config.flow_count += 1
 
+        # Possibly adjust the cache size
+        if config.cache_size < 0:
+            config.cache_size = config.flow_count
+
+        # The size must be capped to 10000 (where does this limit come from?)
+        if config.cache_size > 10000:
+            config.cache_size = 10000
+
         config.duration_sec = float(config.duration_sec)
         config.interval_sec = float(config.interval_sec)
         config.pause_sec = float(config.pause_sec)
@@ -234,7 +241,6 @@ class NFVBench(object):
             config.openrc_file = os.path.expanduser(config.openrc_file)
             if config.flavor.vcpus < 2:
                 raise Exception("Flavor vcpus must be >= 2")
-
 
         config.ndr_run = (not config.no_traffic and
                           'ndr' in config.rate.strip().lower().split('_'))
@@ -493,16 +499,14 @@ def _parse_opts_from_cli():
                         metavar='<vlan>',
                         help='Port to port or port to switch to port L2 loopback with VLAN id')
 
-    """Option to allow for passing custom information to results post-processing"""
     parser.add_argument('--user-info', dest='user_info',
                         action='store',
                         metavar='<data>',
                         help='Custom data to be included as is in the json report config branch - '
-                                + ' example, pay attention! no space: '
-                                + '--user-info=\'{"status":"explore","description":{"target":"lab"'
-                                + ',"ok":true,"version":2020}\'')
+                               + ' example, pay attention! no space: '
+                               + '--user-info=\'{"status":"explore","description":'
+                               + '{"target":"lab","ok":true,"version":2020}}\'')
 
-    """Option to allow for overriding the NFVbench 'vlan_tagging' option"""
     parser.add_argument('--vlan-tagging', dest='vlan_tagging',
                         type=bool_arg,
                         metavar='<boolean>',
@@ -510,15 +514,13 @@ def _parse_opts_from_cli():
                         default=None,
                         help='Override the NFVbench \'vlan_tagging\' parameter')
 
-    """Option to allow for overriding the T-Rex 'intf_speed' parameter"""
     parser.add_argument('--intf-speed', dest='intf_speed',
                         metavar='<speed>',
                         action='store',
                         default=None,
-                        help='Override the NFVbench \'intf_speed\' parameter '
-                                + '(e.g. 10Gbps, auto, 16.72Gbps)')
+                        help='Override the NFVbench \'intf_speed\' '
+                                + 'parameter (e.g. 10Gbps, auto, 16.72Gbps)')
 
-    """Option to allow for overriding the T-Rex 'cores' parameter"""
     parser.add_argument('--cores', dest='cores',
                         type=int_arg,
                         metavar='<number>',

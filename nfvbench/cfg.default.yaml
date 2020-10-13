@@ -871,3 +871,9 @@ no_latency_stats: false
 # Can be overriden by --no-latency-stream
 # Should be left to the default value (false)
 no_latency_streams: false
+
+# General purpose register (debugging flags)
+# Can be overriden by --debug-mask
+# Designed for development needs
+# The hexadecimal notation (0x...) is accepted.
+debug_mask: 0x00000000

@@ -1,0 +1,13 @@
+--- t-rex-64-debug-gdb	2020-04-16 21:39:01.000000000 +0200
++++ t-rex-64-debug-gdb.new	2020-09-11 14:22:17.000000000 +0200
+@@ -7,6 +7,10 @@
+ 
+ ./trex-cfg $INPUT_ARGS
+ RESULT=$?
++# A possible extra parameter --ignore-528-issue, only recognized in 'dpdk_setup_ports.py'
++# (called in trex-cfg above) must be removed since it is not registered in the trex binary
++# It would otherwise cause a related (non fatal) error, further traced in the TRex log file.
++INPUT_ARGS=${INPUT_ARGS/--ignore-528-issue/}
+ 
+ if [ $RESULT -eq 255 ]; then
+   echo "ERROR encountered while configuring trex system"

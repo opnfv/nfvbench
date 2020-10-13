@@ -361,6 +361,19 @@ cache_size: 0
 # The cache size is actually limited by the number of 64B mbufs configured in the trex platform configuration (see Trex manual 6.2.2. Memory section configuration)
 # Note that the resulting value is finally capped to 10000, whatever the requested size is (by design limitation).
 
+# Specification of the TRex behaviour dealing with the i40e network card driver issue: Trex-528
+#   see https://trex-tgn.cisco.com/youtrack/issue/trex-528
+#       This issue states that if other ports, in the same card,
+#       are in kernel mode, they could impair traffic counting.      
+# Can be overridden by --i40e-mixed
+# Values can be:
+#  ignore - don't consider the case (default)
+#  check  - should the case arise, exit (TRex default behaviour)
+#  unbind - unbind kernel bound ports
+# The 'ignore' option might be OK as soon as the issue has been fixed in the driver.
+# The 'unbind' option should not be used! who knows the current use of other ports?
+i40e_mixed:
+
 # Trex will use 1 x 64B mbuf per pre-built cached packet, assuming 1 pre-built cached packet per flow, it means for very large number of flows, the number of configured mbuf_64 will need to be set accordingly.
 mbuf_64:
 

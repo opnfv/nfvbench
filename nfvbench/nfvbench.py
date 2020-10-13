@@ -529,6 +529,8 @@ def _parse_opts_from_cli():
                         help='Override the T-Rex \'cores\' parameter')
 
     parser.add_argument('--cache-size', dest='cache_size',
+                        type=int_arg,
+                        metavar='<size>',
                         action='store',
                         default='0',
                         help='Specify the FE cache size (default: 0, flow-count if < 0)')
@@ -536,12 +538,17 @@ def _parse_opts_from_cli():
     parser.add_argument('--service-mode', dest='service_mode',
                         action='store_true',
                         default=False,
-                        help='Enable T-Rex service mode for debugging only')
+                        help='Enable T-Rex service mode (for debugging purpose)')
+
+    parser.add_argument('--no-e2e-check', dest='no_e2e_check',
+                        action='store_true',
+                        default=False,
+                        help='Skip "end to end" connectivity check (on test purpose)')
 
     parser.add_argument('--no-flow-stats', dest='no_flow_stats',
                         action='store_true',
                         default=False,
-                        help='Disable extra flow stats (on high load traffic)')
+                        help='Disable additional flow stats (on high load traffic)')
 
     parser.add_argument('--no-latency-stats', dest='no_latency_stats',
                         action='store_true',

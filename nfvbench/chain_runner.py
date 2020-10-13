@@ -117,6 +117,10 @@ class ChainRunner(object):
         LOG.info('ChainRunner initialized')
 
     def __setup_traffic(self):
+        # possibly skip connectivity check
+        if self.config.no_e2e_check:
+            LOG.info('Skipping end to end connectivity check')
+            return
         self.traffic_client.setup()
         if not self.config.no_traffic:
             # ARP is needed for EXT chain or VxLAN overlay or MPLS unless disabled explicitly

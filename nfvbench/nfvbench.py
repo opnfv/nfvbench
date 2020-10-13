@@ -165,7 +165,9 @@ class NFVBench(object):
                                self.config.service_chain,
                                self.config.service_chain_count,
                                self.config.flow_count,
-                               self.config.frame_sizes)
+                               self.config.frame_sizes,
+                               self.config.user_id,
+                               self.config.group_id)
 
     def _update_config(self, opts):
         """Recalculate the running config based on the base config and opts.
@@ -560,6 +562,20 @@ def _parse_opts_from_cli():
                         default=False,
                         help='Disable latency measurements (no streams)')
 
+    parser.add_argument('--user-id', dest='user_id',
+                        type=int_arg,
+                        metavar='<uid>',
+                        action='store',
+                        default=None,
+                        help='Change json/log files ownership with this user (int)')
+
+    parser.add_argument('--group-id', dest='group_id',
+                        type=int_arg,
+                        metavar='<gid>',
+                        action='store',
+                        default=None,
+                        help='Change json/log files ownership with this group (int)')
+
     parser.add_argument('--debug-mask', dest='debug_mask',
                         type=int_arg,
                         metavar='<mask>',
@@ -633,6 +649,12 @@ def main():
         log.setup()
         # load default config file
         config, default_cfg = load_default_config()
+        # possibly override the default user_id & group_id values
+        if 'USER_ID' in os.environ:
+            config.user_id = int(os.environ['USER_ID'])
+        if 'GROUP_ID' in os.environ:
+            config.group_id = int(os.environ['GROUP_ID'])
+        
         # create factory for platform specific classes
         try:
             factory_module = importlib.import_module(config['factory_module'])
@@ -771,6 +793,13 @@ def main():
         # add file log if requested
         if config.log_file:
             log.add_file_logger(config.log_file)
+            # possibly change file ownership
+            uid = config.user_id
+            gid = config.group_id
+            if gid is None:
+                gid = uid
+            if uid is not None:
+                os.chown(config.log_file, uid, gid)
 
         openstack_spec = config_plugin.get_openstack_spec() if config.openrc_file \
             else None

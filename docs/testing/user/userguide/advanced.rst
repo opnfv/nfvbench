@@ -543,33 +543,33 @@ So, NFVbench will determine each pool size to generate accurate flows:
     2020-06-17 07:37:47,012 INFO Port 0, chain 0: UDP src range [10,14]
     2020-06-17 07:37:47,012 INFO Port 0, chain 0: UDP dst range [20,25]
     2020-06-17 07:37:47,013 WARNING Current values of ip_addrs_step and/or udp_port_step properties do not allow to control an accurate flow count. Values will be overridden as follows:
-    2020-06-17 07:37:47,013 INFO udp_port_step='1' (previous value: udp_port_step='random'
+    2020-06-17 07:37:47,013 INFO udp_port_step='1' (previous value: udp_port_step='random')
     2020-06-17 07:37:47,015 INFO Port 1, chain 0: IP src range [120.0.0.0,120.0.0.0]
     2020-06-17 07:37:47,015 INFO Port 1, chain 0: IP dst range [110.0.0.0,110.0.0.0]
     2020-06-17 07:37:47,015 INFO Port 1, chain 0: UDP src range [10,14]
     2020-06-17 07:37:47,015 INFO Port 1, chain 0: UDP dst range [20,25]
 
     2020-06-17 07:38:47,010 WARNING Current values of ip_addrs_step and/or udp_port_step properties do not allow to control an accurate flow count. Values will be overridden as follows:
-    2020-06-17 07:38:47,011 INFO udp_port_step='1' (previous value: udp_port_step='random'
+    2020-06-17 07:38:47,011 INFO udp_port_step='1' (previous value: udp_port_step='random')
     2020-06-17 07:38:47,012 INFO Port 0, chain 1: IP src range [110.0.0.1,110.0.0.1]
     2020-06-17 07:38:47,012 INFO Port 0, chain 1: IP dst range [120.0.0.1,120.0.0.1]
     2020-06-17 07:38:47,012 INFO Port 0, chain 1: UDP src range [10,14]
     2020-06-17 07:38:47,012 INFO Port 0, chain 1: UDP dst range [20,25]
     2020-06-17 07:38:47,013 WARNING Current values of ip_addrs_step and/or udp_port_step properties do not allow to control an accurate flow count. Values will be overridden as follows:
-    2020-06-17 07:38:47,013 INFO udp_port_step='1' (previous value: udp_port_step='random'
+    2020-06-17 07:38:47,013 INFO udp_port_step='1' (previous value: udp_port_step='random')
     2020-06-17 07:38:47,015 INFO Port 1, chain 1: IP src range [120.0.0.1,120.0.0.1]
     2020-06-17 07:38:47,015 INFO Port 1, chain 1: IP dst range [110.0.0.1,110.0.0.1]
     2020-06-17 07:38:47,015 INFO Port 1, chain 1: UDP src range [10,14]
     2020-06-17 07:38:47,015 INFO Port 1, chain 1: UDP dst range [20,25]
 
     2020-06-17 07:39:47,010 WARNING Current values of ip_addrs_step and/or udp_port_step properties do not allow to control an accurate flow count. Values will be overridden as follows:
-    2020-06-17 07:39:47,011 INFO udp_port_step='1' (previous value: udp_port_step='random'
+    2020-06-17 07:39:47,011 INFO udp_port_step='1' (previous value: udp_port_step='random')
     2020-06-17 07:39:47,012 INFO Port 0, chain 2: IP src range [110.0.0.2,110.0.0.2]
     2020-06-17 07:39:47,012 INFO Port 0, chain 2: IP dst range [120.0.0.2,120.0.0.2]
     2020-06-17 07:39:47,012 INFO Port 0, chain 2: UDP src range [10,14]
     2020-06-17 07:39:47,012 INFO Port 0, chain 2: UDP dst range [20,25]
     2020-06-17 07:39:47,013 WARNING Current values of ip_addrs_step and/or udp_port_step properties do not allow to control an accurate flow count. Values will be overridden as follows:
-    2020-06-17 07:39:47,013 INFO udp_port_step='1' (previous value: udp_port_step='random'
+    2020-06-17 07:39:47,013 INFO udp_port_step='1' (previous value: udp_port_step='random')
     2020-06-17 07:39:47,015 INFO Port 1, chain 2: IP src range [120.0.0.2,120.0.0.2]
     2020-06-17 07:39:47,015 INFO Port 1, chain 2: IP dst range [110.0.0.2,110.0.0.2]
     2020-06-17 07:39:47,015 INFO Port 1, chain 2: UDP src range [10,14]

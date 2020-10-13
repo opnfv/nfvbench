@@ -1,0 +1,73 @@
+# docker file for creating a container that has nfvbench installed and ready to use
+
+FROM ubuntu:16.04
+
+ENV TREX_VER="v2.79" \
+    VM_IMAGE_VER="0.12" \
+    PYTHONIOENCODING="utf8"
+
+# Note: do not clone with --depth 1 as it will cause pbr to fail extracting the nfvbench version
+# from the git tag
+
+# instead of cloning the (latest) nfvbench remote repo:
+# "cd / && git clone https://gerrit.opnfv.org/gerrit/nfvbench \"
+# let us use the current local nfvbench tree (COPY)
+
+RUN apt-get update -y \
+ && apt-get install -y software-properties-common \
+ && add-apt-repository -y ppa:deadsnakes/ppa \
+ && apt-get update -y \
+ && apt-get install -y \
+      git \
+      kmod \
+      pciutils \
+      python3.6 \
+      vim \
+      wget \
+      net-tools \
+      iproute2 \
+      libelf1 \
+      python3-dev \
+      libpython3.6-dev \
+      gcc \
+ && ln -sf /usr/bin/python3.6 /usr/local/bin/python3 \
+ && mkdir -p /opt/trex \
+ && wget --no-cache --no-check-certificate \
+      https://trex-tgn.cisco.com/trex/release/$TREX_VER.tar.gz -P /tmp \
+ && tar xzf /tmp/$TREX_VER.tar.gz -C /opt/trex \
+ && rm -f /tmp/$TREX_VER.tar.gz \
+ && cp -a /opt/trex/$TREX_VER/automation/trex_control_plane/interactive/trex \
+      /usr/local/lib/python3.6/dist-packages/ \
+ && rm -rf /opt/trex/$TREX_VER/automation/trex_control_plane/interactive/trex \
+ && rm -f /opt/trex/$TREX_VER/trex_client_$TREX_VER.tar.gz \
+ && wget https://bootstrap.pypa.io/get-pip.py -P /tmp \
+ && python3 /tmp/get-pip.py \
+ && rm -f /tmp/get-pip.py \
+ && pip3 install -U \
+      pbr \
+      setuptools
+
+COPY --chown=root:root ./ /nfvbench
+
+RUN pip3 install -e /nfvbench \
+ && rm -rf /nfvbench/.git \
+ && wget -O /nfvbench/nfvbenchvm-$VM_IMAGE_VER.qcow2 \
+      http://artifacts.opnfv.org/nfvbench/images/nfvbenchvm_centos-$VM_IMAGE_VER.qcow2 \
+ # Override Xtesting testcases.yaml file by NFVbench default one
+ && cp /nfvbench/xtesting/testcases.yaml \
+      /usr/local/lib/python3.6/dist-packages/xtesting/ci/testcases.yaml \
+ && python3 /nfvbench/docker/cleanup_generators.py \
+ && apt-get remove -y \
+      wget \
+      git \
+      python3-dev \
+      libpython3.6-dev \
+      gcc \
+ && apt-get autoremove -y \
+ && apt-get clean \
+ && rm -rf /var/lib/apt/lists/* \
+ && mkdir -p /var/log/nfvbench
+
+ENV TREX_EXT_LIBS "/opt/trex/$TREX_VER/external_libs"
+
+ENTRYPOINT ["/nfvbench/docker/nfvbench-entrypoint.sh"]

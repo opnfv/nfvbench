@@ -551,6 +551,15 @@ def _parse_opts_from_cli():
                         default=False,
                         help='Disable latency measurements (no streams)')
 
+    parser.add_argument('--debug-mask', dest='debug_mask',
+                        type=int_arg,
+                        metavar='<mask>',
+                        action='store',
+                        default='0x00000000',
+                        help='General purpose register (debugging flags), '
+                          + 'the hexadecimal notation (0x...) is accepted.'
+                          + 'Designed for development needs.')
+
     opts, unknown_opts = parser.parse_known_args()
     return opts, unknown_opts
 

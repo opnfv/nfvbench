@@ -15,6 +15,7 @@
 
 import math
 import os
+import sys
 import random
 import time
 import traceback
@@ -674,9 +675,78 @@ class TRex(AbstractTrafficGenerator):
     def __connect(self, client):
         client.connect()
 
+    def __local_server_status(self):
+        """ The TRex server may have started but failed initializing... and stopped.
+        This piece of code is especially designed to address
+        the case when a fatal failure occurs on a DPDK init call.
+        The TRex algorihm should be revised to include some missing timeouts (?)
+        status returned:
+          0: no error detected
+          1: fatal error detected - should lead to exiting the run
+          2: error detected that could be solved by starting again
+        The diagnostic is based on parsing the local trex log file (improvable)
+        """
+        status = 0
+        message = None
+        failure = None
+        exited = None
+        cause = None
+        error = None
+        before = None
+        after = None
+        last = None
+        try:
+            with open('/tmp/trex.log', 'r') as trex_log:
+                for _line in trex_log:
+                    line = _line.strip()
+                    if line.startswith('Usage:'):
+                        break
+                    if 'ports are bound' in line:
+                        continue
+                    if 'please wait' in line:
+                        continue
+                    if 'exit' in line.lower():
+                        exited = line
+                    elif 'cause' in line.lower():
+                        cause = line
+                    elif 'fail' in line.lower():
+                        failure = line
+                    elif 'msg' in line.lower():
+                        message = line
+                    elif (error is not None) and line:
+                        after = line
+                    elif line.startswith('Error:') or line.startswith('ERROR'):
+                        error = line
+                        before = last
+                    last = line
+        except FileNotFoundError:
+            pass
+        if exited is not None:
+            status = 1
+            LOG.info("\x1b[1m%s\x1b[0m %s", 'TRex failed initializing:', exited)
+            if cause is not None:
+                LOG.info("TRex [cont'd] %s", cause)
+            if failure is not None:
+                LOG.info("TRex [cont'd] %s", failure)
+            if message is not None:
+                LOG.info("TRex [cont'd] %s", message)
+                if 'not supported yet' in message.lower():
+                    LOG.info("TRex [cont'd] Try starting again!")
+                    status = 2
+        elif error is not None:
+            status = 1
+            LOG.info("\x1b[1m%s\x1b[0m %s", 'TRex failed initializing:', error)
+            if after is not None:
+                LOG.info("TRex [cont'd] %s", after)
+            elif before is not None:
+                LOG.info("TRex [cont'd] %s", before)
+        return status
+
     def __connect_after_start(self):
         # after start, Trex may take a bit of time to initialize
         # so we need to retry a few times
+        # we try to capture recoverable error cases (checking status)
+        status = 0
         for it in range(self.config.generic_retry_count):
             try:
                 time.sleep(1)
@@ -685,10 +755,23 @@ class TRex(AbstractTrafficGenerator):
             except Exception as ex:
                 if it == (self.config.generic_retry_count - 1):
                     raise
+                status = self.__local_server_status()
+                if status > 0:
+                    # No need to wait anymore, something went wrong and TRex exited
+                    if status == 1:
+                        LOG.info("\x1b[1m%s\x1b[0m", 'TRex failed starting!')
+                        print("More information? Try the command: "
+                            + "\x1b[1mnfvbench --show-trex-log\x1b[0m")
+                        sys.exit(0)
+                    if status == 2:
+                        # a new start will follow
+                        return status
                 LOG.info("Retrying connection to TRex (%s)...", ex.msg)
+        return status
 
     def connect(self):
         """Connect to the TRex server."""
+        status = 0
         server_ip = self.generator_config.ip
         LOG.info("Connecting to TRex (%s)...", server_ip)
 
@@ -700,12 +783,19 @@ class TRex(AbstractTrafficGenerator):
             if server_ip == '127.0.0.1':
                 config_updated = self.__check_config()
                 if config_updated or self.config.restart:
-                    self.__restart()
+                    status = self.__restart()
         except (TimeoutError, STLError) as e:
             if server_ip == '127.0.0.1':
-                self.__start_local_server()
+                status = self.__start_local_server()
             else:
                 raise TrafficGeneratorException(e.message) from e
+
+        if status == 2:
+            # Workaround in case of a failed TRex server initialization
+            # we try to start it again (twice maximum)
+            # which may allow low level initialization to complete.
+            if self.__start_local_server() == 2:
+                self.__start_local_server()
 
         ports = list(self.generator_config.ports)
         self.port_handle = ports
@@ -742,7 +832,7 @@ class TRex(AbstractTrafficGenerator):
         try:
             LOG.info("Starting TRex ...")
             self.__start_server()
-            self.__connect_after_start()
+            status = self.__connect_after_start()
         except (TimeoutError, STLError) as e:
             LOG.error('Cannot connect to TRex')
             LOG.error(traceback.format_exc())
@@ -762,6 +852,7 @@ class TRex(AbstractTrafficGenerator):
             else:
                 message = e.message
             raise TrafficGeneratorException(message) from e
+        return status
 
     def __start_server(self):
         server = TRexTrafficServer()
@@ -780,7 +871,8 @@ class TRex(AbstractTrafficGenerator):
             if not self.client.is_connected():
                 LOG.info("TRex is stopped...")
                 break
-        self.__start_local_server()
+        # Start and report a possible failure
+        return self.__start_local_server()
 
     def __stop_server(self):
         if self.generator_config.ip == '127.0.0.1':

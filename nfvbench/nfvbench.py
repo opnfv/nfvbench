@@ -580,6 +580,12 @@ def _parse_opts_from_cli():
                         default=None,
                         help='Change json/log files ownership with this group (int)')
 
+    parser.add_argument('--show-trex-log', dest='show_trex_log',
+                        default=None,
+                        action='store_true',
+                        help='Show the current TRex local server log file contents'
+                               + ' => diagnostic/help in case of configuration problems')
+
     parser.add_argument('--debug-mask', dest='debug_mask',
                         type=int_arg,
                         metavar='<mask>',
@@ -689,6 +695,14 @@ def main():
         # show default config in text/yaml format
         if opts.show_default_config:
             print((default_cfg.decode("utf-8")))
+            sys.exit(0)
+
+        # dump the contents of the trex log file
+        if opts.show_trex_log:
+            try:
+                print(open('/tmp/trex.log').read(), end="")
+            except FileNotFoundError:
+                print("No TRex log file found!")
             sys.exit(0)
 
         config.name = ''

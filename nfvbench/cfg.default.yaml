@@ -868,9 +868,15 @@ no_flow_stats: false
 no_latency_stats: false
 
 # Disable latency measurements (no streams)
-# Can be overriden by --no-latency-stream
+# Can be overriden by --no-latency-streams
 # Should be left to the default value (false)
 no_latency_streams: false
+
+# Skip "end to end" connectivity check on traffic setup
+# Can be overriden by --no-e2e-check
+# Should be left to the default value (false)
+# This flag is usable for traffic generation only
+no_e2e_check: false
 
 # General purpose register (debugging flags)
 # Can be overriden by --debug-mask

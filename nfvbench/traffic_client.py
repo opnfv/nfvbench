@@ -58,8 +58,11 @@ class TrafficRunner(object):
             return None
         LOG.info('Running traffic generator')
         self.client.gen.clear_stats()
-        # Debug use only : new '--service-mode' option available for the NFVBench command line.
-        # A read-only mode TRex console would be able to capture the generated traffic.
+        # Debug use only: the service_mode flag may have been set in
+        # the configuration, in order to enable the 'service' mode
+        # in the trex generator, before starting the traffic (run).
+        # From this point, a T-rex console (launched in readonly mode) would
+        # then be able to capture the transmitted and/or received traffic.
         self.client.gen.set_service_mode(enabled=self.service_mode)
         LOG.info('Service mode is %sabled', 'en' if self.service_mode else 'dis')
         self.client.gen.start_traffic()
@@ -1120,7 +1123,6 @@ class TrafficClient(object):
                     for percentile in self.config.lat_percentiles:
                         retDict['overall']['rx']['lat_percentile'][percentile] = \
                             decoded_histogram.get_value_at_percentile(percentile)
-
         else:
             retDict['overall'] = retDict[ports[0]]
         retDict['overall']['drop_rate_percent'] = self.__get_dropped_rate(retDict['overall'])
@@ -1249,6 +1251,17 @@ class TrafficClient(object):
         rate: the rate to send on each port in percent (0 to 100)
         """
         self._modify_load(rate)
+
+        # There used to be a inconsistency in case of interface speed override.
+        # The emulated 'intf_speed' value is unknown to the T-Rex generator which
+        # refers to the detected line rate for converting relative traffic loads.
+        # Therefore, we need to convert actual rates here, in terms of packets/s.
+
+        for idx, str_rate in enumerate(self.gen.rates):
+            if str_rate.endswith('%'):
+                float_rate = float(str_rate.replace('%', '').strip())
+                pps_rate = self.__convert_rates({'rate_percent': float_rate})['rate_pps']
+                self.gen.rates[idx] = str(pps_rate) + 'pps'
 
         # poll interval stats and collect them
         for stats in self.run_traffic():

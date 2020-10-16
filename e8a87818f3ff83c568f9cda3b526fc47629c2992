@@ -1,0 +1,89 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "117a8e34_78fcdc0d",
+        "filename": "docs/testing/user/userguide/advanced.rst",
+        "patchSetId": 1
+      },
+      "lineNbr": 390,
+      "author": {
+        "id": 5807
+      },
+      "writtenOn": "2020-10-16T08:45:26Z",
+      "side": 1,
+      "message": "Curious to know why the chain shows \"1\" instead of \"2\" in your snapshot?\nThe code looks correct and prints the chain idex\n(same for below snapshots)",
+      "revId": "e8a87818f3ff83c568f9cda3b526fc47629c2992",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e03e48fd_2dd8a89a",
+        "filename": "docs/testing/user/userguide/advanced.rst",
+        "patchSetId": 1
+      },
+      "lineNbr": 508,
+      "author": {
+        "id": 5807
+      },
+      "writtenOn": "2020-10-16T08:45:26Z",
+      "side": 1,
+      "message": "lether -\u003e greater",
+      "revId": "e8a87818f3ff83c568f9cda3b526fc47629c2992",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "311afc53_ff261c10",
+        "filename": "docs/testing/user/userguide/advanced.rst",
+        "patchSetId": 1
+      },
+      "lineNbr": 540,
+      "author": {
+        "id": 5807
+      },
+      "writtenOn": "2020-10-16T08:45:26Z",
+      "side": 1,
+      "message": "missing closing \")\" \nwhile the code has it.",
+      "revId": "e8a87818f3ff83c568f9cda3b526fc47629c2992",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e2365253_fe2c23c3",
+        "filename": "nfvbench/traffic_client.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 398,
+      "author": {
+        "id": 5807
+      },
+      "writtenOn": "2020-10-16T08:45:26Z",
+      "side": 1,
+      "message": "can use integer divide with py3 (//)",
+      "revId": "e8a87818f3ff83c568f9cda3b526fc47629c2992",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "af65c4b1_4514df92",
+        "filename": "nfvbench/traffic_client.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 510,
+      "author": {
+        "id": 5807
+      },
+      "writtenOn": "2020-10-16T08:45:26Z",
+      "side": 1,
+      "message": "this looks to be constant and moved outside the loop?\nAlso since we only support python3, we can use integer divide (//)",
+      "revId": "e8a87818f3ff83c568f9cda3b526fc47629c2992",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": true
+    }
+  ]
+}

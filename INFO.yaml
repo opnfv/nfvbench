@@ -8,7 +8,7 @@ project_lead: &opnfv_nfvbench_ptl
     email: 'ahothan@cisco.com'
     id: 'ahothan'
     company: 'cisco.com'
-    timezone: 'Unknown'
+    timezone: 'PST'
 primary_contact: *opnfv_nfvbench_ptl
 issue_tracking:
     type: 'jira'
@@ -38,6 +38,10 @@ committers:
       email: 'yicwang@cisco.com'
       company: 'cisco.com'
       id: 'yicwang'
+    - name: 'Francois-Regis Menguy'
+      email: 'francoisregis.menguy@orange.com'
+      company: 'orange.com'
+      id: 'fmenguy'
 tsc:
     # yamllint disable rule:line-length
     approval: ''

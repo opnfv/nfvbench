@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "2d921a99_97634b42",
+        "filename": "nfvbench/nfvbench.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 773,
+      "author": {
+        "id": 5807
+      },
+      "writtenOn": "2020-10-29T01:36:47Z",
+      "side": 1,
+      "message": "i think this deserves a section in the doc to describe the exact semantic of the different forms.\nfrom what I can see, \"_\" is used to separate port0 and port1 vlans\nand I guess the number of vlans on each side must match (code does not seem to check that).\nAre you also expecting vlan translation happening behind the TOR interface (such as packet sent to vlan must be forwarded to vlan x) this needs to be documented.",
+      "revId": "4840be9782975e2037b6cf203a484096f008a6c3",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": true
+    }
+  ]
+}

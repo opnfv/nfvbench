@@ -167,6 +167,8 @@ class TRex(AbstractTrafficGenerator):
         result["latency"] = in_stats["latency"]
 
         # Merge HDRHistogram to have an overall value for all chains and ports
+        # (provided that the histogram exists in the stats returned by T-Rex)
+        # Of course, empty histograms will produce an empty (invalid) histogram.
         try:
             hdrh_list = []
             if ifstats:
@@ -185,7 +187,7 @@ class TRex(AbstractTrafficGenerator):
                 x.add(y)
                 return x
             decoded_hdrh = reduce(add_hdrh, hdrh_list)
-            result["hdrh"] = HdrHistogram.encode(decoded_hdrh).decode('utf-8')
+            result["overall_hdrh"] = HdrHistogram.encode(decoded_hdrh).decode('utf-8')
         except KeyError:
             pass
 

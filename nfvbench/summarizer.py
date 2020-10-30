@@ -481,6 +481,7 @@ class NFVBenchSummarizer(Summarizer):
                     self.extract_hdrh_percentiles(
                         analysis['stats']['overall']['rx']['lat_percentile'], row_data)
                 summary_table.add_row(row_data)
+
                 single_run_data = {
                     'type': 'single_run',
                     'offered_tx_rate_bps': analysis['stats']['offered_tx_rate_bps'],
@@ -556,12 +557,13 @@ class NFVBenchSummarizer(Summarizer):
                    'lat_min_usec': 'Min lat.',
                    'lat_max_usec': 'Max lat.'}
         if 'lat_avg_usec' in chains['0']:
-            lat_keys = ['lat_avg_usec', 'lat_min_usec', 'lat_max_usec', 'lat_percentile']
+            lat_keys = ['lat_avg_usec', 'lat_min_usec', 'lat_max_usec']
 
             if not self.config.disable_hdrh:
+                lat_keys.append('lat_percentile')
                 for percentile in self.config.lat_percentiles:
-                    lat_map['lat_' + str(percentile) + '_percentile'] = str(
-                        percentile) + ' %ile lat.'
+                    lat_map['lat_' + str(percentile) + '_percentile'] = \
+                        str(percentile) + ' %ile lat.'
 
             for key in lat_map:
                 header.append((lat_map[key], Formatter.standard))
@@ -570,15 +572,21 @@ class NFVBenchSummarizer(Summarizer):
         for chain in sorted(list(chains.keys()), key=str):
             row = [chain] + chains[chain]['packets']
             for lat_key in lat_keys:
-                if chains[chain].get(lat_key, None):
-                    if lat_key == 'lat_percentile':
-                        if not self.config.disable_hdrh:
-                            for percentile in chains[chain][lat_key]:
-                                row.append(Formatter.standard(chains[chain][lat_key][percentile]))
-                    else:
+
+                if lat_key != 'lat_percentile':
+                    if chains[chain].get(lat_key, None):
                         row.append(Formatter.standard(chains[chain][lat_key]))
+                    else:
+                        row.append('n/a')
                 else:
-                    row.append('--')
+                    if not self.config.disable_hdrh:
+                        if chains[chain].get(lat_key, None):
+                            for percentile in chains[chain][lat_key]:
+                                row.append(Formatter.standard(chains[chain] \
+                                    [lat_key][percentile]))
+                        else:
+                            for percentile in self.config.lat_percentiles:
+                                row.append('n/a')
             table.add_row(row)
         return table
 

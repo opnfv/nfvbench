@@ -16,6 +16,7 @@
 import socket
 import struct
 import time
+import sys
 
 from attrdict import AttrDict
 import bitmath
@@ -1112,20 +1113,25 @@ class TrafficClient(object):
             for key in ['pkt_bit_rate', 'pkt_rate']:
                 for dirc in ['tx', 'rx']:
                     retDict['overall'][dirc][key] /= 2.0
-                retDict['overall']['hdrh'] = stats.get('hdrh', None)
-                if retDict['overall']['hdrh']:
-                    decoded_histogram = HdrHistogram.decode(retDict['overall']['hdrh'])
-                    # override min max and avg from hdrh
-                    retDict['overall']['rx']['min_delay_usec'] = decoded_histogram.get_min_value()
-                    retDict['overall']['rx']['max_delay_usec'] = decoded_histogram.get_max_value()
-                    retDict['overall']['rx']['avg_delay_usec'] = decoded_histogram.get_mean_value()
-                    retDict['overall']['rx']['lat_percentile'] = {}
-                    for percentile in self.config.lat_percentiles:
-                        retDict['overall']['rx']['lat_percentile'][percentile] = \
-                            decoded_histogram.get_value_at_percentile(percentile)
         else:
             retDict['overall'] = retDict[ports[0]]
         retDict['overall']['drop_rate_percent'] = self.__get_dropped_rate(retDict['overall'])
+
+        if 'overall_hdrh' in stats:
+            retDict['overall']['hdrh'] = stats.get('overall_hdrh', None)
+            decoded_histogram = HdrHistogram.decode(retDict['overall']['hdrh'])
+            retDict['overall']['rx']['lat_percentile'] = {}
+            # override min max and avg from hdrh (only if histogram is valid)
+            if decoded_histogram.get_total_count() != 0:
+                retDict['overall']['rx']['min_delay_usec'] = decoded_histogram.get_min_value()
+                retDict['overall']['rx']['max_delay_usec'] = decoded_histogram.get_max_value()
+                retDict['overall']['rx']['avg_delay_usec'] = decoded_histogram.get_mean_value()
+                for percentile in self.config.lat_percentiles:
+                    retDict['overall']['rx']['lat_percentile'][percentile] = \
+                        decoded_histogram.get_value_at_percentile(percentile)
+            else:
+                for percentile in self.config.lat_percentiles:
+                    retDict['overall']['rx']['lat_percentile'][percentile] = 'n/a'
         return retDict
 
     def __convert_rates(self, rate):
@@ -1154,19 +1160,21 @@ class TrafficClient(object):
             }
 
             if key == 'overall':
-                stats[key]['hdrh'] = interface.get('hdrh', None)
-                if stats[key]['hdrh']:
+                if 'hdrh' in interface:
+                    stats[key]['hdrh'] = interface.get('hdrh', None)
                     decoded_histogram = HdrHistogram.decode(stats[key]['hdrh'])
-                    # override min max and avg from hdrh
-                    stats[key]['min_delay_usec'] = decoded_histogram.get_min_value()
-                    stats[key]['max_delay_usec'] = decoded_histogram.get_max_value()
-                    stats[key]['avg_delay_usec'] = decoded_histogram.get_mean_value()
                     stats[key]['lat_percentile'] = {}
-                    for percentile in self.config.lat_percentiles:
-                        stats[key]['lat_percentile'][percentile] = decoded_histogram.\
-                            get_value_at_percentile(percentile)
-
-
+                    # override min max and avg from hdrh (only if histogram is valid)
+                    if decoded_histogram.get_total_count() != 0:
+                        stats[key]['min_delay_usec'] = decoded_histogram.get_min_value()
+                        stats[key]['max_delay_usec'] = decoded_histogram.get_max_value()
+                        stats[key]['avg_delay_usec'] = decoded_histogram.get_mean_value()
+                        for percentile in self.config.lat_percentiles:
+                            stats[key]['lat_percentile'][percentile] = decoded_histogram.\
+                                get_value_at_percentile(percentile)
+                    else:
+                        for percentile in self.config.lat_percentiles:
+                            stats[key]['lat_percentile'][percentile] = 'n/a'
         return stats
 
     def __targets_found(self, rate, targets, results):
@@ -1295,6 +1303,9 @@ class TrafficClient(object):
         delta_tx = cur_tx - self.prev_tx
         delta_rx = cur_rx - self.prev_rx
         drops = delta_tx - delta_rx
+        if delta_tx == 0:
+            LOG.info("\x1b[1mConfiguration issue!\x1b[0m (no transmission)")
+            sys.exit(0)
         drop_rate_pct = 100 * (delta_tx - delta_rx)/delta_tx
         self.prev_tx = cur_tx
         self.prev_rx = cur_rx

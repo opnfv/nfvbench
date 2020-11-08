@@ -46,7 +46,7 @@ The most common issues that prevent traffic from passing are:
 - incorrect vlan_tagging setting in the NFVbench configuration, this needs to match how the NFVbench ports on the switch are configured (trunk or access port)
 
    - if the switch port is configured as access port, you must disable vlan_tagging in the NFVbench configuration
-   - of the switch port is configured as trunk (recommended method), you must enable it
+   - if the switch port is configured as trunk (recommended method), you must enable it
 
 Issues with high performances at a high line rate
 -------------------------------------------------

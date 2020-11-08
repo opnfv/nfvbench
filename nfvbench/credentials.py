@@ -176,7 +176,7 @@ class Credentials(object):
             # Return HTTP 200 if user is admin
             self.get_session().get('/users', endpoint_filter=filter)
             self.is_admin = True
-        except Exception as e:
+        except Exception:
             try:
                 # vX/users URL returns exception (HTTP 403) if user is not admin.
                 self.get_session().get('/v' + str(self.rc_identity_api_version) + '/users',

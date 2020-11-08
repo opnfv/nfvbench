@@ -598,6 +598,66 @@ Used parameters:
 * ``--unidir`` : run traffic with unidirectional flow (default to bidirectional flow)
 
 
+.. _adv-l2l-cli:
+
+L2 loopback test via CLI
+------------------------
+
+The CLI allows running a pure L2 loopback benchmark with the ``--l2-loopback`` option.
+Enabling this mode overrides any service chain type selected in the config file.
+The usual argument would be a single VLAN ID but the syntax has been extended.
+
+Examples of runs:
+
+* specify the vlan ID
+
+  .. code-block:: bash
+  
+    nfvbench -c nfvbench.cfg --frame-size=64 --rate=100% --duration=10 --l2-loopback=123
+    
+* specify a list of vlan IDs
+  
+  Several service chains are created, the count is adjusted to the list size.
+
+  .. code-block:: bash
+  
+    nfvbench -c nfvbench.cfg -fs=64 --rate=100% --duration=10 --l2-loopback=123,124,125
+    
+* enable the mode without VLAN tagging
+
+  In this case the service chain count is forced to 1.
+  
+  .. code-block:: bash
+  
+    nfvbench -c nfvbench.cfg -fs=64 --rate=100% --duration=10 --l2-loopback=no-tag
+    
+* use different VLAN tags for left & right side ports
+
+  .. code-block:: bash
+  
+    nfvbench -c nfvbench.cfg -fs=64 --rate=100% --duration=10 --l2-loopback=111_211
+    nfvbench -c nfvbench.cfg -fs=64 --rate=100% --duration=10 --l2-loopback=111,112_211,212
+
+  .. note::
+    It may look bizarre to specify mismatched VLAN tags for left & right sides,
+    however no assumption is made about the loop implementation.
+    This could help testing some exotic L2 layer configuration comprising a VLAN rewriting.
+
+* enable the mode, starting from current settings (prepared in the cfg file)
+
+  In this case the service chain count is not adjusted.
+
+  .. code-block:: bash
+  
+    nfvbench -c nfvbench.cfg -fs=64 --rate=100% --duration=10 --l2-loopback=true
+    
+* disable the mode (possibly enabled in the cfg file)
+
+  .. code-block:: bash
+  
+    nfvbench -c nfvbench.cfg --l2-loopback=false
+
+
 MAC Addresses
 -------------
 

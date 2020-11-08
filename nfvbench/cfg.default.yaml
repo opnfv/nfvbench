@@ -60,7 +60,7 @@ flavor:
   # Size of local disk in GB
   disk: 0
   # metadata are supported and can be added if needed, optional
-  # note that if your openstack does not have NUMA optimization
+  # note that if your OpenStack does not have NUMA optimization
   # (cpu pinning and huge pages)
   # you must comment out extra_specs completely otherwise
   # loopback VM creation will fail
@@ -79,7 +79,7 @@ flavor:
 # When multiqueue is used the recommended setting is to set it to same value as the
 # number of vCPU used - up to a max of 8 queues.
 # Setting to a lower value than vCPU should also work. For example if using 4 vCPU and
-# vif_multiqueue_size is set to 2, openstack will create 4 queues per interface but the
+# vif_multiqueue_size is set to 2, OpenStack will create 4 queues per interface but the
 # test VM will only use the first 2 queues.
 vif_multiqueue_size: 1
 
@@ -95,7 +95,7 @@ num_mbufs: 16384
 availability_zone:
 # To force placement on a given hypervisor, set the name here
 # (if multiple names are provided, the first will be used)
-# Leave empty to let openstack pick the hypervisor
+# Leave empty to let OpenStack pick the hypervisor
 compute_nodes:
 # If openrc is not admin set a valid value for hypervisor hostname
 # Example of value: hypervisor_hostname: "server1"
@@ -128,10 +128,16 @@ flow_count: 10000
 sriov: false
 
 # Perform port to port loopback (direct or through switch)
-# Should be used with EXT service chain and no ARP (no_arp: true)
-# When enabled, the vlans property must contain the same VLAN id for all chains.
-# Can be overriden by --l2-loopback
+# e.g. for unitary testing of the switch or the bench itself.
+# When selected, this mode forces EXT service chain and no ARP mode
+# Destination MAC for each port is set to the other (peer) port MAC.
+# VLAN tagging is defined by 'vlans' & 'vlan_tagging' properties.
+# Can be overriden by --l2-loopback (including vlan tagging spec).
 l2_loopback: false
+# No assumption is made about the loop implementation.
+# Multiple L2 vlan tagged service chains are allowed,
+# the vlan ID lists' size must be at least service_chain_count.
+# If not vlan tagging, the service chain count is forced to 1.
 
 # Resources created by NFVbench will not be removed
 # Can be overriden by --no-cleanup
@@ -390,7 +396,7 @@ generic_poll_sec: 2
 # name of the loop VM
 loop_vm_name: 'nfvbench-loop-vm'
 
-# Default names, subnets and CIDRs for PVP/PVVP networks (openstack only)
+# Default names, subnets and CIDRs for PVP/PVVP networks (OpenStack only)
 #
 # If a network with given name already exists it will be reused.
 # - PVP only uses left and right
@@ -673,19 +679,21 @@ mpls: false
 # is not supported). Use the vtep_vlan option to enable vlan tagging for the VxLAN overlay network.
 vlan_tagging: true
 
-# Used only in the case of EXT chain and no openstack or not admin access to specify the VLAN IDs to use.
-# This property is ignored when OpenStakc is used or in the case of l2-loopback.
+# Used only in the case of EXT chain and no OpenStack or not admin access to specify the VLAN IDs to use.
+# This property is ignored when OpenStack is used or when 'vlan_tagging' is disabled.
 # If OpenStack is used leave the list empty, VLAN IDs are retrieved from OpenStack networks using Neutron API.
 # If networks are shared across all chains (service_chain_shared_net=true), the list should have exactly 2 values
 # If networks are not shared across chains (service_chain_shared_net=false), the list should have
 # 2 list of vlan IDs
-# In the special case of l2-loopback the list should have the same VLAN id for all chains
 # Examples:
 #   [1998, 1999] left network uses vlan 1998 right network uses vlan 1999
 #   [[1,2],[3,4]] chain 0 left vlan 1, right vlan 2 - chain 1 left vlan 3 right vlan 4
-#   [1010, 1010] same VLAN id with l2-loopback enabled
-#
+#   [1010, 1010] same vlan ID on both sides, for a typical l2-loopback test (*)
+# The vlan lists may be oversized, compared to the actual service chain count
+# (lowest indexes are used) but an exception is raised if they are too short.
 vlans: []
+# (*) actually there is no restriction, left/right IDs may differ
+#     for some exotic purpose - see also the l2_loopback parameter.
 
 # ARP is used to discover the MAC address of VNFs that run L3 routing.
 # Used only with EXT chain.
@@ -725,7 +733,7 @@ traffic:
 # Can be overriden by --no-traffic
 no_traffic: false
 
-# Use an L3 router in the packet path. This option if set will create or reuse an openstack neutron
+# Use an L3 router in the packet path. This option if set will create or reuse an OpenStack neutron
 # router (PVP, PVVP) or reuse an existing L3 router (EXT) to route traffic to the destination VM.
 # Can be overriden by --l3-router
 l3_router: false

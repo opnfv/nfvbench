@@ -71,6 +71,8 @@ class ChainRunner(object):
             # VLAN is discovered from the networks
             gen_config.set_vlans(0, self.chain_manager.get_chain_vlans(0))
             gen_config.set_vlans(1, self.chain_manager.get_chain_vlans(1))
+        else:
+            LOG.info("Ports: untagged")
 
         # the only case we do not need to set the dest MAC is in the case of
         # l2-loopback (because the traffic gen will default to use the peer MAC)

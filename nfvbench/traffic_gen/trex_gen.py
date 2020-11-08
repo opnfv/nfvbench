@@ -589,8 +589,6 @@ class TRex(AbstractTrafficGenerator):
         """
         streams = []
         pg_id, lat_pg_id = self.get_pg_id(port, chain_id)
-        if self.config.no_flow_stats:
-            LOG.info("Traffic flow statistics are disabled.")
         if l2frame == 'IMIX':
             for ratio, l2_frame_size in zip(IMIX_RATIOS, IMIX_L2_SIZES):
                 pkt = self._create_pkt(stream_cfg, l2_frame_size)
@@ -1005,6 +1003,8 @@ class TRex(AbstractTrafficGenerator):
         latency: True if latency measurement is needed
         e2e: True if performing "end to end" connectivity check
         """
+        if self.config.no_flow_stats:
+            LOG.info("Traffic flow statistics are disabled.")
         r = self.__is_rate_enough(l2frame_size, rates, bidirectional, latency)
         if not r['result']:
             raise TrafficGeneratorException(

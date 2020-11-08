@@ -78,14 +78,21 @@ NFVbench supports settings that involve externally staged packet paths with or w
 
 Direct L2 Loopback (Switch or wire loopback)
 --------------------------------------------
-NFVbench supports benchmarking of pure L2 loopbacks (see "--l2-loopback vlan" option)
+NFVbench supports benchmarking of pure L2 loopbacks
 
 - Switch level loopback
 - Port to port wire loopback
 
-In this mode, NFVbench will take a vlan ID and send packets from each port to the other port
-(dest MAC set to the other port MAC) using the same VLAN ID on both ports.
+In this mode, NFVbench will send packets from each port to the other port
+(the destination MAC address is set to the other port MAC address).
 This can be useful for example to verify that the connectivity to the switch is working properly.
+
+Such a test can be quickly run using the CLI ``--l2-loopback`` :ref:`option <adv-l2l-cli>`.
+
+For a typical test, packets will be VLAN tagged with the same ID on both ports.
+However, multiple L2 vlan tagged service chains are also allowed,
+which permits testing various configurations and the behavior of the bench itself.
+
 
 Traffic Generation
 ------------------

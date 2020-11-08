@@ -15,10 +15,10 @@
 import abc
 import sys
 
-import bitmath
-
 from nfvbench.log import LOG
 from . import traffic_utils
+from hdrh.histogram import HdrHistogram
+from functools import reduce
 
 
 class Latency(object):
@@ -34,11 +34,23 @@ class Latency(object):
         self.avg_usec = 0
         self.hdrh = None
         if latency_list:
+            hdrh_list = []
             for lat in latency_list:
                 if lat.available():
                     self.min_usec = min(self.min_usec, lat.min_usec)
                     self.max_usec = max(self.max_usec, lat.max_usec)
                     self.avg_usec += lat.avg_usec
+                if lat.hdrh_available():
+                    hdrh_list.append(HdrHistogram.decode(lat.hdrh))
+
+            # aggregate histograms if any
+            if hdrh_list:
+                def add_hdrh(x, y):
+                    x.add(y)
+                    return x
+                decoded_hdrh = reduce(add_hdrh, hdrh_list)
+                self.hdrh = HdrHistogram.encode(decoded_hdrh).decode('utf-8')
+
             # round to nearest usec
             self.avg_usec = int(round(float(self.avg_usec) / len(latency_list)))
 
@@ -46,6 +58,9 @@ class Latency(object):
         """Return True if latency information is available."""
         return self.min_usec != sys.maxsize
 
+    def hdrh_available(self):
+        """Return True if latency histogram information is available."""
+        return self.hdrh is not None
 
 class TrafficGeneratorException(Exception):
     """Exception for traffic generator."""
@@ -133,15 +148,8 @@ class AbstractTrafficGenerator(object):
 
         result = {}
 
-        intf_speeds = self.get_port_speed_gbps()
-        tg_if_speed = bitmath.parse_string(str(intf_speeds[0]) + 'Gb').bits
-        intf_speed = tg_if_speed
-
-        if hasattr(self.config, 'intf_speed') and self.config.intf_speed is not None:
-            # in case of limitation due to config, TG speed is not accurate
-            # value is overridden by conf
-            if self.config.intf_speed != tg_if_speed:
-                intf_speed = bitmath.parse_string(self.config.intf_speed.replace('ps', '')).bits
+        # actual interface speed? (may be a virtual override)
+        intf_speed = self.config.intf_speed_used
 
         if hasattr(self.config, 'user_info') and self.config.user_info is not None:
             if "extra_encapsulation_bytes" in self.config.user_info:

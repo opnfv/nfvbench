@@ -239,18 +239,21 @@ class PacketPathStats(object):
             results = {'lat_min_usec': latency.min_usec,
                        'lat_max_usec': latency.max_usec,
                        'lat_avg_usec': latency.avg_usec}
-            if latency.hdrh:
+            if latency.hdrh_available():
                 results['hdrh'] = latency.hdrh
                 decoded_histogram = HdrHistogram.decode(latency.hdrh)
-                # override min max and avg from hdrh
-                results['lat_min_usec'] = decoded_histogram.get_min_value()
-                results['lat_max_usec'] = decoded_histogram.get_max_value()
-                results['lat_avg_usec'] = decoded_histogram.get_mean_value()
                 results['lat_percentile'] = {}
-                for percentile in self.config.lat_percentiles:
-                    results['lat_percentile'][percentile] = decoded_histogram.\
-                        get_value_at_percentile(percentile)
-
+                # override min max and avg from hdrh (only if histogram is valid)
+                if decoded_histogram.get_total_count() != 0:
+                    results['lat_min_usec'] = decoded_histogram.get_min_value()
+                    results['lat_max_usec'] = decoded_histogram.get_max_value()
+                    results['lat_avg_usec'] = decoded_histogram.get_mean_value()
+                    for percentile in self.config.lat_percentiles:
+                        results['lat_percentile'][percentile] = decoded_histogram.\
+                            get_value_at_percentile(percentile)
+                else:
+                    for percentile in self.config.lat_percentiles:
+                        results['lat_percentile'][percentile] = 'n/a'
         else:
             results = {}
         results['packets'] = counters

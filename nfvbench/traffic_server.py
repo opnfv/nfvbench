@@ -108,8 +108,8 @@ class TRexTrafficServer(TrafficServer):
                                          prefix=generator_config.name,
                                          limit_memory=generator_config.limit_memory,
                                          nb_cores=generator_config.cores,
-                                         use_vlan=generator_config.gen_config.get('vtep_vlan')
-                                         or generator_config.vlan_tagging,
+                                         use_vlan=generator_config.gen_config.get('vtep_vlan') or
+                                         generator_config.vlan_tagging,
                                          ifs=ifs)
 
         if hasattr(generator_config, 'mbuf_64') and generator_config.mbuf_64:

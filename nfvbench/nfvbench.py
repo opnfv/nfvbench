@@ -504,10 +504,12 @@ def _parse_opts_from_cli():
     parser.add_argument('--user-info', dest='user_info',
                         action='store',
                         metavar='<data>',
-                        help='Custom data to be included as is in the json report config branch - '
-                               + ' example, pay attention! no space: '
-                               + '--user-info=\'{"status":"explore","description":'
-                               + '{"target":"lab","ok":true,"version":2020}}\'')
+                        help='Custom data to be included as is '
+                             'in the json report config branch - '
+                             ' example, pay attention! no space: '
+                             '--user-info=\'{"status":"explore","description":'
+                             '{"target":"lab","ok":true,"version":2020}}\' - '
+                             'this option may be repeated; given data will be merged.')
 
     parser.add_argument('--vlan-tagging', dest='vlan_tagging',
                         type=bool_arg,
@@ -521,7 +523,7 @@ def _parse_opts_from_cli():
                         action='store',
                         default=None,
                         help='Override the NFVbench \'intf_speed\' '
-                                + 'parameter (e.g. 10Gbps, auto, 16.72Gbps)')
+                             'parameter (e.g. 10Gbps, auto, 16.72Gbps)')
 
     parser.add_argument('--cores', dest='cores',
                         type=int_arg,
@@ -580,7 +582,7 @@ def _parse_opts_from_cli():
                         default=None,
                         action='store_true',
                         help='Show the current TRex local server log file contents'
-                               + ' => diagnostic/help in case of configuration problems')
+                             ' => diagnostic/help in case of configuration problems')
 
     parser.add_argument('--debug-mask', dest='debug_mask',
                         type=int_arg,
@@ -588,8 +590,8 @@ def _parse_opts_from_cli():
                         action='store',
                         default='0x00000000',
                         help='General purpose register (debugging flags), '
-                                + 'the hexadecimal notation (0x...) is accepted.'
-                                + 'Designed for development needs.')
+                             'the hexadecimal notation (0x...) is accepted.'
+                             'Designed for development needs.')
 
     opts, unknown_opts = parser.parse_known_args()
     return opts, unknown_opts

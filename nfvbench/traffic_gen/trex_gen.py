@@ -589,8 +589,6 @@ class TRex(AbstractTrafficGenerator):
         """
         streams = []
         pg_id, lat_pg_id = self.get_pg_id(port, chain_id)
-        if self.config.no_flow_stats:
-            LOG.info("Traffic flow statistics are disabled.")
         if l2frame == 'IMIX':
             for ratio, l2_frame_size in zip(IMIX_RATIOS, IMIX_L2_SIZES):
                 pkt = self._create_pkt(stream_cfg, l2_frame_size)
@@ -602,12 +600,12 @@ class TRex(AbstractTrafficGenerator):
                         streams.append(STLStream(packet=pkt,
                                                  flow_stats=STLFlowStats(pg_id=pg_id,
                                                                          vxlan=True)
-                                                 if not self.config.no_flow_stats else None,
+                                                    if not self.config.no_flow_stats else None,
                                                  mode=STLTXCont(pps=ratio)))
                     else:
                         streams.append(STLStream(packet=pkt,
                                                  flow_stats=STLFlowStats(pg_id=pg_id)
-                                                 if not self.config.no_flow_stats else None,
+                                                    if not self.config.no_flow_stats else None,
                                                  mode=STLTXCont(pps=ratio)))
 
             if latency:
@@ -633,12 +631,12 @@ class TRex(AbstractTrafficGenerator):
                     streams.append(STLStream(packet=pkt,
                                              flow_stats=STLFlowStats(pg_id=pg_id,
                                                                      vxlan=True)
-                                             if not self.config.no_flow_stats else None,
+                                                if not self.config.no_flow_stats else None,
                                              mode=STLTXCont()))
                 else:
                     streams.append(STLStream(packet=pkt,
                                              flow_stats=STLFlowStats(pg_id=pg_id)
-                                             if not self.config.no_flow_stats else None,
+                                                if not self.config.no_flow_stats else None,
                                              mode=STLTXCont()))
             # for the latency stream, the minimum payload is 16 bytes even in case of vlan tagging
             # without vlan, the min l2 frame size is 64
@@ -662,12 +660,12 @@ class TRex(AbstractTrafficGenerator):
                 streams.append(STLStream(packet=pkt,
                                          flow_stats=STLFlowLatencyStats(pg_id=lat_pg_id,
                                                                         vxlan=True)
-                                         if not self.config.no_latency_stats else None,
+                                            if not self.config.no_latency_stats else None,
                                          mode=STLTXCont(pps=self.LATENCY_PPS)))
             else:
                 streams.append(STLStream(packet=pkt,
                                          flow_stats=STLFlowLatencyStats(pg_id=lat_pg_id)
-                                         if not self.config.no_latency_stats else None,
+                                            if not self.config.no_latency_stats else None,
                                          mode=STLTXCont(pps=self.LATENCY_PPS)))
         return streams
 
@@ -1005,6 +1003,8 @@ class TRex(AbstractTrafficGenerator):
         latency: True if latency measurement is needed
         e2e: True if performing "end to end" connectivity check
         """
+        if self.config.no_flow_stats:
+            LOG.info("Traffic flow statistics are disabled.")
         r = self.__is_rate_enough(l2frame_size, rates, bidirectional, latency)
         if not r['result']:
             raise TrafficGeneratorException(

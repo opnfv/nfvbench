@@ -1,0 +1,19 @@
+--- dpdk_setup_ports.py	2020-04-16 21:39:01.000000000 +0200
++++ dpdk_setup_ports.py.new	2020-09-11 14:22:17.000000000 +0200
+@@ -847,6 +847,8 @@
+                     continue
+                 if iface_pci == device['Slot'].split('.')[0]:
+                     if device.get('Driver_str') == 'i40e':
++                      # Do we ignore the issue explained thereafter (experimental)?
++                      if pa() and not pa().ignore_528_issue:
+                         if pa() and pa().unbind_unused_ports:
+                             # if --unbind-unused-ports is set we unbind ports that are not 
+                             # used by TRex
+@@ -1405,6 +1407,7 @@
+     parent_parser.add_argument('-t', dest = 'tunable', default=None)
+     parent_parser.add_argument('-i', action = 'store_true', dest = 'interactive', default = False)
+     parent_parser.add_argument("--unbind-unused-ports", action='store_true')
++    parent_parser.add_argument("--ignore-528-issue", action='store_true')
+     map_driver.parent_args, _ = parent_parser.parse_known_args(shlex.split(parent_cfg))
+     if pa().help:
+         sys.exit(0)

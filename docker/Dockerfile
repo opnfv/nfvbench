@@ -25,6 +25,7 @@ RUN apt-get update && apt-get install -y \
        python3-dev \
        libpython3.6-dev \
        gcc \
+       patch \
        && ln -s /usr/bin/python3.6 /usr/local/bin/python3 \
        && mkdir -p /opt/trex \
        && mkdir /var/log/nfvbench \
@@ -35,7 +36,7 @@ RUN apt-get update && apt-get install -y \
        && cp -a /opt/trex/$TREX_VER/automation/trex_control_plane/interactive/trex /usr/local/lib/python3.6/dist-packages/ \
        && rm -rf /opt/trex/$TREX_VER/automation/trex_control_plane/interactive/trex \
        && wget https://bootstrap.pypa.io/get-pip.py \
-       && python3 get-pip.py \
+       && python3 get-pip.py pip==20.2.4 \
        && pip3 install -U pbr \
        && pip3 install -U setuptools \
        && cd / \

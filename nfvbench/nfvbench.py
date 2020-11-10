@@ -514,6 +514,13 @@ def _parse_opts_from_cli():
                              'tagged with given VLAN id(s) or not (given \'no-tag\') '
                              '\'true\': use current vlans; \'false\': disable this mode.')
 
+    parser.add_argument('--i40e-mixed', dest='i40e_mixed',
+                        action='store',
+                        default=None,
+                        metavar='<ignore,check,unbind>',
+                        help='TRex behavior when dealing with a i40e network card driver'
+                             ' [ https://trex-tgn.cisco.com/youtrack/issue/trex-528 ]')
+
     parser.add_argument('--user-info', dest='user_info',
                         action='append',
                         metavar='<data>',
@@ -850,6 +857,8 @@ def main():
                                 config.service_chain_count = len(vlans[0])
             opts.l2_loopback = None
 
+        if config.i40e_mixed is None:
+            config.i40e_mixed = 'ignore'
         if config.use_sriov_middle_net is None:
             config.use_sriov_middle_net = False
         if opts.use_sriov_middle_net is not None:

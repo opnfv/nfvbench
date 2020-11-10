@@ -25,6 +25,7 @@ RUN apt-get update && apt-get install -y \
        python3-dev \
        libpython3.6-dev \
        gcc \
+       patch \
        && ln -s /usr/bin/python3.6 /usr/local/bin/python3 \
        && mkdir -p /opt/trex \
        && mkdir /var/log/nfvbench \

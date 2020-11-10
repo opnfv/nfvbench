@@ -1227,6 +1227,8 @@ class ChainManager(object):
         # if it is a single int or mac, make it a list of 1 int
         if isinstance(ll, (int, str)):
             ll = [ll]
+        else:
+            ll = list(ll)
         for item in ll:
             if not re.match(pattern, str(item)):
                 raise ChainException("Invalid format '{item}' specified in {fname}"

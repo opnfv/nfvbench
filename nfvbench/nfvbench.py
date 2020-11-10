@@ -71,11 +71,12 @@ class NFVBench(object):
     def set_notifier(self, notifier):
         self.notifier = notifier
 
-    def run(self, opts, args):
+    def run(self, opts, args, dry_run=False):
         """This run() method is called for every NFVbench benchmark request.
 
         In CLI mode, this method is called only once per invocation.
         In REST server mode, this is called once per REST POST request
+        On dry_run, show the running config in json format then exit
         """
         status = NFVBench.STATUS_OK
         result = None
@@ -88,6 +89,10 @@ class NFVBench(object):
         try:
             # recalc the running config based on the base config and options for this run
             self._update_config(opts)
+
+            if dry_run:
+                print((json.dumps(self.config, sort_keys=True, indent=4)))
+                sys.exit(0)
 
             # check that an empty openrc file (no OpenStack) is only allowed
             # with EXT chain
@@ -469,10 +474,15 @@ def _parse_opts_from_cli():
                         action='store_true',
                         help='print the default config in yaml format (unedited)')
 
+    parser.add_argument('--show-pre-config', dest='show_pre_config',
+                        default=None,
+                        action='store_true',
+                        help='print the config in json format (cfg file applied)')
+
     parser.add_argument('--show-config', dest='show_config',
                         default=None,
                         action='store_true',
-                        help='print the running config in json format')
+                        help='print the running config in json format (final)')
 
     parser.add_argument('-ss', '--show-summary', dest='summary',
                         action='store',
@@ -717,6 +727,10 @@ def main():
                 print("No TRex log file found!")
             sys.exit(0)
 
+        # mask info logging in case of further config dump
+        if opts.show_config or opts.show_pre_config:
+            LOG.setLevel(log.logging.WARNING)
+
         config.name = ''
         if opts.config:
             # do not check extra_specs in flavor as it can contain any key/value pairs
@@ -731,6 +745,11 @@ def main():
             else:
                 LOG.info('Loading configuration string: %s', opts.config)
                 config = config_loads(opts.config, config, whitelist_keys)
+
+        # show current config in json format (before CLI overriding)
+        if opts.show_pre_config:
+            print((json.dumps(config, sort_keys=True, indent=4)))
+            sys.exit(0)
 
         # setup the fluent logger as soon as possible right after the config plugin is called,
         # if there is any logging or result tag is set then initialize the fluent logger
@@ -868,11 +887,6 @@ def main():
             if config.service_chain == ChainType.PVVP and config.use_sriov_middle_net:
                 check_physnet("middle", config.internal_networks.middle)
 
-        # show running config in json format
-        if opts.show_config:
-            print((json.dumps(config, sort_keys=True, indent=4)))
-            sys.exit(0)
-
         # update the config in the config plugin as it might have changed
         # in a copy of the dict (config plugin still holds the original dict)
         config_plugin.set_config(config)
@@ -906,6 +920,7 @@ def main():
                 server.run(host=opts.host, port=port)
             # server.run() should never return
         else:
+            dry_run = opts.show_config
             with utils.RunLock():
                 run_summary_required = True
                 if unknown_opts:
@@ -917,7 +932,7 @@ def main():
                 opts = {k: v for k, v in list(vars(opts).items()) if v is not None}
                 # get CLI args
                 params = ' '.join(str(e) for e in sys.argv[1:])
-                result = nfvbench_instance.run(opts, params)
+                result = nfvbench_instance.run(opts, params, dry_run=dry_run)
                 if 'error_message' in result:
                     raise Exception(result['error_message'])
 

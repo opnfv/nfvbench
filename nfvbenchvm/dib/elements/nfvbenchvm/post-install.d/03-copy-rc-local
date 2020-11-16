@@ -1,0 +1,8 @@
+#!/bin/bash
+
+# set accurate rc.local file corresponding to current image built
+if [ $DIB_DEV_IMAGE = "loopvm" ]; then
+    mv /etc/rc.d/rc.local.loopvm /etc/rc.d/rc.local
+else
+    mv /etc/rc.d/rc.local.generator /etc/rc.d/rc.local
+fi

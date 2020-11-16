@@ -1,0 +1,12 @@
+[Unit]
+Description=nfvbench service
+After=network.target
+
+[Service]
+Type=forking
+User=root
+RemainAfterExit=yes
+ExecStart=/bin/bash -a -c "source /etc/profile.d/nfvbench.sh && /usr/bin/screen -dmSL nfvbench /usr/local/bin/nfvbench -c /etc/nfvbench/nfvbench.conf --server"
+
+[Install]
+WantedBy=multi-user.target

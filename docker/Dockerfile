@@ -2,7 +2,7 @@
 FROM ubuntu:20.04
 
 ENV TREX_VER "v2.89"
-ENV VM_IMAGE_VER "0.12"
+ENV VM_IMAGE_VER "0.13"
 ENV PYTHONIOENCODING "utf8"
 
 RUN apt-get update && apt-get install -y \

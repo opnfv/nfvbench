@@ -1,0 +1,101 @@
+#!/bin/bash
+
+touch /var/lock/subsys/local
+
+# Waiting for cloud-init to generate $NFVBENCH_CONF, retry 60 seconds
+NFVBENCH_CONF=/etc/nfvbenchvm.conf
+OPENRC=/etc/nfvbench/openrc
+retry=30
+until [ $retry -eq 0 ]; do
+    if [ -f $NFVBENCH_CONF ]; then break; fi
+    retry=$[$retry-1]
+    sleep 2
+done
+if [ ! -f $NFVBENCH_CONF ]; then
+    exit 0
+fi
+
+# Parse and obtain all configurations
+echo "Generating configurations for NFVbench and TRex..."
+eval $(cat $NFVBENCH_CONF)
+touch /nfvbench_configured.flag
+
+if [ -f $OPENRC ]; then
+    source $OPENRC
+fi
+
+# CPU isolation optimizations
+echo 1 > /sys/bus/workqueue/devices/writeback/cpumask
+echo 1 > /sys/devices/virtual/workqueue/cpumask
+echo 1 > /proc/irq/default_smp_affinity
+for irq in `ls /proc/irq/`; do
+    if [ -f /proc/irq/$irq/smp_affinity ]; then
+        echo 1 > /proc/irq/$irq/smp_affinity
+    fi
+done
+
+NET_PATH=/sys/class/net
+
+get_eth_port() {
+    # device mapping for CentOS Linux 7:
+    # lspci:
+    #   00.03.0 Ethernet controller: Red Hat, Inc. Virtio network device
+    #   00.04.0 Ethernet controller: Red Hat, Inc. Virtio network device
+    # /sys/class/net:
+    # /sys/class/net/eth0 -> ../../devices/pci0000:00/0000:00:03.0/virtio0/net/eth0
+    # /sys/class/net/eth1 -> ../../devices/pci0000:00/0000:00:04.0/virtio1/net/eth1
+
+    mac=$1
+    for f in $(ls $NET_PATH/); do
+        if grep -q "$mac" $NET_PATH/$f/address; then
+            eth_port=$(readlink $NET_PATH/$f | cut -d "/" -f8)
+            # some virtual interfaces match on MAC and do not have a PCI address
+            if [ "$eth_port" -a "$eth_port" != "N/A" ]; then
+                # Found matching interface
+                logger "NFVBENCHVM: found interface $f ($eth_port) matching $mac"
+                break
+            else
+                eth_port=""
+            fi
+        fi;
+    done
+    if [ -z "$eth_port" ]; then
+        echo "ERROR: Cannot find eth port for MAC $mac" >&2
+        logger "NFVBENCHVM ERROR: Cannot find eth port for MAC $mac"
+        return 1
+    fi
+    echo $eth_port
+    return 0
+}
+
+# Set VM MANAGEMENT port up and running
+if [ $INTF_MGMT_CIDR ] && [ $INTF_MGMT_IP_GW ]; then
+    if [ $INTF_MAC_MGMT ]; then
+        ETH_PORT=$(get_eth_port $INTF_MAC_MGMT)
+    elif [ -f $OPENRC ] && [ "$PORT_MGMT_NAME" ]; then
+        $INTF_MAC_MGMT=$(openstack port list | grep $PORT_MGMT_NAME | grep -o -Ei '([a-fA-F0-9:]{17}|[a-fA-F0-9]{12}$)' | head -1)
+        ETH_PORT=$(get_eth_port $INTF_MAC_MGMT)
+    else
+        ETH_PORT=""
+    fi
+    if [ -z "$ETH_PORT" ]; then
+        echo "ERROR: Cannot find eth port for management port" >&2
+        logger "NFVBENCHVM ERROR: Cannot find eth port for management port"
+        return 1
+    fi
+    ip addr add $INTF_MGMT_CIDR dev $ETH_PORT
+    ip link set $ETH_PORT up
+    ip route add default via $INTF_MGMT_IP_GW dev $ETH_PORT
+else
+    echo "INFO: VM management IP Addresses missing in $NFVBENCH_CONF"
+fi
+
+/nfvbench/configure-nfvbench.sh
+
+if [ $ACTION ]; then
+    /nfvbench/start-nfvbench.sh $ACTION
+else
+    /nfvbench/start-nfvbench.sh
+fi
+
+exit 0

@@ -1,0 +1,4 @@
+#!/bin/bash
+
+# Set UseDNS no value in sshd_config to reduce time to connect
+echo "UseDNS no" >> /etc/ssh/sshd_config

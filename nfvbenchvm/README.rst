@@ -1,7 +1,9 @@
-NFVBENCH VM IMAGE FOR OPENSTACK
-+++++++++++++++++++++++++++++++
+NFVBENCH VM IMAGES FOR OPENSTACK
+++++++++++++++++++++++++++++++++
 
-This repo will build a centos 7 image with testpmd and VPP installed.
+This repo will build two centos 7 images with:
+    - testpmd and VPP installed for loop VM use case
+    - NFVbench and TRex installed for generator VM use case
 The VM will come with a pre-canned user/password: nfvbench/nfvbench
 
 BUILD INSTRUCTIONS
@@ -20,10 +22,15 @@ Build the image
 - cd dib
 - update the version number for the image (if needed) by modifying __version__ in build-image.sh
 - setup your http_proxy if needed
-- bash build-image.sh
+- to build loop VM image only:
+    - `bash build-image.sh -l`
+- to build generator VM image only:
+    - `bash build-image.sh -g`
+- to build both images only:
+    - `bash build-image.sh`
 
-IMAGE INSTANCE AND CONFIG
-=========================
+LOOP VM IMAGE INSTANCE AND CONFIG
+=================================
 
 Interface Requirements
 ----------------------
@@ -77,6 +84,187 @@ To check if VPP is running, you can run this command in VNC console:
 .. code-block:: bash
 
     service vpp status
+
+
+Hardcoded Username and Password
+--------------------------------
+- Username: nfvbench
+- Password: nfvbench
+
+
+GENERATOR IMAGE INSTANCE AND CONFIG
+===================================
+
+Interface Requirements
+----------------------
+The instance must be launched using OpenStack with 2 network interfaces for dataplane traffic (using SR-IOV function) and 1 management interface to control nfvbench.
+For best performance, it should use network interfaces for dataplane traffic with a `vnic_type` to `direct-physical` (or `direct` if physical function is not possible)
+and a flavor with:
+
+- 6 vCPU
+- 8 GB RAM
+- cpu pinning set to exclusive
+
+.. note:: For the management interface: any interface type can be used. This interface required a routable IP (through floating IP or direct) and an access to the openstack APIs.
+.. note:: CPU pinning: 1 core dedicated for guest OS and NFVbench process, other provided cores are used by TRex
+
+Template of a genarator profile using CPU pinning:
+
+.. code-block:: bash
+
+    generator_profile:
+        - name: {{name}}
+          tool: {{tool}}
+          ip: {{ip}}
+          zmq_pub_port: {{zmq_pub_port}}
+          zmq_rpc_port: {{zmq_rpc_port}}
+          software_mode: {{software_mode}}
+          cores: {{CORES}}
+          platform:
+            master_thread_id: '0'
+            latency_thread_id: '1'
+            dual_if:
+              - socket: 0
+                threads: [{{CORE_THREADS}}]
+
+          interfaces:
+            - port: 0
+              pci: "{{PCI_ADDRESS_1}}"
+              switch:
+            - port: 1
+              pci: "{{PCI_ADDRESS_2}}"
+              switch:
+          intf_speed:
+.. note:: `CORE_THREADS` value is determined automatically based on the cores available on the VM starting from 2 to last worker core available.
+
+Auto-configuration
+------------------
+nfvbench VM will automatically find the two virtual interfaces to use for dataplane based on MAC addresses or openstack port name (see config part below).
+This applies to the management interface as well.
+
+nfvbenchvm Config
+-----------------
+nfvbenchvm config file is located at ``/etc/nfvbenchvm.conf``.
+
+Example of configuration:
+
+.. code-block:: bash
+
+    ACTION=e2e
+    LOOPBACK_INTF_MAC1=FA:16:3E:A2:30:41
+    LOOPBACK_INTF_MAC2=FA:16:3E:10:DA:10
+    E2E_INTF_MAC1=FA:16:3E:B0:E2:43
+    E2E_INTF_MAC2=FA:16:3E:D3:6A:FC
+.. note:: `ACTION` parameter is not mandatory but will permit to start NFVbench with the accurate ports (loopback or e2e).
+.. note:: Set of MAC parameters cannot be used in parallel as only one NFVbench/TRex process is running.
+.. note:: Switching from `loopback` to `e2e` action can be done manually using `/nfvbench/start-nfvbench.sh <action>` with the accurate keyword for `action` parameter. This script will restart NFVbench with the good set of MAC.
+
+nfvbenchvm config file with management interface:
+
+.. code-block:: bash
+
+    ACTION=e2e
+    LOOPBACK_INTF_MAC1=FA:16:3E:A2:30:41
+    LOOPBACK_INTF_MAC2=FA:16:3E:10:DA:10
+    INTF_MAC_MGMT=FA:16:3E:06:11:8A
+    INTF_MGMT_CIDR=172.20.56.228/2
+    INTF_MGMT_IP_GW=172.20.56.225
+
+.. note:: `INTF_MGMT_IP_GW` and `INTF_MGMT_CIDR` parameters are used by the VM to automatically configure virtual interface and route to allow an external access through SSH.
+
+
+Using pre-created direct-physical ports on openstack, mac addresses value are only known when VM is deployed. In this case, you can pass the port name in config:
+
+.. code-block:: bash
+
+    LOOPBACK_PORT_NAME1=nfvbench-pf1
+    LOOPBACK_PORT_NAME2=nfvbench-pf2
+    E2E_PORT_NAME1=nfvbench-pf1
+    E2E_PORT_NAME1=nfvbench-pf3
+    INTF_MAC_MGMT=FA:16:3E:06:11:8A
+    INTF_MGMT_CIDR=172.20.56.228/2
+    INTF_MGMT_IP_GW=172.20.56.225
+.. note:: A management interface is required to automatically find the virtual interface to use according to the MAC address provided (see `INTF_MAC_MGMT` parameter).
+.. note:: NFVbench VM will call openstack API through the management interface to retrieve mac address for these ports
+
+Control nfvbenchvm VM and run test
+----------------------------------
+
+By default, NFVbench will be started in server mode (`--server`) and will act as an API.
+
+NFVbench VM will be accessible through SSH or HTTP using the management interface IP.
+
+NFVbench API endpoint is : `http://<management_ip>:<port>`
+.. note:: by default port value is 7555
+
+Get NFVbench status
+^^^^^^^^^^^^^^^^^^^
+
+To check NFVbench is up and running use REST request:
+
+.. code-block:: bash
+
+curl -XGET '<management_ip>:<port>/status'
+
+Example of answer:
+
+.. code-block:: bash
+
+    {
+      "error_message": "nfvbench run still pending",
+      "status": "PENDING"
+    }
+
+Start NFVbench test
+^^^^^^^^^^^^^^^^^^^
+
+To start a test run using NFVbench API use this type of REST request:
+
+.. code-block:: bash
+
+curl -XPOST '<management_ip>:<port>/start_run' -H "Content-Type: application/json" -d @nfvbenchconfig.json
+
+Example of return when the submission is successful:
+
+.. code-block:: bash
+
+    {
+      "error_message": "NFVbench run still pending",
+      "request_id": "42cccb7effdc43caa47f722f0ca8ec96",
+      "status": "PENDING"
+    }
+
+Connect to the VM using SSH keypair
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+If a key is provided at VM creation you can use it to log on the VM using `cloud-user` username:
+
+.. code-block:: bash
+
+    ssh -i key.pem cloud-user@<management_ip>
+
+
+Connect to VM using SSH username/password
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+VM is accessible over SSH using the hardcoded username and password (see below):
+
+.. code-block:: bash
+
+    ssh nfvbench@<management_ip>
+
+
+Launching nfvbenchvm VM
+-----------------------
+
+Normally this image will be deployed using Ansible role, and the required configurations will be automatically generated and pushed to VM by Ansible.
+If launched manually, users will have the full control to configure and run NFVbench via VNC console.
+
+To check if NFVbench is running, you can run this command in VNC console:
+
+.. code-block:: bash
+
+    sudo screen -r nfvbench
 
 
 Hardcoded Username and Password

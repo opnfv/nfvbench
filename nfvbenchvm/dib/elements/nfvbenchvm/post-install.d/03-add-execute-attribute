@@ -1,4 +1,0 @@
-#!/bin/bash
-
-chmod +x /etc/rc.d/rc.local
-chmod +x /etc/sysconfig/network-scripts/ifcfg-eth0

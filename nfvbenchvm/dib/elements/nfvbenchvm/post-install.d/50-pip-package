@@ -2,7 +2,7 @@
 
 cd /tmp
 wget https://bootstrap.pypa.io/get-pip.py
-python get-pip.py
+python3 get-pip.py
 
-pip install setuptools wheel
-pip install pyyaml
+pip3 install setuptools wheel pbr
+pip3 install pyyaml

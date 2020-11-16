@@ -263,8 +263,9 @@ class NFVBenchSummarizer(Summarizer):
         # add percentiles headers if hdrh enabled
         if not self.config.disable_hdrh:
             for percentile in self.config.lat_percentiles:
-                self.ndr_pdr_header.append(str(percentile) + ' %ile lat.', Formatter.standard)
-                self.single_run_header.append(str(percentile) + ' %ile lat.', Formatter.standard)
+                # 'append' expects a single parameter => double parentheses
+                self.ndr_pdr_header.append((str(percentile) + ' %ile lat.', Formatter.standard))
+                self.single_run_header.append((str(percentile) + ' %ile lat.', Formatter.standard))
         # if sender is available initialize record
         if self.sender:
             self.__record_init()
@@ -566,7 +567,8 @@ class NFVBenchSummarizer(Summarizer):
                         str(percentile) + ' %ile lat.'
 
             for key in lat_map:
-                header.append(lat_map[key], Formatter.standard)
+                # 'append' expects a single parameter => double parentheses
+                header.append((lat_map[key], Formatter.standard))
 
         table = Table(header)
         for chain in sorted(list(chains.keys()), key=str):

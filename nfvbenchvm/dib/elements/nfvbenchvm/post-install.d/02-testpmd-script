@@ -1,5 +1,9 @@
 #!/bin/bash
 
+if [ $DIB_DEV_IMAGE != "loopvm" ]; then
+    exit 0
+fi
+
 DPDK=dpdk-18.02
 DPDK_UNTAR=dpdk-18.02
 
@@ -15,8 +19,6 @@ export RTE_KERNELDIR=/lib/modules/$kernel_version/build
 export ARCH=x86
 make -j4 install T=x86_64-native-linuxapp-gcc
 
-cp usertools/dpdk-devbind.py ../dpdk
-# cp tools/dpdk_nic_bind.py ../dpdk/dpdk-devbind.py
 cp x86_64-native-linuxapp-gcc/app/testpmd ../dpdk
 cp x86_64-native-linuxapp-gcc/kmod/igb_uio.ko ../dpdk
 echo "set promisc all off" > /dpdk/testpmd_cmd.txt

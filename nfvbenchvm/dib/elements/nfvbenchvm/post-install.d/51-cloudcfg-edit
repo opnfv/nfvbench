@@ -7,6 +7,9 @@ user = "cloud-user"
 with open(cloudcfg) as f:
   cfg = yaml.safe_load(f)
 
+# allow SSH password auth
+cfg['ssh_pwauth'] = "1"
+
 try:
   if cfg['system_info']['default_user']['name']:
     synver = "2"

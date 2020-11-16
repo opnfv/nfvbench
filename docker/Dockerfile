@@ -2,7 +2,7 @@
 FROM ubuntu:20.04
 
 ENV TREX_VER "v2.89"
-ENV VM_IMAGE_VER "0.12"
+ENV VM_IMAGE_VER "0.13"
 ENV PYTHONIOENCODING "utf8"
 
 RUN apt-get update && apt-get install -y \
@@ -44,6 +44,8 @@ RUN apt-get update && apt-get install -y \
        && cp xtesting/behaveframework.py /usr/local/lib/python3.8/dist-packages/xtesting/core/behaveframework.py \
        && python3 ./docker/cleanup_generators.py \
        && rm -rf /opt/nfvbench/.git \
+       # Symlink for retrocompatibility 4.x
+       && ln -s /opt/nfvbench /nfvbench \
        && apt-get remove -y wget git python3-dev libpython3.8-dev gcc \
        && apt-get autoremove -y && apt-get clean && rm -rf /var/lib/apt/lists/*
 

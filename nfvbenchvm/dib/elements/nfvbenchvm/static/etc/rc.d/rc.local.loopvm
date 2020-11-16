@@ -1,0 +1,247 @@
+#!/bin/bash
+
+touch /var/lock/subsys/local
+
+# Waiting for cloud-init to generate $NFVBENCH_CONF, retry 60 seconds
+NFVBENCH_CONF=/etc/nfvbenchvm.conf
+retry=30
+until [ $retry -eq 0 ]; do
+    if [ -f $NFVBENCH_CONF ]; then break; fi
+    retry=$[$retry-1]
+    sleep 2
+done
+if [ ! -f $NFVBENCH_CONF ]; then
+    exit 0
+fi
+
+# Parse and obtain all configurations
+echo "Generating configurations for forwarder..."
+eval $(cat $NFVBENCH_CONF)
+touch /nfvbench_configured.flag
+
+# WE assume there are at least 2 cores available for the VM
+CPU_CORES=$(grep -c ^processor /proc/cpuinfo)
+
+# We need at least 1 admin core. 
+if [ $CPU_CORES -le 2 ]; then
+    ADMIN_CORES=1
+else
+    # If the number of cores is even we
+    # reserve 2 cores for admin (second being idle) so the number of
+    # workers is either 1 (if CPU_CORES is 2) or always even
+    if (( $CPU_CORES % 2 )); then
+        ADMIN_CORES=1
+    else
+        ADMIN_CORES=2
+    fi
+fi
+# 2 vcpus: AW (core 0: Admin, core 1: Worker)
+# 3 vcpus: AWW (core 0: Admin, core 1,2: Worker)
+# 4 vcpus: AWWU (core 0: Admin, core 1,2: Worker, core 3: Unused)
+# 5 vcpus: AWWWW
+# 6 vcpus: AWWWWU
+WORKER_CORES=$(expr $CPU_CORES - $ADMIN_CORES)
+# worker cores are all cores except the admin core (core 0) and the eventual unused core
+# AW -> 1
+# AWW -> 1,2
+# AWWU -> 1,2
+WORKER_CORE_LIST=$(seq -s, $ADMIN_CORES $WORKER_CORES)
+# always use all cores
+CORE_MASK=0x$(echo "obase=16; 2 ^ $CPU_CORES - 1" | bc)
+
+logger "NFVBENCHVM: CPU_CORES=$CPU_CORES, ADMIN_CORES=$ADMIN_CORES, WORKER_CORES=$WORKER_CORES ($WORKER_CORE_LIST)"
+
+# CPU isolation optimizations
+echo 1 > /sys/bus/workqueue/devices/writeback/cpumask
+echo 1 > /sys/devices/virtual/workqueue/cpumask
+echo 1 > /proc/irq/default_smp_affinity
+for irq in `ls /proc/irq/`; do
+    if [ -f /proc/irq/$irq/smp_affinity ]; then
+        echo 1 > /proc/irq/$irq/smp_affinity
+    fi
+done
+
+# Isolate all cores that are reserved for workers
+tuna -c $WORKER_CORE_LIST --isolate
+
+NET_PATH=/sys/class/net
+
+get_pci_address() {
+    # device mapping for CentOS Linux 7:
+    # lspci:
+    #   00.03.0 Ethernet controller: Red Hat, Inc. Virtio network device
+    #   00.04.0 Ethernet controller: Red Hat, Inc. Virtio network device
+    # /sys/class/net:
+    # /sys/class/net/eth0 -> ../../devices/pci0000:00/0000:00:03.0/virtio0/net/eth0
+    # /sys/class/net/eth1 -> ../../devices/pci0000:00/0000:00:04.0/virtio1/net/eth1
+
+    mac=$1
+    for f in $(ls $NET_PATH/); do
+        if grep -q "$mac" $NET_PATH/$f/address; then
+            pci_addr=$(readlink $NET_PATH/$f | cut -d "/" -f5)
+            # some virtual interfaces match on MAC and do not have a PCI address
+            if [ "$pci_addr" -a "$pci_addr" != "N/A" ]; then
+                # Found matching interface
+                logger "NFVBENCHVM: found interface $f ($pci_addr) matching $mac"
+                break
+            else
+                pci_addr=""
+            fi
+        fi;
+    done
+    if [ -z "$pci_addr" ]; then
+        echo "ERROR: Cannot find pci address for MAC $mac" >&2
+        logger "NFVBENCHVM ERROR: Cannot find pci address for MAC $mac"
+        return 1
+    fi
+    echo $pci_addr
+    return 0
+}
+
+get_eth_port() {
+    # device mapping for CentOS Linux 7:
+    # lspci:
+    #   00.03.0 Ethernet controller: Red Hat, Inc. Virtio network device
+    #   00.04.0 Ethernet controller: Red Hat, Inc. Virtio network device
+    # /sys/class/net:
+    # /sys/class/net/eth0 -> ../../devices/pci0000:00/0000:00:03.0/virtio0/net/eth0
+    # /sys/class/net/eth1 -> ../../devices/pci0000:00/0000:00:04.0/virtio1/net/eth1
+
+    mac=$1
+    for f in $(ls $NET_PATH/); do
+        if grep -q "$mac" $NET_PATH/$f/address; then
+            eth_port=$(readlink $NET_PATH/$f | cut -d "/" -f8)
+            # some virtual interfaces match on MAC and do not have a PCI address
+            if [ "$eth_port" -a "$eth_port" != "N/A" ]; then
+                # Found matching interface
+                logger "NFVBENCHVM: found interface $f ($eth_port) matching $mac"
+                break
+            else
+                eth_port=""
+            fi
+        fi;
+    done
+    if [ -z "$eth_port" ]; then
+        echo "ERROR: Cannot find eth port for MAC $mac" >&2
+        logger "NFVBENCHVM ERROR: Cannot find eth port for MAC $mac"
+        return 1
+    fi
+    echo $eth_port
+    return 0
+}
+
+# Set VM MANAGEMENT port up and running
+if [ $INTF_MGMT_CIDR ] && [ $INTF_MGMT_IP_GW ]; then
+    if [ $INTF_MAC_MGMT ]; then
+        ETH_PORT=$(get_eth_port $INTF_MAC_MGMT)
+    else
+        ETH_PORT="eth0"
+    fi
+    ip addr add $INTF_MGMT_CIDR dev $ETH_PORT
+    ip link set $ETH_PORT up
+    ip route add default via $INTF_MGMT_IP_GW dev $ETH_PORT
+else
+    echo "INFO: VM management IP Addresses missing in $NFVBENCH_CONF"
+fi
+
+# Set dynamically interfaces mac values, if VM is spawn without using NFVBench
+# and management interface is used on eth0
+if [ -z "$INTF_MAC1" ] && [ -z "$INTF_MAC2" ]; then
+    INTF_MAC1=$(ip l show eth1 | grep -o -Ei '([a-fA-F0-9:]{17}|[a-fA-F0-9]{12}$)' | head -1)
+    INTF_MAC2=$(ip l show eth2 | grep -o -Ei '([a-fA-F0-9:]{17}|[a-fA-F0-9]{12}$)' | head -1)
+fi
+
+
+# Sometimes the interfaces on the loopback VM will use different drivers, e.g.
+# one from vswitch which is virtio based, one is from SRIOV VF. In this case,
+# we have to make sure the forwarder uses them in the right order, which is
+# especially important if the VM is in a PVVP chain.
+if [ $INTF_MAC1 ] && [ $INTF_MAC2 ]; then
+    PCI_ADDRESS_1=$(get_pci_address $INTF_MAC1)
+    PCI_ADDRESS_2=$(get_pci_address $INTF_MAC2)
+else
+    echo "ERROR: VM MAC Addresses missing in $NFVBENCH_CONF"
+    logger "NFVBENCHVM ERROR: VM MAC Addresses missing in $NFVBENCH_CONF"
+fi
+
+if [ $PCI_ADDRESS_1 ] && [ $PCI_ADDRESS_2 ]; then
+    logger "NFVBENCHVM: Using pci $PCI_ADDRESS_1 ($INTF_MAC1)"
+    logger "NFVBENCHVM: Using pci $PCI_ADDRESS_2 ($INTF_MAC2)"
+    # Configure the forwarder
+    if [ -z "`lsmod | grep igb_uio`" ]; then
+        modprobe uio
+        insmod /dpdk/igb_uio.ko
+    fi
+    if [ "$FORWARDER" == "testpmd" ]; then
+        echo "Configuring testpmd..."
+        # Binding ports to DPDK
+        dpdk-devbind -b igb_uio $PCI_ADDRESS_1
+        dpdk-devbind -b igb_uio $PCI_ADDRESS_2
+        screen -dmSL testpmd /dpdk/testpmd \
+                            -c $CORE_MASK \
+                            -n 4 \
+                            -- \
+                                --nb-ports=2 \
+                                --burst=32 \
+                                --txd=256 \
+                                --rxd=1024 \
+                                --eth-peer=0,$TG_MAC1 \
+                                --eth-peer=1,$TG_MAC2 \
+                                --forward-mode=mac \
+                                --nb-cores=$WORKER_CORES \
+                                --txq=$VIF_MQ_SIZE \
+                                --rxq=$VIF_MQ_SIZE \
+                                --max-pkt-len=9000 \
+                                --cmdline-file=/dpdk/testpmd_cmd.txt
+        echo "testpmd running in screen 'testpmd'"
+        logger "NFVBENCHVM: testpmd running in screen 'testpmd'"
+    elif [ "$FORWARDER" == "vpp" ]; then
+        echo "Configuring vpp..."
+        cp /vpp/startup.conf /etc/vpp/startup.conf
+        cp /vpp/vm.conf /etc/vpp/vm.conf
+
+        sed -i "s/{{PCI_ADDRESS_1}}/$PCI_ADDRESS_1/g" /etc/vpp/startup.conf
+        sed -i "s/{{PCI_ADDRESS_2}}/$PCI_ADDRESS_2/g" /etc/vpp/startup.conf
+        sed -i "s/{{WORKER_CORES}}/$WORKER_CORES/g" /etc/vpp/startup.conf
+        sed -i "s/{{VIF_MQ_SIZE}}/${VIF_MQ_SIZE}/g" /etc/vpp/startup.conf
+        sed -i "s/{{NUM_MBUFS}}/${NUM_MBUFS}/g" /etc/vpp/startup.conf
+        service vpp start
+        sleep 10
+
+        INTFS=`vppctl show int | grep Ethernet | xargs`
+        INTF_1=`echo $INTFS | awk '{ print $1 }'`
+        INTF_2=`echo $INTFS | awk '{ print $4 }'`
+        if [ -z "${TG_MAC1}" ]; then
+            # vm.conf does not support lines commented with #, so
+            # we need to remove the line to set the static ARP entry.
+            sed -i "/{{TG_MAC1}}/d" /etc/vpp/vm.conf
+        else
+            sed -i "s/{{TG_MAC1}}/${TG_MAC1}/g" /etc/vpp/vm.conf
+        fi
+        if [ -z "${TG_MAC2}" ]; then
+            sed -i "/{{TG_MAC2}}/d" /etc/vpp/vm.conf
+        else
+            sed -i "s/{{TG_MAC2}}/${TG_MAC2}/g" /etc/vpp/vm.conf
+        fi
+        sed -i "s/{{INTF_1}}/${INTF_1//\//\/}/g" /etc/vpp/vm.conf
+        sed -i "s/{{INTF_2}}/${INTF_2//\//\/}/g" /etc/vpp/vm.conf
+        sed -i "s/{{VNF_GATEWAY1_CIDR}}/${VNF_GATEWAY1_CIDR//\//\/}/g" /etc/vpp/vm.conf
+        sed -i "s/{{VNF_GATEWAY2_CIDR}}/${VNF_GATEWAY2_CIDR//\//\/}/g" /etc/vpp/vm.conf
+        sed -i "s/{{TG_NET1}}/${TG_NET1//\//\/}/g" /etc/vpp/vm.conf
+        sed -i "s/{{TG_NET2}}/${TG_NET2//\//\/}/g" /etc/vpp/vm.conf
+        sed -i "s/{{TG_GATEWAY1_IP}}/${TG_GATEWAY1_IP}/g" /etc/vpp/vm.conf
+        sed -i "s/{{TG_GATEWAY2_IP}}/${TG_GATEWAY2_IP}/g" /etc/vpp/vm.conf
+        service vpp restart
+        logger "NFVBENCHVM: vpp service restarted"
+    else
+        echo "ERROR: Unknown forwarder value. Accepted values: testpmd or vpp"
+        exit 1
+    fi
+else
+    echo "ERROR: Cannot find PCI Address from MAC"
+    echo "$INTF_MAC1: $PCI_ADDRESS_1"
+    echo "$INTF_MAC2: $PCI_ADDRESS_2"
+    logger "NFVBENCHVM ERROR: Cannot find PCI Address from MAC"
+fi
+
+exit 0

@@ -1,7 +1,9 @@
-NFVBENCH VM IMAGE FOR OPENSTACK
-+++++++++++++++++++++++++++++++
+NFVBENCH VM IMAGES FOR OPENSTACK
+++++++++++++++++++++++++++++++++
 
-This repo will build a centos 7 image with testpmd and VPP installed.
+This repo will build two centos 7 images with:
+    - testpmd and VPP installed for loop VM use case
+    - NFVbench and TRex installed for generator VM use case
 The VM will come with a pre-canned user/password: nfvbench/nfvbench
 
 BUILD INSTRUCTIONS
@@ -20,10 +22,15 @@ Build the image
 - cd dib
 - update the version number for the image (if needed) by modifying __version__ in build-image.sh
 - setup your http_proxy if needed
-- bash build-image.sh
+- to build loop VM image only:
+    - `bash build-image.sh -l`
+- to build generator VM image only:
+    - `bash build-image.sh -g`
+- to build both images only:
+    - `bash build-image.sh`
 
-IMAGE INSTANCE AND CONFIG
-=========================
+LOOP VM IMAGE INSTANCE AND CONFIG
+=================================
 
 Interface Requirements
 ----------------------
@@ -77,6 +84,66 @@ To check if VPP is running, you can run this command in VNC console:
 .. code-block:: bash
 
     service vpp status
+
+
+Hardcoded Username and Password
+--------------------------------
+- Username: nfvbench
+- Password: nfvbench
+
+
+GENERATOR IMAGE INSTANCE AND CONFIG
+===================================
+
+Interface Requirements
+----------------------
+The instance must be launched using OpenStack with 2 network interfaces using SR-IOV function.
+For best performance, it should use interfaces with a `vnic_type` to `direct-physical` (or `direct` if physical function is not possible) a flavor with:
+
+- 6 vCPU
+- 8 GB RAM
+- cpu pinning set to exclusive
+
+
+Auto-configuration
+------------------
+nfvbench VM will automatically find the two virtual interfaces to use.
+
+nfvbenchvm Config
+-----------------
+nfvbenchvm config file is located at ``/etc/nfvbenchvm.conf``.
+
+.. code-block:: bash
+
+    INTF_MAC1=FA:16:3E:A2:30:41
+    INTF_MAC2=FA:16:3E:10:DA:10
+
+.. note:: A management interface can be set up and NFVbench VM will automatically find the virtual interface to use according to the MAC address provided (see `INTF_MAC_MGMT` parameter).
+
+nfvbenchvm config file with management interface:
+
+.. code-block:: bash
+
+    INTF_MAC1=FA:16:3E:A2:30:41
+    INTF_MAC2=FA:16:3E:10:DA:10
+    INTF_MAC_MGMT=FA:16:3E:06:11:8A
+    INTF_MGMT_CIDR=172.20.56.228/2
+    INTF_MGMT_IP_GW=172.20.56.225
+
+.. note:: `INTF_MGMT_IP_GW` and `INTF_MGMT_CIDR` parameters are used by the VM to automatically configure virtual interface and route to allow an external access through SSH.
+
+
+Launching nfvbenchvm VM
+-----------------------
+
+Normally this image will be deployed using Ansible role, and the required configurations will be automatically generated and pushed to VM by Ansible.
+If launched manually, users will have the full control to configure and run NFVbench via VNC console.
+
+To check if NFVbench is running, you can run this command in VNC console:
+
+.. code-block:: bash
+
+    sudo screen -r nfvbench
 
 
 Hardcoded Username and Password

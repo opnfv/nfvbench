@@ -4,7 +4,6 @@ tuna:
 wget:
 screen:
 telnet:
-python-devel:
 libyaml-devel:
 numactl-libs:
 numactl-devel:
@@ -15,3 +14,7 @@ kernel-firmware:
 kernel-headers:
 kernel-devel:
 openssh-server:
+dpdk-tools:
+git:
+python3-dev:
+libpython3.6-dev:

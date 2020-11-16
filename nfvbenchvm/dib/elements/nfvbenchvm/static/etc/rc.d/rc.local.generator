@@ -2,7 +2,7 @@
 
 touch /var/lock/subsys/local
 
-# Waiting for cloud-init to generate $TESTPMD_CONF, retry 60 seconds
+# Waiting for cloud-init to generate $NFVBENCH_CONF, retry 60 seconds
 NFVBENCH_CONF=/etc/nfvbenchvm.conf
 retry=30
 until [ $retry -eq 0 ]; do
@@ -15,7 +15,7 @@ if [ ! -f $NFVBENCH_CONF ]; then
 fi
 
 # Parse and obtain all configurations
-echo "Generating configurations for forwarder..."
+echo "Generating configurations for NFVbench and TRex..."
 eval $(cat $NFVBENCH_CONF)
 touch /nfvbench_configured.flag
 
@@ -167,83 +167,30 @@ fi
 if [ $PCI_ADDRESS_1 ] && [ $PCI_ADDRESS_2 ]; then
     logger "NFVBENCHVM: Using pci $PCI_ADDRESS_1 ($INTF_MAC1)"
     logger "NFVBENCHVM: Using pci $PCI_ADDRESS_2 ($INTF_MAC2)"
-    # Configure the forwarder
-    if [ -z "`lsmod | grep igb_uio`" ]; then
-        modprobe uio
-        insmod /dpdk/igb_uio.ko
-    fi
-    if [ "$FORWARDER" == "testpmd" ]; then
-        echo "Configuring testpmd..."
-        # Binding ports to DPDK
-        /dpdk/dpdk-devbind.py -b igb_uio $PCI_ADDRESS_1
-        /dpdk/dpdk-devbind.py -b igb_uio $PCI_ADDRESS_2
-        screen -dmSL testpmd /dpdk/testpmd \
-                            -c $CORE_MASK \
-                            -n 4 \
-                            -- \
-                                --nb-ports=2 \
-                                --burst=32 \
-                                --txd=256 \
-                                --rxd=1024 \
-                                --eth-peer=0,$TG_MAC1 \
-                                --eth-peer=1,$TG_MAC2 \
-                                --forward-mode=mac \
-                                --nb-cores=$WORKER_CORES \
-                                --txq=$VIF_MQ_SIZE \
-                                --rxq=$VIF_MQ_SIZE \
-                                --max-pkt-len=9000 \
-                                --cmdline-file=/dpdk/testpmd_cmd.txt
-        echo "testpmd running in screen 'testpmd'"
-        logger "NFVBENCHVM: testpmd running in screen 'testpmd'"
-    else
-        echo "Configuring vpp..."
-        cp /vpp/startup.conf /etc/vpp/startup.conf
-        cp /vpp/vm.conf /etc/vpp/vm.conf
 
-        sed -i "s/{{PCI_ADDRESS_1}}/$PCI_ADDRESS_1/g" /etc/vpp/startup.conf
-        sed -i "s/{{PCI_ADDRESS_2}}/$PCI_ADDRESS_2/g" /etc/vpp/startup.conf
-        sed -i "s/{{WORKER_CORES}}/$WORKER_CORES/g" /etc/vpp/startup.conf
-        sed -i "s/{{VIF_MQ_SIZE}}/${VIF_MQ_SIZE}/g" /etc/vpp/startup.conf
-        sed -i "s/{{NUM_MBUFS}}/${NUM_MBUFS}/g" /etc/vpp/startup.conf
-        service vpp start
-        sleep 10
+    echo "Configuring nfvbench and TRex..."
+    # execute env script to avoid no ENV in screen and a nfvbench error
+    source /etc/profile.d/nfvbench.sh
+    mkdir -p /etc/nfvbench
+    cp /nfvbench/nfvbench.conf /etc/nfvbench/nfvbench.conf
+    sed -i "s/{{PCI_ADDRESS_1}}/$PCI_ADDRESS_1/g" /etc/nfvbench/nfvbench.conf
+    sed -i "s/{{PCI_ADDRESS_2}}/$PCI_ADDRESS_2/g" /etc/nfvbench/nfvbench.conf
+    sed -i "s/{{CORES}}/$WORKER_CORES/g" /etc/nfvbench/nfvbench.conf
+    CORE_THREADS=$(seq -s, 2 $((2+$WORKER_CORES)))
+    sed -i "s/{{CORE_THREADS}}/$CORE_THREADS/g" /etc/nfvbench/nfvbench.conf
 
-        INTFS=`vppctl show int | grep Ethernet | xargs`
-        INTF_1=`echo $INTFS | awk '{ print $1 }'`
-        INTF_2=`echo $INTFS | awk '{ print $4 }'`
-        if [ -z "${TG_MAC1}" ]; then
-            # vm.conf does not support lines commented with #, so
-            # we need to remove the line to set the static ARP entry.
-            sed -i "/{{TG_MAC1}}/d" /etc/vpp/vm.conf
-        else
-            sed -i "s/{{TG_MAC1}}/${TG_MAC1}/g" /etc/vpp/vm.conf
-        fi
-        if [ -z "${TG_MAC2}" ]; then
-            sed -i "/{{TG_MAC2}}/d" /etc/vpp/vm.conf
-        else
-            sed -i "s/{{TG_MAC2}}/${TG_MAC2}/g" /etc/vpp/vm.conf
-        fi
-        sed -i "s/{{INTF_1}}/${INTF_1//\//\/}/g" /etc/vpp/vm.conf
-        sed -i "s/{{INTF_2}}/${INTF_2//\//\/}/g" /etc/vpp/vm.conf
-        sed -i "s/{{VNF_GATEWAY1_CIDR}}/${VNF_GATEWAY1_CIDR//\//\/}/g" /etc/vpp/vm.conf
-        sed -i "s/{{VNF_GATEWAY2_CIDR}}/${VNF_GATEWAY2_CIDR//\//\/}/g" /etc/vpp/vm.conf
-        sed -i "s/{{TG_NET1}}/${TG_NET1//\//\/}/g" /etc/vpp/vm.conf
-        sed -i "s/{{TG_NET2}}/${TG_NET2//\//\/}/g" /etc/vpp/vm.conf
-        sed -i "s/{{TG_GATEWAY1_IP}}/${TG_GATEWAY1_IP}/g" /etc/vpp/vm.conf
-        sed -i "s/{{TG_GATEWAY2_IP}}/${TG_GATEWAY2_IP}/g" /etc/vpp/vm.conf
-        service vpp restart
-        logger "NFVBENCHVM: vpp service restarted"
-    fi
+    dpdk-devbind -b vfio-pci $PCI_ADDRESS_1
+    dpdk-devbind -b vfio-pci $PCI_ADDRESS_2
+
+    screen -dmSL nfvbench nfvbench \
+                          -c /etc/nfvbench/nfvbench.conf \
+                          --server
+    echo "NFVbench running in screen 'nfvbench'"
+    logger "NFVBENCHVM: NFVbench running in screen 'nfvbench'"
 else
     echo "ERROR: Cannot find PCI Address from MAC"
     echo "$INTF_MAC1: $PCI_ADDRESS_1"
     echo "$INTF_MAC2: $PCI_ADDRESS_2"
     logger "NFVBENCHVM ERROR: Cannot find PCI Address from MAC"
 fi
-
-# Set SSH config
-logger $(cat /etc/ssh/sshd_config | grep "PasswordAuthentication")
-sed -i 's/PasswordAuthentication no/#PasswordAuthentication no/g' /etc/ssh/sshd_config
-sed -i 's/#PasswordAuthentication yes/PasswordAuthentication yes/g' /etc/ssh/sshd_config
-logger $(cat /etc/ssh/sshd_config | grep "PasswordAuthentication")
-service sshd restart
+exit 0

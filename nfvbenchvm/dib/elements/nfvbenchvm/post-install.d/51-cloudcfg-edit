@@ -29,5 +29,8 @@ elif synver == "2":
    cfg['system_info']['default_user']['gecos'] = "Cloud User"
    print cfg['system_info']['default_user']['name']
 
+# allow SSH password auth
+cfg['ssh_pwauth'] = "1"
+
 with open(cloudcfg, "w") as f:
   yaml.dump(cfg, f, default_flow_style=False)

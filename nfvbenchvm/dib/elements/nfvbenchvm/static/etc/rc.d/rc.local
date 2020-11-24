@@ -2,6 +2,20 @@
 
 touch /var/lock/subsys/local
 
+# Find out which interface is used for management
+get_mgmt_interface() {
+    mgmt_if=$(/dpdk/dpdk-devbind.py -s | grep drv=virtio-pci | grep -Io eth[0-9]*)
+    echo $mgmt_if
+    return 0
+}
+
+# Find out interface count
+get_if_count() {
+    if_count=$(/dpdk/dpdk-devbind.py -s | grep if= | wc -l)
+    echo $if_count
+    return 0
+}
+
 # Waiting for cloud-init to generate $TESTPMD_CONF, retry 60 seconds
 NFVBENCH_CONF=/etc/nfvbenchvm.conf
 retry=30
@@ -11,7 +25,13 @@ until [ $retry -eq 0 ]; do
     sleep 2
 done
 if [ ! -f $NFVBENCH_CONF ]; then
-    exit 0
+    if [ $(get_if_count) -eq 3 ]; then
+        ip link set up $(get_mgmt_interface)
+        dhclient $(get_mgmt_interface)
+        exit 0
+    else
+        exit 0
+    fi
 fi
 
 # Parse and obtain all configurations

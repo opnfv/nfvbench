@@ -1,0 +1,25 @@
+#!/bin/bash
+
+# Set environment variables for trex
+TREX_VER="v2.79"
+TREX_ENV="/etc/profile.d/trex-env.sh"
+PYTHONIOENCODING="utf8"
+TREX_EXT_LIBS="/opt/trex/$TREX_VER/external_libs"
+
+# Save environment variables for trex
+cat <<EOF >"$TREX_ENV"
+export TREX_VER="$TREX_VER"
+export PYTHONIOENCODING="$PYTHONIOENCODING"
+export TREX_EXT_LIBS="$TREX_EXT_LIBS"
+EOF
+
+# Install trex
+wget --no-cache --no-check-certificate -O /opt/$TREX_VER.tar.gz https://trex-tgn.cisco.com/trex/release/$TREX_VER.tar.gz
+mkdir -p /opt/trex && tar xzf /opt/$TREX_VER.tar.gz -C /opt/trex
+cp -a /opt/trex/$TREX_VER/automation/trex_control_plane/interactive/trex /usr/lib/python3.6/site-packages
+rm -f /opt/$TREX_VER.tar.gz /opt/trex/$TREX_VER/trex_client_$TREX_VER.tar.gz
+
+# Install nfvbench
+git clone https://gerrit.opnfv.org/gerrit/nfvbench /nfvbench
+pip3 --no-cache-dir install -e /nfvbench
+rm -rf /nfvbench/.git

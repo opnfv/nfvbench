@@ -15,3 +15,5 @@ kernel-firmware:
 kernel-headers:
 kernel-devel:
 openssh-server:
+# Packages required for hybrid image
+python3-devel:

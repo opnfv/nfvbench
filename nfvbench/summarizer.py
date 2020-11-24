@@ -219,35 +219,6 @@ class Summarizer(object):
 class NFVBenchSummarizer(Summarizer):
     """Summarize nfvbench json result."""
 
-    ndr_pdr_header = [
-        ('-', Formatter.fixed),
-        ('L2 Frame Size', Formatter.standard),
-        ('Rate (fwd+rev)', Formatter.bits),
-        ('Rate (fwd+rev)', Formatter.suffix(' pps')),
-        ('Avg Drop Rate', Formatter.suffix('%')),
-        ('Avg Latency (usec)', Formatter.standard),
-        ('Min Latency (usec)', Formatter.standard),
-        ('Max Latency (usec)', Formatter.standard)
-    ]
-
-    single_run_header = [
-        ('L2 Frame Size', Formatter.standard),
-        ('Drop Rate', Formatter.suffix('%')),
-        ('Avg Latency (usec)', Formatter.standard),
-        ('Min Latency (usec)', Formatter.standard),
-        ('Max Latency (usec)', Formatter.standard)
-    ]
-
-    config_header = [
-        ('Direction', Formatter.standard),
-        ('Requested TX Rate (bps)', Formatter.bits),
-        ('Actual TX Rate (bps)', Formatter.bits),
-        ('RX Rate (bps)', Formatter.bits),
-        ('Requested TX Rate (pps)', Formatter.suffix(' pps')),
-        ('Actual TX Rate (pps)', Formatter.suffix(' pps')),
-        ('RX Rate (pps)', Formatter.suffix(' pps'))
-    ]
-
     direction_keys = ['direction-forward', 'direction-reverse', 'direction-total']
     direction_names = ['Forward', 'Reverse', 'Total']
 
@@ -259,6 +230,35 @@ class NFVBenchSummarizer(Summarizer):
         self.record_header = None
         self.record_data = None
         self.sender = sender
+
+        self.ndr_pdr_header = [
+            ('-', Formatter.fixed),
+            ('L2 Frame Size', Formatter.standard),
+            ('Rate (fwd+rev)', Formatter.bits),
+            ('Rate (fwd+rev)', Formatter.suffix(' pps')),
+            ('Avg Drop Rate', Formatter.suffix('%')),
+            ('Avg Latency (usec)', Formatter.standard),
+            ('Min Latency (usec)', Formatter.standard),
+            ('Max Latency (usec)', Formatter.standard)
+        ]
+
+        self.single_run_header = [
+            ('L2 Frame Size', Formatter.standard),
+            ('Drop Rate', Formatter.suffix('%')),
+            ('Avg Latency (usec)', Formatter.standard),
+            ('Min Latency (usec)', Formatter.standard),
+            ('Max Latency (usec)', Formatter.standard)
+        ]
+
+        self.config_header = [
+            ('Direction', Formatter.standard),
+            ('Requested TX Rate (bps)', Formatter.bits),
+            ('Actual TX Rate (bps)', Formatter.bits),
+            ('RX Rate (bps)', Formatter.bits),
+            ('Requested TX Rate (pps)', Formatter.suffix(' pps')),
+            ('Actual TX Rate (pps)', Formatter.suffix(' pps')),
+            ('RX Rate (pps)', Formatter.suffix(' pps'))
+        ]
 
         # add percentiles headers if hdrh enabled
         if not self.config.disable_hdrh:

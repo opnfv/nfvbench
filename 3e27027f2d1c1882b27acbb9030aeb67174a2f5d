@@ -1,0 +1,55 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "ccfef866_ae288cfe",
+        "filename": "nfvbenchvm/dib/elements/nfvbenchvm/post-install.d/52-install-nfvbench",
+        "patchSetId": 1
+      },
+      "lineNbr": 23,
+      "author": {
+        "id": 5807
+      },
+      "writtenOn": "2020-11-27T01:30:39Z",
+      "side": 1,
+      "message": "The problem with this approach is that it always clones master branch latest.\nThis could be a problem for example if you build the VM from a different branch or different hash (which is not latest on master).\nInstead it should use the current repo clone (where the build of the VM with dib is running).\n\nThe Trex version is hardcoded here and will normally need to be in sync with the one used for this nfvbench version (which is set in Dockerfile). This one is a bit more work to get at VM build time.",
+      "revId": "3e27027f2d1c1882b27acbb9030aeb67174a2f5d",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "72603adf_7cf504f7",
+        "filename": "nfvbenchvm/dib/elements/nfvbenchvm/post-install.d/52-install-nfvbench",
+        "patchSetId": 1
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 5807
+      },
+      "writtenOn": "2020-11-27T01:30:39Z",
+      "side": 1,
+      "message": "installing in editable mode (-e) is usually fine for troubleshooting.\nFor production image, I think it makes more sense to do a regular install (without -e) after which you can get rid of the source code entirely.\n\nAlso not clear why python-devel is needed?\nIf really needed, we probably need to uninstall it after everything is done.",
+      "revId": "3e27027f2d1c1882b27acbb9030aeb67174a2f5d",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "bddaf862_1f8680f5",
+        "filename": "nfvbenchvm/dib/elements/nfvbenchvm/static/etc/rc.d/rc.local",
+        "patchSetId": 1
+      },
+      "lineNbr": 35,
+      "author": {
+        "id": 5807
+      },
+      "writtenOn": "2020-11-27T01:30:39Z",
+      "side": 1,
+      "message": "It looks like you are using the same VM to contain the testpmd, vpp and nfvbench+trex and it looks like you assume that if /etc/nfvbenchvm.conf is not present and there are exactly 3 interfaces then this ought to run as nfvbench mode?\n\nAlthough the idea of having a unified vm image is reasonable, I woudl rather have the mode of operation set in the /etc/nfvbenchvm.conf (basically 3 modes: testpmd, vpp, nfvbench), that way you dont have to wait for 60s to use in nfvbench mode.\nIn that mode, if the number of interfaces is not correct we should print some error message in some log (/tmp/trex.log could be reused iirc)",
+      "revId": "3e27027f2d1c1882b27acbb9030aeb67174a2f5d",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": true
+    }
+  ]
+}

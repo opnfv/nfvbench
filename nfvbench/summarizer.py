@@ -504,9 +504,15 @@ class NFVBenchSummarizer(Summarizer):
             data['lat_percentile'] = {}
         for percentile in self.config.lat_percentiles:
             if add_key:
-                data['lat_percentile_' + str(percentile)] = lat_percentile[percentile]
+                try:
+                    data['lat_percentile_' + str(percentile)] = lat_percentile[percentile]
+                except TypeError:
+                    data['lat_percentile_' + str(percentile)] = "n/a"
             else:
-                data.append(lat_percentile[percentile])
+                try:
+                    data.append(lat_percentile[percentile])
+                except TypeError:
+                    data.append("n/a")
 
     def __get_config_table(self, run_config, frame_size):
         config_table = Table(self.config_header)
@@ -587,7 +593,7 @@ class NFVBenchSummarizer(Summarizer):
                                 row.append(Formatter.standard(
                                     chains[chain][lat_key][percentile]))
                         else:
-                            for percentile in self.config.lat_percentiles:
+                            for _ in self.config.lat_percentiles:
                                 row.append('n/a')
             table.add_row(row)
         return table

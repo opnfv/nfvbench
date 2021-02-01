@@ -15,7 +15,6 @@
 #
 
 import sys
-import time
 
 from neutronclient.neutron import client as nclient
 from novaclient.client import Client
@@ -24,6 +23,7 @@ from tabulate import tabulate
 
 from . import credentials
 from .log import LOG
+from . import utils
 
 
 class ComputeCleaner(object):
@@ -35,13 +35,6 @@ class ComputeCleaner(object):
         all_servers = self.nova_client.servers.list()
         self.servers = [server for server in all_servers
                         if server.name.startswith(instance_prefix)]
-
-    def instance_exists(self, server):
-        try:
-            self.nova_client.servers.get(server.id)
-        except NotFound:
-            return False
-        return True
 
     def get_resource_list(self):
         return [["Instance", server.name, server.id] for server in self.servers]
@@ -59,29 +52,8 @@ class ComputeCleaner(object):
         if self.clean_needed(clean_options):
             if self.servers:
                 for server in self.servers:
-                    try:
-                        LOG.info('Deleting instance %s...', server.name)
-                        self.nova_client.servers.delete(server.id)
-                    except Exception:
-                        LOG.exception("Instance %s deletion failed", server.name)
-                LOG.info('    Waiting for %d instances to be fully deleted...', len(self.servers))
-                retry_count = 15 + len(self.servers) * 5
-                while True:
-                    retry_count -= 1
-                    self.servers = [server for server in self.servers if
-                                    self.instance_exists(server)]
-                    if not self.servers:
-                        break
-
-                    if retry_count:
-                        LOG.info('    %d yet to be deleted by Nova, retries left=%d...',
-                                 len(self.servers), retry_count)
-                        time.sleep(2)
-                    else:
-                        LOG.warning(
-                            '    instance deletion verification time-out: %d still not deleted',
-                            len(self.servers))
-                        break
+                    utils.delete_server(self.nova_client, server)
+                utils.waiting_servers_deletion(self.nova_client, self.servers)
 
 
 class NetworkCleaner(object):

@@ -13,6 +13,7 @@
 #    under the License.
 
 import glob
+import time
 from math import gcd
 from math import isnan
 import os
@@ -26,6 +27,7 @@ from functools import wraps
 import json
 from .log import LOG
 from nfvbench.traffic_gen.traffic_utils import multiplier_map
+from novaclient.exceptions import NotFound
 
 class TimeoutError(Exception):
     pass
@@ -251,3 +253,39 @@ def find_max_size(max_size, tuples, flow):
         if flow % i == 0:
             return int(i)
     return 1
+
+
+def delete_server(nova_client, server):
+    try:
+        LOG.info('Deleting instance %s...', server.name)
+        nova_client.servers.delete(server.id)
+    except Exception:
+        LOG.exception("Instance %s deletion failed", server.name)
+
+
+def instance_exists(nova_client, server):
+    try:
+        nova_client.servers.get(server.id)
+    except NotFound:
+        return False
+    return True
+
+
+def waiting_servers_deletion(nova_client, servers):
+    LOG.info('    Waiting for %d instances to be fully deleted...', len(servers))
+    retry_count = 15 + len(servers) * 5
+    while True:
+        retry_count -= 1
+        servers = [server for server in servers if instance_exists(nova_client, server)]
+        if not servers:
+            break
+
+        if retry_count:
+            LOG.info('    %d yet to be deleted by Nova, retries left=%d...',
+                     len(servers), retry_count)
+            time.sleep(2)
+        else:
+            LOG.warning(
+                '    instance deletion verification time-out: %d still not deleted',
+                len(servers))
+            break

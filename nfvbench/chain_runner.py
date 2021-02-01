@@ -210,8 +210,8 @@ class ChainRunner(object):
                 LOG.info('Clean up skipped.')
             try:
                 self.traffic_client.close()
-            except Exception:
-                LOG.exception()
+            except Exception as exc:
+                LOG.exception(exc)
             if self.stats_manager:
                 self.stats_manager.close()
         except Exception:

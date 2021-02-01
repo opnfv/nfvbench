@@ -17,12 +17,15 @@ import time
 import traceback
 
 from glanceclient import exc as glance_exception
+from nfvbench import utils
+
 try:
     from glanceclient.openstack.common.apiclient.exceptions import NotFound as GlanceImageNotFound
 except ImportError:
     from glanceclient.v1.apiclient.exceptions import NotFound as GlanceImageNotFound
 import keystoneauth1
 import novaclient
+from novaclient.exceptions import NotFound
 
 from .log import LOG
 
@@ -147,9 +150,17 @@ class Compute(object):
         servers_list = self.novaclient.servers.list()
         return servers_list
 
+    def instance_exists(self, server):
+        try:
+            self.novaclient.servers.get(server)
+        except NotFound:
+            return False
+        return True
+
     def delete_server(self, server):
         """Delete a server from its object reference."""
-        self.novaclient.servers.delete(server)
+        utils.delete_server(self.novaclient, server)
+        utils.waiting_servers_deletion(self.novaclient, [server])
 
     def find_flavor(self, flavor_type):
         """Find a flavor by name."""

@@ -17,8 +17,6 @@ import time
 import traceback
 
 from glanceclient import exc as glance_exception
-from nfvbench import utils
-
 try:
     from glanceclient.openstack.common.apiclient.exceptions import NotFound as GlanceImageNotFound
 except ImportError:
@@ -28,6 +26,7 @@ import novaclient
 from novaclient.exceptions import NotFound
 
 from .log import LOG
+from . import utils
 
 
 class Compute(object):

@@ -15,7 +15,6 @@
 #
 
 import sys
-import time
 
 from neutronclient.neutron import client as nclient
 from novaclient.client import Client

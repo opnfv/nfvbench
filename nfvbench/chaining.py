@@ -158,6 +158,10 @@ class ChainVnfPort(object):
                     'binding:vnic_type': vnic_type
                 }
             }
+            subnet_id = chain_network.get_subnet_uuid()
+            if subnet_id:
+                body['port']['fixed_ips'] = [{'subnet_id': subnet_id}]
+
             port = self.manager.neutron_client.create_port(body)
             self.port = port['port']
             LOG.info('Created port %s', name)
@@ -240,6 +244,7 @@ class ChainNetwork(object):
             self.name = self.name + suffix
         self.segmentation_id = self._get_item(network_config.segmentation_id,
                                               chain_id, auto_index=True)
+        self.subnet_name = self._get_item(network_config.subnet, chain_id)
         self.physical_network = self._get_item(network_config.physical_network, chain_id)
 
         self.reuse = False
@@ -351,6 +356,18 @@ class ChainNetwork(object):
         :return: UUID of this network
         """
         return self.network['id']
+
+    def get_subnet_uuid(self):
+        """
+        Extract UUID of this subnet network.
+
+        :return: UUID of this subnet network
+        """
+        for subnet in self.network['subnets']:
+            if self.subnet_name == self.manager.neutron_client \
+                    .show_subnet(subnet)['subnet']['name']:
+                return subnet
+        return None
 
     def get_vlan(self):
         """
@@ -1322,6 +1339,7 @@ class ChainManager(object):
             lookup_only = True
             ext_net = self.config.external_networks
             net_cfg = [AttrDict({'name': name,
+                                 'subnet': None,
                                  'segmentation_id': None,
                                  'physical_network': None})
                        for name in [ext_net.left, ext_net.right]]

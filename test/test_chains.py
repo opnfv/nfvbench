@@ -39,6 +39,7 @@ from nfvbench.summarizer import _annotate_chain_stats
 from nfvbench.traffic_client import TrafficClient
 from nfvbench.traffic_gen.traffic_base import Latency
 from nfvbench.traffic_gen.trex_gen import TRex
+from nfvbench import utils
 
 # just to get rid of the unused function warning
 no_op()
@@ -108,7 +109,11 @@ def test_chain_runner_ext_no_openstack():
 def _mock_find_image(self, image_name):
     return MagicMock()
 
+def _mock_waiting_servers_deletion(nova_client, servers):
+    return MagicMock()
+
 @patch.object(Compute, 'find_image', _mock_find_image)
+@patch.object(utils, 'waiting_servers_deletion', _mock_waiting_servers_deletion)
 @patch('nfvbench.chaining.Client')
 @patch('nfvbench.chaining.neutronclient')
 @patch('nfvbench.chaining.glanceclient')
@@ -140,6 +145,7 @@ def test_pvp_chain_runner():
 
 # Test not admin exception with empty value is raised
 @patch.object(Compute, 'find_image', _mock_find_image)
+@patch.object(utils, 'waiting_servers_deletion', _mock_waiting_servers_deletion)
 @patch('nfvbench.chaining.Client')
 @patch('nfvbench.chaining.neutronclient')
 @patch('nfvbench.chaining.glanceclient')
@@ -169,6 +175,7 @@ def test_pvp_chain_runner_no_admin_no_config_values():
 
 # Test not admin with mandatory parameters values in config file
 @patch.object(Compute, 'find_image', _mock_find_image)
+@patch.object(utils, 'waiting_servers_deletion', _mock_waiting_servers_deletion)
 @patch('nfvbench.chaining.Client')
 @patch('nfvbench.chaining.neutronclient')
 @patch('nfvbench.chaining.glanceclient')
@@ -275,6 +282,7 @@ def _mock_get_mac(dummy):
 @patch.object(TrafficClient, 'skip_sleep', lambda x: True)
 @patch.object(ChainVnfPort, 'get_mac', _mock_get_mac)
 @patch.object(TrafficClient, 'is_udp', lambda x, y: True)
+@patch.object(utils, 'waiting_servers_deletion', _mock_waiting_servers_deletion)
 @patch('nfvbench.chaining.Client')
 @patch('nfvbench.chaining.neutronclient')
 @patch('nfvbench.chaining.glanceclient')

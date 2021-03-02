@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "4442f46b_27f46b17",
+        "filename": "docker/Dockerfile",
+        "patchSetId": 1
+      },
+      "lineNbr": 8,
+      "author": {
+        "id": 6909
+      },
+      "writtenOn": "2021-03-02T18:59:31Z",
+      "side": 1,
+      "message": "I am not sure if this still applies with latest Docker. The reason for combining all logic into one \"RUN\" block is to make sure Docker is only building one layer and that will have benefits like \"smaller size\" and \"more security\".\n\nIf you break into multiple RUN block, docker will generate a layer for every individual block, which even you \"remove\" some of the stuff in the last step, the final size of your Docker image won\u0027t change at all because those stuff are persistent in previous layers and will be packaged. Also, from security point of view, people who wants to hack can inspect your intermittent container to find your \"temporary\" contents and steal your information.\n\nThose are at least true when I was working on this, but may need to find out if those are still true.",
+      "revId": "73e24f36c7c4e8b0ea23c60240314fe19d5b4b38",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": true
+    }
+  ]
+}

@@ -185,13 +185,14 @@ class NFVBench(object):
                         'will be created.', path)
                     os.makedirs(path)
                     LOG.info('%s is created.', path)
-                for h in log.getLogger().handlers:
-                    if isinstance(h, FileHandler) and h.baseFilename != opts['log_file']:
-                        # clean log file handler
-                        log.getLogger().removeHandler(h)
-                # add handler if not existing to avoid duplicates handlers
-                if len(log.getLogger().handlers) == 1:
+                if not any(isinstance(h, FileHandler) for h in log.getLogger().handlers):
                     log.add_file_logger(opts['log_file'])
+                else:
+                    for h in log.getLogger().handlers:
+                        if isinstance(h, FileHandler) and h.baseFilename != opts['log_file']:
+                            # clean log file handler
+                            log.getLogger().removeHandler(h)
+                            log.add_file_logger(opts['log_file'])
 
         self.config.update(opts)
         config = self.config

@@ -16,6 +16,24 @@
       "revId": "73e24f36c7c4e8b0ea23c60240314fe19d5b4b38",
       "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "194235ab_5c606e09",
+        "filename": "docker/Dockerfile",
+        "patchSetId": 1
+      },
+      "lineNbr": 8,
+      "author": {
+        "id": 7465
+      },
+      "writtenOn": "2021-03-03T09:16:49Z",
+      "side": 1,
+      "message": "Thanks for your review.\nYes I agree on that point.\nWe write the Dockerfile in this form for development purpose to use cache layers, but yes for production it is not recommended so I will update the patch 😊",
+      "parentUuid": "4442f46b_27f46b17",
+      "revId": "73e24f36c7c4e8b0ea23c60240314fe19d5b4b38",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": true
     }
   ]
 }

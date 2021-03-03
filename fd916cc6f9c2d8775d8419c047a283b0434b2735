@@ -1,0 +1,123 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "91ea748c_5fb7f131",
+        "filename": "nfvbenchvm/README.rst",
+        "patchSetId": 2
+      },
+      "lineNbr": 100,
+      "author": {
+        "id": 5807
+      },
+      "writtenOn": "2021-03-03T16:11:42Z",
+      "side": 1,
+      "message": "2 network interfaces for dataplane traffic and 1 management interface to control nfvbench. Maybe add a small section on how to control nfvbench in the VM (ssh or REST). Provide username, password and REST IP port to use, how to check nfvbench is up and running.",
+      "revId": "fd916cc6f9c2d8775d8419c047a283b0434b2735",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c24d0c95_61c46e39",
+        "filename": "nfvbenchvm/README.rst",
+        "patchSetId": 2
+      },
+      "lineNbr": 101,
+      "author": {
+        "id": 5807
+      },
+      "writtenOn": "2021-03-03T16:11:42Z",
+      "side": 1,
+      "message": "this is for the 2 dataplane interfaces, for the mgmt interface you can use any interface type with routable IP and with access to openstack API.",
+      "revId": "fd916cc6f9c2d8775d8419c047a283b0434b2735",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "63a73362_d0a9da36",
+        "filename": "nfvbenchvm/README.rst",
+        "patchSetId": 2
+      },
+      "lineNbr": 105,
+      "author": {
+        "id": 5807
+      },
+      "writtenOn": "2021-03-03T16:11:42Z",
+      "side": 1,
+      "message": "can you add more about how the vcpu are assigned?\nI assume you need at least 1 for the guest OS to run all management function, maybe 1 for nfvbench and the rest for Trex?",
+      "revId": "fd916cc6f9c2d8775d8419c047a283b0434b2735",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "95329a8b_5d587413",
+        "filename": "nfvbenchvm/README.rst",
+        "patchSetId": 2
+      },
+      "lineNbr": 110,
+      "author": {
+        "id": 5807
+      },
+      "writtenOn": "2021-03-03T16:11:42Z",
+      "side": 1,
+      "message": "based on MAC?",
+      "revId": "fd916cc6f9c2d8775d8419c047a283b0434b2735",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b5a58b72_8c29b01d",
+        "filename": "nfvbenchvm/README.rst",
+        "patchSetId": 2
+      },
+      "lineNbr": 125,
+      "author": {
+        "id": 5807
+      },
+      "writtenOn": "2021-03-03T16:11:42Z",
+      "side": 1,
+      "message": "maybe add that depending on ACTION, one set of MAC is used and the other is not used/irrelevant\nprobably better to put ACTION ahead of the MACs",
+      "revId": "fd916cc6f9c2d8775d8419c047a283b0434b2735",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "662d3a44_1ed80e92",
+        "filename": "nfvbenchvm/README.rst",
+        "patchSetId": 2
+      },
+      "lineNbr": 136,
+      "author": {
+        "id": 5807
+      },
+      "writtenOn": "2021-03-03T16:11:42Z",
+      "side": 1,
+      "message": "suggest moving openstack reachability above when describing the VM management interface",
+      "revId": "fd916cc6f9c2d8775d8419c047a283b0434b2735",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5de9622f_661bc8e1",
+        "filename": "nfvbenchvm/dib/elements/nfvbenchvm/post-install.d/52-nfvbench-script",
+        "patchSetId": 2
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 5807
+      },
+      "writtenOn": "2021-03-03T16:11:42Z",
+      "side": 1,
+      "message": "this works fine but at some point we should try to get an installed version of nfvbench, create a wheel and using something like \"pip install nfvbench.whl\" (exercise for later).",
+      "revId": "fd916cc6f9c2d8775d8419c047a283b0434b2735",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": true
+    }
+  ]
+}

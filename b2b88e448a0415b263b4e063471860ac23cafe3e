@@ -16,6 +16,24 @@
       "revId": "b2b88e448a0415b263b4e063471860ac23cafe3e",
       "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9e22b268_1b68d9b4",
+        "filename": "nfvbench/nfvbench.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 195,
+      "author": {
+        "id": 7465
+      },
+      "writtenOn": "2021-03-03T16:33:12Z",
+      "side": 1,
+      "message": "Yes it would have added it multiple times if we didn\u0027t remove the existing handler.\nThat\u0027s why I remove the previous FileHandler and add the new one.\nIn this scenario we can have only one FileHandler as NFVbench does not permit to add multiple log_file parameters.\n\nRemoving the if from left will add the logger at every call and truncate the log file and it is not the expected behaviour.",
+      "parentUuid": "9b3b0c65_d253c060",
+      "revId": "b2b88e448a0415b263b4e063471860ac23cafe3e",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": true
     }
   ]
 }

@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9b3b0c65_d253c060",
+        "filename": "nfvbench/nfvbench.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 195,
+      "author": {
+        "id": 5807
+      },
+      "writtenOn": "2021-03-03T16:20:35Z",
+      "side": 1,
+      "message": "looks like this code would add opts[\u0027log_file\u0027] multiple times if there are multiple file handlers?\nI think you can simply just remove L193 on the left?",
+      "revId": "b2b88e448a0415b263b4e063471860ac23cafe3e",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": true
+    }
+  ]
+}

@@ -91,7 +91,7 @@ class TRexTrafficServer(TrafficServer):
         # parameter, specified as one of the starting command line
         # arguments, has been modified since the last launch.
         # Hence we add some extra fields to the config file
-        # (nb_cores, use_vlan, mbuf_factor, i40e_mixed, hdrh)
+        # (nb_cores, use_vlan, mbuf_factor, hdrh)
         # which will serve as a memory between runs -
         # while being actually ignored by the T-Rex server.
 
@@ -108,7 +108,6 @@ class TRexTrafficServer(TrafficServer):
             hdrh       : {hdrh}
             nb_cores   : {nb_cores}
             use_vlan   : {use_vlan}
-            i40e_mixed : {i40e_mixed}
           interfaces   : [{ifs}]""".format(
             zmq_pub_port=generator_config.zmq_pub_port,
             zmq_rpc_port=generator_config.zmq_rpc_port,
@@ -120,7 +119,6 @@ class TRexTrafficServer(TrafficServer):
             nb_cores=generator_config.cores,
             use_vlan=generator_config.gen_config.get('vtep_vlan') or
             generator_config.vlan_tagging,
-            i40e_mixed=generator_config.config.i40e_mixed,
             ifs=ifs)
 
         if hasattr(generator_config, 'mbuf_64') and generator_config.mbuf_64:

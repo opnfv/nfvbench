@@ -1,0 +1,7 @@
+Verified+1: jenkins-ci <jenkins-opnfv-ci@opnfv.org>
+Code-Review+2: Fran�ois-R�gis Menguy <francoisregis.menguy@orange.com>
+Submitted-by: Fran�ois-R�gis Menguy <francoisregis.menguy@orange.com>
+Submitted-at: Fri, 05 Mar 2021 08:59:11 +0000
+Reviewed-on: https://gerrit.opnfv.org/gerrit/c/nfvbench/+/72143
+Project: nfvbench
+Branch: refs/heads/master

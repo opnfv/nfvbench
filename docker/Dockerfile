@@ -1,7 +1,7 @@
 # docker file for creating a container that has nfvbench installed and ready to use
 FROM ubuntu:20.04
 
-ENV TREX_VER "v2.88"
+ENV TREX_VER "v2.89"
 ENV VM_IMAGE_VER "0.12"
 ENV PYTHONIOENCODING "utf8"
 

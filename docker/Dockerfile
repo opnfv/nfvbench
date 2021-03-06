@@ -19,6 +19,7 @@ RUN apt-get update && apt-get install -y \
        libpython3.8-dev \
        python3-distutils \
        gcc \
+       patch \
        && ln -s /usr/bin/python3.8 /usr/local/bin/python3 \
        && mkdir -p /opt/trex \
        && mkdir /var/log/nfvbench \

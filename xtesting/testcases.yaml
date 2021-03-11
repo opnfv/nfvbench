@@ -6,6 +6,65 @@ tiers:
         description: 'Data Plane Performance Testing'
         testcases:
             -
+                case_name: characterization
+                project_name: nfvbench
+                criteria: 100
+                blocking: true
+                clean_flag: false
+                description: ''
+                run:
+                    name: 'nfvbench_behaveframework'
+                    args:
+                        suites:
+                            - /opt/nfvbench/behave_tests/features/characterization-full.feature
+                        tags:
+                            - characterization
+                        console:
+                            - true
+            -
+                case_name: non-regression
+                project_name: nfvbench
+                criteria: 100
+                blocking: true
+                clean_flag: false
+                description: ''
+                run:
+                    name: 'nfvbench_behaveframework'
+                    args:
+                        suites:
+                            - /opt/nfvbench/behave_tests/features/non-regression.feature
+                        tags:
+                            - non-regression
+                        console:
+                            - true
+
+    -
+        name: nfvbench-rapid-characterization
+        order: 2
+        description: 'Data Plane Performance Testing'
+        testcases:
+            -
+                case_name: rapid-characterization
+                project_name: nfvbench
+                criteria: 100
+                blocking: true
+                clean_flag: false
+                description: ''
+                run:
+                    name: 'nfvbench_behaveframework'
+                    args:
+                        suites:
+                            - /opt/nfvbench/behave_tests/features/characterization-samples.feature
+                        tags:
+                            - characterization
+                        console:
+                            - true
+    -
+        name: nfvbench-demo
+        order: 3
+        description: 'Data Plane Performance Testing'
+        testcases:
+            -
                 case_name: 10kpps-pvp-run
                 project_name: nfvbench
                 criteria: 100
@@ -17,4 +76,5 @@ tiers:
                     args:
                         cmd:
                             - nfvbench -c /tmp/nfvbench/nfvbench.cfg --rate 10kpps
-
+                        console:
+                            - true

@@ -16,5 +16,7 @@
         - container: nfvbench
           tests:
             - 10kpps-pvp-run
+            - characterization
+            - non-regression
           properties:
             execution-type: SEQUENTIALLY

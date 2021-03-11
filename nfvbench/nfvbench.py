@@ -246,8 +246,7 @@ class NFVBench(object):
             config.cache_size = config.flow_count
 
         # The size must be capped to 10000 (where does this limit come from?)
-        if config.cache_size > 10000:
-            config.cache_size = 10000
+        config.cache_size = min(config.cache_size, 10000)
 
         config.duration_sec = float(config.duration_sec)
         config.interval_sec = float(config.interval_sec)

@@ -1,5 +1,8 @@
 docker_args:
   env: {}
+  params:
+    net: host
+    privileged: true
   volumes:
     - /lib/modules/$(uname -r):/lib/modules/$(uname -r)
     - /usr/src/kernels:/usr/src/kernels -v /dev:/dev

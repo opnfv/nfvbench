@@ -127,11 +127,11 @@ def get_intel_pci(nic_slot=None, nic_ports=None):
         trex_base_dir = '/opt/trex'
         contents = os.listdir(trex_base_dir)
         trex_dir = os.path.join(trex_base_dir, contents[0])
-        process = subprocess.Popen(['python', 'dpdk_setup_ports.py', '-s'],
-                                   cwd=trex_dir,
-                                   stdout=subprocess.PIPE,
-                                   stderr=subprocess.PIPE)
-        devices, _ = process.communicate()
+        with subprocess.Popen(['python', 'dpdk_setup_ports.py', '-s'],
+                              cwd=trex_dir,
+                              stdout=subprocess.PIPE,
+                              stderr=subprocess.PIPE) as process:
+            devices, _ = process.communicate()
     except Exception:
         devices = ''
 
@@ -147,10 +147,10 @@ def get_intel_pci(nic_slot=None, nic_ports=None):
             intf_name = glob.glob("/sys/bus/pci/devices/%s/net/*" % port[0])
             if intf_name:
                 intf_name = intf_name[0][intf_name[0].rfind('/') + 1:]
-                process = subprocess.Popen(['ip', '-o', '-d', 'link', 'show', intf_name],
-                                           stdout=subprocess.PIPE,
-                                           stderr=subprocess.PIPE)
-                intf_info, _ = process.communicate()
+                with subprocess.Popen(['ip', '-o', '-d', 'link', 'show', intf_name],
+                                      stdout=subprocess.PIPE,
+                                      stderr=subprocess.PIPE) as process:
+                    intf_info, _ = process.communicate()
                 if re.search('team_slave|bond_slave', intf_info.decode("utf-8")):
                     device_ports_list[port[0].split('.')[0]]['busy'] = True
         for port in matches:

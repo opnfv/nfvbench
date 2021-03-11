@@ -24,3 +24,5 @@ fluent-logger>=0.5.3
 netaddr>=0.7.19
 xtesting>=0.87.0
 hdrhistogram>=0.8.0
+behave>=1.2.6
+retry>=0.9.2

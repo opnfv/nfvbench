@@ -45,6 +45,7 @@ except ImportError:
     api_mod.Ether = STLDummy
     api_mod.ARP = STLDummy
     api_mod.IP = STLDummy
+    api_mod.ARP = STLDummy
     api_mod.STLClient = STLDummy
     api_mod.STLFlowLatencyStats = STLDummy
     api_mod.STLFlowStats = STLDummy

@@ -13,7 +13,7 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 #
-if [ -z "$1" ] ||  ([ $1 != 'start_rest_server' ] &&  [ $1 != 'run_tests' ]); then
+if [ -z "$1" ] ||  ([ $1 != 'start_rest_server' ] &&  [ $1 != 'run_tests' ] &&  [ $1 != 'zip_campaign' ]); then
         tail -f /dev/null
 elif [ $1 == 'run_tests' ]; then
         PARAMS=""
@@ -22,6 +22,8 @@ elif [ $1 == 'run_tests' ]; then
             PARAMS+="$var "
         done
         eval "run_tests $PARAMS"
+elif [ $1 == 'zip_campaign' ]; then
+        zip_campaign
 else
         PARAMS="--server"
         if [ -n "$HOST" ]; then

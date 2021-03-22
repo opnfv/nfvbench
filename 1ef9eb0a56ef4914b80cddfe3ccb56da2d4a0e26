@@ -16,6 +16,24 @@
       "revId": "1ef9eb0a56ef4914b80cddfe3ccb56da2d4a0e26",
       "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3e9d72ba_0c62cedd",
+        "filename": "docker/Dockerfile",
+        "patchSetId": 3
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 7465
+      },
+      "writtenOn": "2021-03-22T08:37:45Z",
+      "side": 1,
+      "message": "Hello,\nIn fact we overwrite the Xtesting python class here and as it was in WIP I did not raise a PR on Xtesting for this patch.\nI will modify this behaviour when PR will be merged in Xtesting.",
+      "parentUuid": "335f9c69_6b3c1c61",
+      "revId": "1ef9eb0a56ef4914b80cddfe3ccb56da2d4a0e26",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": true
     }
   ]
 }

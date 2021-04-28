@@ -34,27 +34,12 @@ class TRexTrafficServer(TrafficServer):
         assert len(contents) == 1
         self.trex_dir = os.path.join(trex_base_dir, contents[0])
 
-    def __apply_trex_patches(self):
-        parent_dir = os.path.dirname(os.path.realpath(__file__))
-        patches_dir = os.path.join(parent_dir, "trex_patches")
-        patches = os.listdir(patches_dir)
-        for patch in patches:
-            patch = os.path.join(patches_dir, patch)
-            command = (
-                "patch --directory=" + self.trex_dir + " --strip=0"
-                " --forward --no-backup-if-mismatch --reject-file=-"
-                " --force --input=" + patch + " >&-")
-            os.system(command)
-
     def run_server(self, generator_config, filename='/etc/trex_cfg.yaml'):
         """Run TRex server for specified traffic profile.
 
         :param traffic_profile: traffic profile object based on config file
         :param filename: path where to save TRex config file
         """
-        # in order to allow for customized behaviors, let's apply some patches
-        # this scheme keeps acceptable since we have only simple modifications
-        self.__apply_trex_patches()
         cfg = self.__save_config(generator_config, filename)
         cores = generator_config.cores
         vtep_vlan = generator_config.gen_config.get('vtep_vlan')

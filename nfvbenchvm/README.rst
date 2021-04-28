@@ -4,7 +4,7 @@ NFVBENCH VM IMAGES FOR OPENSTACK
 This repo will build two centos 7 images with:
     - testpmd and VPP installed for loop VM use case
     - NFVbench and TRex installed for generator VM use case
-The VM will come with a pre-canned user/password: nfvbench/nfvbench
+These VMs will come with a pre-canned user/password: nfvbench/nfvbench
 
 BUILD INSTRUCTIONS
 ==================
@@ -235,6 +235,20 @@ Example of return when the submission is successful:
       "request_id": "42cccb7effdc43caa47f722f0ca8ec96",
       "status": "PENDING"
     }
+
+
+Start NFVbench test using Xtesting
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+To start a test run using Xtesting python library and NFVbench API use this type of command on the VM:
+
+.. code-block:: bash
+
+run_tests -t nfvbench-demo
+
+.. note:: `-t` option determine which test case to be runned by Xtesting
+ (see `xtesting/testcases.yaml` file content to see available list of test cases)
+
 
 Connect to the VM using SSH keypair
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

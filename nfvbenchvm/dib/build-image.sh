@@ -53,6 +53,25 @@ __version__=0.13
 loopvm_image_name=nfvbenchvm_centos-$__version__
 generator_image_name=nfvbenchvm_centos-generator-$__version__
 
+
+
+function cleanup_image {
+    # if image exists skip building
+    echo "Checking if image exists in google storage..."
+    if  command -v gsutil >/dev/null; then
+        if gsutil -q stat gs://$gs_url/$1.qcow2; then
+            gsutil rm http://$gs_url/$1.qcow2
+            echo "Image is deleted"
+            exit 0
+        fi
+        echo "Image does not exist in google storage, starting build..."
+        echo
+    else
+        echo "Cannot check image availability in OPNFV artifact repository (gsutil not available)"
+    fi
+}
+
+
 function build_image {
     # if image exists skip building
     echo "Checking if image exists in google storage..."
@@ -133,8 +152,12 @@ function build_image {
 
 
 if [ ! $generator_only -eq 1 ] && [ ! $loopvm_only -eq 1 ]; then
+   echo "cleanup old loop VM image (wrong content)"
+   cleanup_image $loopvm_image_name
    echo "Build loop VM image"
    build_image $loopvm_image_name
+   echo "cleanup old generator VM image (wrong content)"
+   cleanup_image $generator_image_name
    echo "Build generator image"
    build_image $generator_image_name
 else

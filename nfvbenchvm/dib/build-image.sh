@@ -49,24 +49,24 @@ set -e
 gs_url=artifacts.opnfv.org/nfvbench/images
 
 # image version number
-__version__=0.13
+__version__=0.14
 loopvm_image_name=nfvbenchvm_centos-$__version__
 generator_image_name=nfvbenchvm_centos-generator-$__version__
 
 function build_image {
     # if image exists skip building
     echo "Checking if image exists in google storage..."
-    # if  command -v gsutil >/dev/null; then
-    #    if gsutil -q stat gs://$gs_url/$1.qcow2; then
-    #        echo "Image already exists at http://$gs_url/$1.qcow2"
-    #        echo "Build is skipped"
-    #        exit 0
-    #    fi
-    #    echo "Image does not exist in google storage, starting build..."
-    #    echo
-    # else
-    #    echo "Cannot check image availability in OPNFV artifact repository (gsutil not available)"
-    # fi
+    if  command -v gsutil >/dev/null; then
+       if gsutil -q stat gs://$gs_url/$1.qcow2; then
+           echo "Image already exists at http://$gs_url/$1.qcow2"
+           echo "Build is skipped"
+           exit 0
+       fi
+       echo "Image does not exist in google storage, starting build..."
+       echo
+    else
+       echo "Cannot check image availability in OPNFV artifact repository (gsutil not available)"
+    fi
 
     # check if image is already built locally
     if [ -f $1.qcow2 ]; then

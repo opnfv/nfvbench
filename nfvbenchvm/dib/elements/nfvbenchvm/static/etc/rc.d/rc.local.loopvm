@@ -168,16 +168,15 @@ if [ $PCI_ADDRESS_1 ] && [ $PCI_ADDRESS_2 ]; then
     logger "NFVBENCHVM: Using pci $PCI_ADDRESS_1 ($INTF_MAC1)"
     logger "NFVBENCHVM: Using pci $PCI_ADDRESS_2 ($INTF_MAC2)"
     # Configure the forwarder
-    if [ -z "`lsmod | grep igb_uio`" ]; then
-        modprobe uio
-        insmod /dpdk/igb_uio.ko
-    fi
     if [ "$FORWARDER" == "testpmd" ]; then
         echo "Configuring testpmd..."
-        # Binding ports to DPDK
-        dpdk-devbind -b igb_uio $PCI_ADDRESS_1
-        dpdk-devbind -b igb_uio $PCI_ADDRESS_2
-        screen -dmSL testpmd /dpdk/testpmd \
+        modprobe uio_pci_generic
+        mkdir /dpdk
+        echo "set promisc all off" > /dpdk/testpmd_cmd.txt
+        # Binding ports to DPDK VFIO or UIO
+        dpdk-devbind -b vfio-pci $PCI_ADDRESS_1 || dpdk-devbind -b uio_pci_generic $PCI_ADDRESS_1
+        dpdk-devbind -b vfio-pci $PCI_ADDRESS_2 || dpdk-devbind -b uio_pci_generic $PCI_ADDRESS_2
+        screen -dmSL testpmd testpmd \
                             -c $CORE_MASK \
                             -n 4 \
                             -- \

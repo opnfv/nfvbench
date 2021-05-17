@@ -116,18 +116,13 @@ function build_image {
 
     ls -l $1.qcow2
 
-    if [ $verify_only -eq 1 ]; then
-        echo "Image verification SUCCESS"
-        echo "NO upload to google storage (-v)"
+    if command -v gsutil >/dev/null; then
+        echo "Uploading $1.qcow2..."
+        gsutil cp $1.qcow2 gs://$gs_url/$1.qcow2
+        echo "You can access to image at http://$gs_url/$1.qcow2"
     else
-        if command -v gsutil >/dev/null; then
-            echo "Uploading $1.qcow2..."
-            gsutil cp $1.qcow2 gs://$gs_url/$1.qcow2
-            echo "You can access to image at http://$gs_url/$1.qcow2"
-        else
-            echo "Cannot upload new image to the OPNFV artifact repository (gsutil not available)"
-            exit 1
-        fi
+        echo "Cannot upload new image to the OPNFV artifact repository (gsutil not available)"
+        exit 1
     fi
 }
 

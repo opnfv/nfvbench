@@ -4,7 +4,6 @@ Feature: characterization
   @throughput
   Scenario Outline: Run a NDR test for a defined frame size and flow count
       Given 10 sec run duration
-      And TRex is restarted
       And <frame_size> frame size
       And <flow_count> flow count
       And ndr rate
@@ -24,7 +23,6 @@ Feature: characterization
   @latency
   Scenario Outline: Run a latency test for a defined frame size and throughput percentage
       Given 10 sec run duration
-      And TRex is restarted
       And <frame_size> frame size
       And 100k flow count
       And <throughput> rate of previous scenario

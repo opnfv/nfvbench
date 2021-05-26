@@ -284,7 +284,7 @@ def push_result_database(context):
 """Utils methods."""
 
 
-@retry(AssertionError, tries=10, delay=5.0, logger=None)
+@retry(AssertionError, tries=24, delay=5.0, logger=None)
 def test_nfvbench_api(context):
     try:
         r = requests.get("http://{ip}:{port}/status".format(ip=context.host_ip, port=context.port))

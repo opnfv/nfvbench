@@ -75,6 +75,6 @@ tiers:
                     name: 'bashfeature'
                     args:
                         cmd:
-                            - nfvbench -c /tmp/nfvbench/nfvbench.cfg --rate 10kpps
+                            - nfvbench -c /etc/nfvbench/nfvbench.cfg --rate 10kpps
                         console:
                             - true

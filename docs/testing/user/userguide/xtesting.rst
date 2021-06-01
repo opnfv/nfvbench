@@ -27,22 +27,32 @@ Please note the next two points depending on the GNU/Linux distributions and the
 - SELinux: you may have to add --system-site-packages when creating the virtualenv ("Aborting, target uses selinux but python bindings (libselinux-python) aren't installed!")
 - Proxy: you may set your proxy in env for Ansible and in systemd for Docker https://docs.docker.com/config/daemon/systemd/#httphttps-proxy
 
-Here is the default NFVbench tree as proposed in ``xtesting/ansible/host_vars/127.0.0.1`` file:
+Here is the default NFVbench tree on the host running nfvbench container as
+proposed in ``xtesting/ansible/host_vars/127.0.0.1`` file:
 
-- ``/home/opnfv/nfvbench``
+- ``/home/opnfv/nfvbench/config``: contains nfvbench config files including
+  ``nfvbench.cfg``, the default config file used by xtesting test cases
+- ``/home/opnfv/nfvbench/results``: top directory to write nfvbench results and log files
 
 File content:
 
-.. code-block:: bash
+.. code-block:: yaml
 
-    docker_args:
+  docker_args:
     env: {}
+    params:
+      net: host
+      privileged: true
     volumes:
       - /lib/modules/$(uname -r):/lib/modules/$(uname -r)
       - /usr/src/kernels:/usr/src/kernels -v /dev:/dev
-      - /home/opnfv/nfvbench:/tmp/nfvbench
+      - /home/opnfv/nfvbench/config:/etc/nfvbench
+      - /home/opnfv/nfvbench/results:/var/lib/xtesting/results
 
-Please note: replace ``/home/opnfv/nfvbench`` with appropriate path to permit NFVbench container to access config file
+Please note: if you want to use a different directory structure on the host,
+replace ``/home/opnfv/nfvbench/*`` paths with appropriate paths to permit
+NFVbench container to access config file and results directory.  The config and
+results paths do not need to share the same root directory.
 
 To deploy your own CI toolchain running NFVbench:
 
@@ -86,7 +96,7 @@ To run NFVbench using docker run:
         --privileged \
         -v /lib/modules/$(uname -r):/lib/modules/$(uname -r) \
         -v /usr/src/kernels:/usr/src/kernels -v /dev:/dev \
-        -v $HOME/nfvbench:/tmp/nfvbench \
+        -v $HOME/nfvbench/config:/etc/nfvbench \
         -v $HOME/workspace/$JOB_NAME/results:/var/lib/xtesting/results \
         opnfv/nfvbench run_tests -t 10kpps-pvp-run -r -p
 
@@ -119,10 +129,10 @@ To run NFVbench using docker run:
 +---------------------------------------------------------------+----------------------------------------------------------------------------+
 | -v /dev:/dev                                                  | needed by kernel modules in the container                                  |
 +---------------------------------------------------------------+----------------------------------------------------------------------------+
-| -v $HOME/nfvbench:/tmp/nfvbench                               | folder mapping to pass files between the                                   |
+| -v $HOME/nfvbench/config:/etc/nfvbench                        | folder mapping to pass config files between the                            |
 |                                                               | host and the docker space (see examples below)                             |
-|                                                               | Here we map the $HOME/nfvbench directory on the host                       |
-|                                                               | to the /tmp/nfvbench director in the container.                            |
+|                                                               | Here we map the $HOME/nfvbench/config directory on the host                |
+|                                                               | to the /etc/nfvbench directory in the container.                           |
 |                                                               | Any other mapping can work as well                                         |
 +---------------------------------------------------------------+----------------------------------------------------------------------------+
 | -v $HOME/workspace/$JOB_NAME/results:/var/lib/xtesting/results| (Xtesting) folder mapping to pass files between the                        |
@@ -160,14 +170,15 @@ Override testcases.yaml file
 
 To replace existing testcases.yaml file, using Xtesting CI add the volume mapping in ``xtesting/ansible/host_vars/127.0.0.1`` file:
 
-.. code-block:: bash
+.. code-block:: yaml
 
     docker_args:
     env: {}
     volumes:
       - /lib/modules/$(uname -r):/lib/modules/$(uname -r)
       - /usr/src/kernels:/usr/src/kernels -v /dev:/dev
-      - /home/opnfv/nfvbench:/tmp/nfvbench
+      - /home/opnfv/nfvbench/config:/etc/nfvbench
+      - /home/opnfv/nfvbench/results:/var/lib/xtesting/results
       - /home/opnfv/nfvbench/xtesting/testcases.yaml:/usr/local/lib/python3.6/dist-packages/xtesting/ci/testcases.yaml
 
 * ``/home/opnfv/nfvbench/xtesting/testcases.yaml:/usr/local/lib/python3.6/dist-packages/xtesting/ci/testcases.yaml`` : volume mapping to pass testcases.yaml file between the host and the docker space. Host path required testcases.yaml file inside.
@@ -177,18 +188,22 @@ To replace existing testcases.yaml file, using NFVbench container:
 
 .. code-block:: bash
 
-    docker run --name nfvbench --detach --privileged -v /lib/modules/$(uname -r):/lib/modules/$(uname -r) -v /usr/src/kernels:/usr/src/kernels -v /dev:/dev -v $HOME/nfvbench:/tmp/nfvbench \
-    -v $HOME/nfvbench/xtesting/testcases.yaml:/usr/local/lib/python3.6/dist-packages/xtesting/ci/testcases.yaml \
-    opnfv/nfvbench
+    docker run --name nfvbench --detach --privileged \
+        -v /lib/modules/$(uname -r):/lib/modules/$(uname -r) \
+        -v /usr/src/kernels:/usr/src/kernels \
+        -v /dev:/dev \
+        -v $HOME/nfvbench/config:/etc/nfvbench \
+        -v $HOME/nfvbench/results:/var/lib/xtesting/results \
+        -v $HOME/nfvbench/xtesting/testcases.yaml:/usr/local/lib/python3.8/dist-packages/xtesting/ci/testcases.yaml \
+        opnfv/nfvbench
 
-
-* ``$HOME/nfvbench/xtesting/testcases.yaml:/usr/local/lib/python3.6/dist-packages/xtesting/ci/testcases.yaml`` : volume mapping to pass testcases.yaml file between the host and the docker space. Host path required testcases.yaml file inside.
+* ``$HOME/nfvbench/xtesting/testcases.yaml:/usr/local/lib/python3.8/dist-packages/xtesting/ci/testcases.yaml`` : volume mapping to pass testcases.yaml file between the host and the docker space. Host path required testcases.yaml file inside.
 
 
 Example of Xtesting test case
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. code-block:: bash
+.. code-block:: yaml
 
     ---
     tiers:
@@ -208,7 +223,7 @@ Example of Xtesting test case
                         name: 'bashfeature'
                         args:
                             cmd:
-                                - nfvbench -c /tmp/nfvbench/nfvbench.cfg --rate 10kpps
+                                - nfvbench -c /etc/nfvbench/nfvbench.cfg --rate 10kpps
 
 
 Examples of manual run

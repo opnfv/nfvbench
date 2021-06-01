@@ -6,4 +6,5 @@ docker_args:
   volumes:
     - /lib/modules/$(uname -r):/lib/modules/$(uname -r)
     - /usr/src/kernels:/usr/src/kernels -v /dev:/dev
-    - /home/opnfv/nfvbench:/tmp/nfvbench
+    - /home/opnfv/nfvbench/config:/etc/nfvbench
+    - /home/opnfv/nfvbench/results:/var/lib/xtesting/results

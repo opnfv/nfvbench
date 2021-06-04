@@ -167,10 +167,11 @@ fi
 if [ $PCI_ADDRESS_1 ] && [ $PCI_ADDRESS_2 ]; then
     logger "NFVBENCHVM: Using pci $PCI_ADDRESS_1 ($INTF_MAC1)"
     logger "NFVBENCHVM: Using pci $PCI_ADDRESS_2 ($INTF_MAC2)"
+    # active uio_pci_generic driver
+    modprobe uio_pci_generic
     # Configure the forwarder
     if [ "$FORWARDER" == "testpmd" ]; then
         echo "Configuring testpmd..."
-        modprobe uio_pci_generic
         mkdir /dpdk
         echo "set promisc all off" > /dpdk/testpmd_cmd.txt
         # Binding ports to DPDK VFIO or UIO

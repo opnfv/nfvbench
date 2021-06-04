@@ -6,14 +6,9 @@ NFVBENCH_CONF=/etc/nfvbenchvm.conf
 E2E_CFG=/etc/nfvbench/e2e.cfg
 LOOPBACK_CFG=/etc/nfvbench/loopback.cfg
 NFVBENCH_CFG=/etc/nfvbench/nfvbench.cfg
-OPENRC=/etc/nfvbench/openrc
 
 # Parse and obtain all configurations
 eval $(cat $NFVBENCH_CONF)
-
-if [ -f $OPENRC ]; then
-    source $OPENRC
-fi
 
 # WE assume there are at least 2 cores available for the VM
 CPU_CORES=$(grep -c ^processor /proc/cpuinfo)
@@ -88,21 +83,21 @@ get_interfaces_mac_values(){
     # Set dynamically interfaces mac values, if VM is spawn with SRIOV PF ports
     # and openstack API are accessible
     if [ -z "$LOOPBACK_INTF_MAC1" ] && [ -z "$LOOPBACK_INTF_MAC2" ]; then
-        if [ -f $OPENRC ] && [ "$LOOPBACK_PORT_NAME1" ] && [ "$LOOPBACK_PORT_NAME2" ]; then
-            LOOPBACK_INTF_MAC1=$(openstack port list | grep $LOOPBACK_PORT_NAME1 | grep -o -Ei '([a-fA-F0-9:]{17}|[a-fA-F0-9]{12}$)' | head -1)
-            LOOPBACK_INTF_MAC2=$(openstack port list | grep $LOOPBACK_PORT_NAME2 | grep -o -Ei '([a-fA-F0-9:]{17}|[a-fA-F0-9]{12}$)' | head -1)
+        if [ "$CLOUD_DETAIL" ] && [ "$LOOPBACK_PORT_NAME1" ] && [ "$LOOPBACK_PORT_NAME2" ]; then
+            LOOPBACK_INTF_MAC1=$(openstack --os-cloud $CLOUD_DETAIL port list | grep $LOOPBACK_PORT_NAME1 | grep -o -Ei '([a-fA-F0-9:]{17}|[a-fA-F0-9]{12}$)' | head -1)
+            LOOPBACK_INTF_MAC2=$(openstack --os-cloud $CLOUD_DETAIL port list | grep $LOOPBACK_PORT_NAME2 | grep -o -Ei '([a-fA-F0-9:]{17}|[a-fA-F0-9]{12}$)' | head -1)
         fi
     fi
     if [ -z "$E2E_INTF_MAC1" ] && [ -z "$E2E_INTF_MAC2" ]; then
-        if [ -f $OPENRC ] && [ "$E2E_PORT_NAME1" ] && [ "$E2E_PORT_NAME2" ]; then
-            E2E_INTF_MAC1=$(openstack port list | grep $E2E_PORT_NAME1 | grep -o -Ei '([a-fA-F0-9:]{17}|[a-fA-F0-9]{12}$)' | head -1)
-            E2E_INTF_MAC2=$(openstack port list | grep $E2E_PORT_NAME2 | grep -o -Ei '([a-fA-F0-9:]{17}|[a-fA-F0-9]{12}$)' | head -1)
+        if [ "$CLOUD_DETAIL" ] && [ "$E2E_PORT_NAME1" ] && [ "$E2E_PORT_NAME2" ]; then
+            E2E_INTF_MAC1=$(openstack --os-cloud $CLOUD_DETAIL port list | grep $E2E_PORT_NAME1 | grep -o -Ei '([a-fA-F0-9:]{17}|[a-fA-F0-9]{12}$)' | head -1)
+            E2E_INTF_MAC2=$(openstack --os-cloud $CLOUD_DETAIL port list | grep $E2E_PORT_NAME2 | grep -o -Ei '([a-fA-F0-9:]{17}|[a-fA-F0-9]{12}$)' | head -1)
         fi
     fi
     if [ -z "$INTF_MAC1" ] && [ -z "$INTF_MAC2" ]; then
-        if [ -f $OPENRC ] && [ "$PORT_NAME1" ] && [ "$PORT_NAME2" ]; then
-            INTF_MAC1=$(openstack port list | grep $PORT_NAME1 | grep -o -Ei '([a-fA-F0-9:]{17}|[a-fA-F0-9]{12}$)' | head -1)
-            INTF_MAC2=$(openstack port list | grep $PORT_NAME2 | grep -o -Ei '([a-fA-F0-9:]{17}|[a-fA-F0-9]{12}$)' | head -1)
+        if [ "$CLOUD_DETAIL" ] && [ "$PORT_NAME1" ] && [ "$PORT_NAME2" ]; then
+            INTF_MAC1=$(openstack --os-cloud $CLOUD_DETAIL port list | grep $PORT_NAME1 | grep -o -Ei '([a-fA-F0-9:]{17}|[a-fA-F0-9]{12}$)' | head -1)
+            INTF_MAC2=$(openstack --os-cloud $CLOUD_DETAIL port list | grep $PORT_NAME2 | grep -o -Ei '([a-fA-F0-9:]{17}|[a-fA-F0-9]{12}$)' | head -1)
         fi
     fi
 }

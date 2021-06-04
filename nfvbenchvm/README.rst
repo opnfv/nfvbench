@@ -95,6 +95,29 @@ Hardcoded Username and Password
 GENERATOR IMAGE INSTANCE AND CONFIG
 ===================================
 
+Pre-requisites
+--------------
+To use openstack APIs, NFVbench generator VM will use `clouds.yaml` file as openstack configuration.
+The OpenStack clouds configuration from clouds.yaml file to use.
+clouds.yaml file must be in one of the following paths:
+- ~/.config/openstack
+- /etc/openstack
+
+Example of `clouds.yaml`:
+
+.. code-block:: yaml
+
+    clouds:
+      devstack:
+        auth:
+          auth_url: http://192.168.122.10:35357/
+          project_name: demo
+          username: demo
+          password: 0penstack
+        region_name: RegionOne
+
+.. note:: Add `CLOUD_DETAIL` property with the accurate value for your openstack configuration (`devstack` in the above example) in ``/etc/nfvbenchvm.conf``
+
 Interface Requirements
 ----------------------
 The instance must be launched using OpenStack with 2 network interfaces for dataplane traffic (using SR-IOV function) and 1 management interface to control nfvbench.
@@ -135,6 +158,7 @@ Template of a genarator profile using CPU pinning:
               pci: "{{PCI_ADDRESS_2}}"
               switch:
           intf_speed:
+
 .. note:: `CORE_THREADS` value is determined automatically based on the cores available on the VM starting from 2 to last worker core available.
 
 Auto-configuration
@@ -155,6 +179,7 @@ Example of configuration:
     LOOPBACK_INTF_MAC2=FA:16:3E:10:DA:10
     E2E_INTF_MAC1=FA:16:3E:B0:E2:43
     E2E_INTF_MAC2=FA:16:3E:D3:6A:FC
+
 .. note:: `ACTION` parameter is not mandatory but will permit to start NFVbench with the accurate ports (loopback or e2e).
 .. note:: Set of MAC parameters cannot be used in parallel as only one NFVbench/TRex process is running.
 .. note:: Switching from `loopback` to `e2e` action can be done manually using `/nfvbench/start-nfvbench.sh <action>` with the accurate keyword for `action` parameter. This script will restart NFVbench with the good set of MAC.
@@ -185,6 +210,7 @@ Using pre-created direct-physical ports on openstack, mac addresses value are on
     INTF_MGMT_CIDR=172.20.56.228/2
     INTF_MGMT_IP_GW=172.20.56.225
     DNS_SERVERS=8.8.8.8,dns.server.com
+
 .. note:: A management interface is required to automatically find the virtual interface to use according to the MAC address provided (see `INTF_MAC_MGMT` parameter).
 .. note:: NFVbench VM will call openstack API through the management interface to retrieve mac address for these ports
 .. note:: If openstack API required a host name resolution, add the parameter DNS_SERVERS to add IP or DNS server names (multiple servers can be added separated by a `,`)

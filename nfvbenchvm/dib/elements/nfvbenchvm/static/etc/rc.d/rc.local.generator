@@ -4,7 +4,6 @@ touch /var/lock/subsys/local
 
 # Waiting for cloud-init to generate $NFVBENCH_CONF, retry 60 seconds
 NFVBENCH_CONF=/etc/nfvbenchvm.conf
-OPENRC=/etc/nfvbench/openrc
 retry=30
 until [ $retry -eq 0 ]; do
     if [ -f $NFVBENCH_CONF ]; then break; fi
@@ -19,10 +18,6 @@ fi
 echo "Generating configurations for NFVbench and TRex..."
 eval $(cat $NFVBENCH_CONF)
 touch /nfvbench_configured.flag
-
-if [ -f $OPENRC ]; then
-    source $OPENRC
-fi
 
 # Add DNS entry
 if [ $DNS_SERVERS ]; then
@@ -80,8 +75,8 @@ get_eth_port() {
 if [ $INTF_MGMT_CIDR ] && [ $INTF_MGMT_IP_GW ]; then
     if [ $INTF_MAC_MGMT ]; then
         ETH_PORT=$(get_eth_port $INTF_MAC_MGMT)
-    elif [ -f $OPENRC ] && [ "$PORT_MGMT_NAME" ]; then
-        $INTF_MAC_MGMT=$(openstack port list | grep $PORT_MGMT_NAME | grep -o -Ei '([a-fA-F0-9:]{17}|[a-fA-F0-9]{12}$)' | head -1)
+    elif [ "$CLOUD_DETAIL" ] && [ "$PORT_MGMT_NAME" ]; then
+        $INTF_MAC_MGMT=$(openstack --os-cloud $CLOUD_DETAIL port list | grep $PORT_MGMT_NAME | grep -o -Ei '([a-fA-F0-9:]{17}|[a-fA-F0-9]{12}$)' | head -1)
         ETH_PORT=$(get_eth_port $INTF_MAC_MGMT)
     else
         ETH_PORT=""

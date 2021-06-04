@@ -235,7 +235,7 @@ class Cleaner(object):
     """Cleaner for all NFVbench resources."""
 
     def __init__(self, config):
-        cred = credentials.Credentials(config.openrc_file, None, False)
+        cred = credentials.Credentials(config.openrc_file, config.clouds_detail, None, False)
         session = cred.get_session()
         self.neutron_client = nclient.Client('2.0', session=session)
         self.nova_client = Client(2, session=session)

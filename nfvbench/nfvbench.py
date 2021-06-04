@@ -60,8 +60,8 @@ class NFVBench(object):
         self.config_plugin = config_plugin
         self.factory = factory
         self.notifier = notifier
-        self.cred = credentials.Credentials(config.openrc_file, None, False) \
-            if config.openrc_file else None
+        self.cred = credentials.Credentials(config.openrc_file, config.clouds_detail, None, False) \
+            if config.openrc_file or config.clouds_detail else None
         self.chain_runner = None
         self.specs = Specs()
         self.specs.set_openstack_spec(openstack_spec)
@@ -96,8 +96,10 @@ class NFVBench(object):
 
             # check that an empty openrc file (no OpenStack) is only allowed
             # with EXT chain
-            if not self.config.openrc_file and self.config.service_chain != ChainType.EXT:
-                raise Exception("openrc_file in the configuration is required for PVP/PVVP chains")
+            if (not self.config.openrc_file and not self.config.clouds_detail) and \
+                    self.config.service_chain != ChainType.EXT:
+                raise Exception("openrc_file or clouds_detail in the configuration is required"
+                                " for PVP/PVVP chains")
 
             self.specs.set_run_spec(self.config_plugin.get_run_spec(self.config,
                                                                     self.specs.openstack))

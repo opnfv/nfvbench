@@ -21,32 +21,40 @@ import getpass
 from keystoneauth1.identity import v2
 from keystoneauth1.identity import v3
 from keystoneauth1 import session
+import openstack
+from keystoneclient.exceptions import HTTPClientError
+
 from .log import LOG
 
 
 class Credentials(object):
 
     def get_session(self):
-        dct = {
-            'username': self.rc_username,
-            'password': self.rc_password,
-            'auth_url': self.rc_auth_url
-        }
-        auth = None
 
-        if self.rc_identity_api_version == 3:
-            dct.update({
-                'project_name': self.rc_project_name,
-                'project_domain_name': self.rc_project_domain_name,
-                'user_domain_name': self.rc_user_domain_name
-            })
-            auth = v3.Password(**dct)
+        if self.clouds_detail:
+            connection = openstack.connect(cloud=self.clouds_detail)
+            cred_session = connection.session
         else:
-            dct.update({
-                'tenant_name': self.rc_tenant_name
-            })
-            auth = v2.Password(**dct)
-        return session.Session(auth=auth, verify=self.rc_cacert)
+            dct = {
+                'username': self.rc_username,
+                'password': self.rc_password,
+                'auth_url': self.rc_auth_url
+            }
+
+            if self.rc_identity_api_version == 3:
+                dct.update({
+                    'project_name': self.rc_project_name,
+                    'project_domain_name': self.rc_project_domain_name,
+                    'user_domain_name': self.rc_user_domain_name
+                })
+                auth = v3.Password(**dct)
+            else:
+                dct.update({
+                    'tenant_name': self.rc_tenant_name
+                })
+                auth = v2.Password(**dct)
+            cred_session = session.Session(auth=auth, verify=self.rc_cacert)
+        return cred_session
 
     def __parse_openrc(self, file):
         export_re = re.compile('export OS_([A-Z_]*)="?(.*)')
@@ -91,11 +99,28 @@ class Credentials(object):
                 elif name == "PROJECT_DOMAIN_NAME":
                     self.rc_project_domain_name = value
 
+    # /users URL returns exception (HTTP 403) if user is not admin.
+    # try first without the version in case session already has it in
+    # Return HTTP 200 if user is admin
+    def __user_is_admin(self, url):
+        is_admin = False
+        try:
+            # check if user has admin role in OpenStack project
+            filter = {'service_type': 'identity',
+                      'interface': 'public'}
+            self.get_session().get(url, endpoint_filter=filter)
+            is_admin = True
+        except HTTPClientError as exc:
+            if exc.http_status == 403:
+                LOG.warning(
+                    "User is not admin, no permission to list user roles. Exception: %s", exc)
+        return is_admin
+
     #
     # Read a openrc file and take care of the password
     # The 2 args are passed from the command line and can be None
     #
-    def __init__(self, openrc_file, pwd=None, no_env=False):
+    def __init__(self, openrc_file, clouds_detail, pwd=None, no_env=False):
         self.rc_password = None
         self.rc_username = None
         self.rc_tenant_name = None
@@ -105,8 +130,9 @@ class Credentials(object):
         self.rc_user_domain_name = None
         self.rc_project_domain_name = None
         self.rc_project_name = None
-        self.rc_identity_api_version = 2
+        self.rc_identity_api_version = 3
         self.is_admin = False
+        self.clouds_detail = clouds_detail
         success = True
 
         if openrc_file:
@@ -118,7 +144,7 @@ class Credentials(object):
                     success = False
             else:
                 self.__parse_openrc(openrc_file)
-        elif not no_env:
+        elif not clouds_detail and not no_env:
             # no openrc file passed - we assume the variables have been
             # sourced by the calling shell
             # just check that they are present
@@ -153,34 +179,27 @@ class Credentials(object):
 
 
         # always override with CLI argument if provided
-        if pwd:
-            self.rc_password = pwd
-        # if password not know, check from env variable
-        elif self.rc_auth_url and not self.rc_password and success:
-            if 'OS_PASSWORD' in os.environ and not no_env:
-                self.rc_password = os.environ['OS_PASSWORD']
-            else:
-                # interactively ask for password
-                self.rc_password = getpass.getpass(
-                    'Please enter your OpenStack Password: ')
-        if not self.rc_password:
-            self.rc_password = ""
+        if not clouds_detail:
+            if pwd:
+                self.rc_password = pwd
+            # if password not know, check from env variable
+            elif self.rc_auth_url and not self.rc_password and success:
+                if 'OS_PASSWORD' in os.environ and not no_env:
+                    self.rc_password = os.environ['OS_PASSWORD']
+                else:
+                    # interactively ask for password
+                    self.rc_password = getpass.getpass(
+                        'Please enter your OpenStack Password: ')
+            if not self.rc_password:
+                self.rc_password = ""
 
-        # check if user has admin role in OpenStack project
-        filter = {'service_type': 'identity',
-                  'interface': 'public',
-                  'region_name': self.rc_region_name}
+
         try:
             # /users URL returns exception (HTTP 403) if user is not admin.
             # try first without the version in case session already has it in
             # Return HTTP 200 if user is admin
-            self.get_session().get('/users', endpoint_filter=filter)
-            self.is_admin = True
-        except Exception:
-            try:
-                # vX/users URL returns exception (HTTP 403) if user is not admin.
-                self.get_session().get('/v' + str(self.rc_identity_api_version) + '/users',
-                                       endpoint_filter=filter)
-                self.is_admin = True
-            except Exception as e:
-                LOG.warning("User is not admin, no permission to list user roles. Exception: %s", e)
+            self.is_admin = self.__user_is_admin('/users') or self.__user_is_admin(
+                '/v2/users') or self.__user_is_admin('/v3/users')
+        except Exception as e:
+            LOG.warning("Error occurred during Openstack API access. "
+                        "Unable to check user is admin. Exception: %s", e)

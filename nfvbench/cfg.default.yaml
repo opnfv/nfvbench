@@ -30,7 +30,24 @@
 # - availability_zone
 # - hypervisor_hostname
 # - vlans
+# WARNING: Not used if clouds_detail is sets
 openrc_file:
+
+# The OpenStack clouds configuration from clouds.yaml file to use.
+# clouds.yaml file must be in one of the following paths:
+# - ~/.config/openstack
+# - /etc/openstack
+# Note: If running in a container, this path must be valid in the container.
+# The only case where this field can be empty is when measuring a system that does not run
+# OpenStack or when OpenStack APIs are not accessible or OpenStack APis use is not
+# desirable. In that case the EXT service chain must be used.
+#
+# If user is not admin some parameters are mandatory and must be filled with valid values in config file such as :
+# - availability_zone
+# - hypervisor_hostname
+# - vlans
+# If a value is sets, this parameter disable the use of openrc file
+clouds_detail:
 
 # Forwarder to use in nfvbenchvm image. Available options: ['vpp', 'testpmd']
 vm_forwarder: testpmd

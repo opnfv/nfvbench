@@ -13,6 +13,8 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 #
+import openstack
+from keystoneauth1.exceptions import HTTPClientError
 from mock import patch
 import pytest
 
@@ -139,12 +141,40 @@ def test_load_from_rate():
 # =========================================================================
 
 def test_no_credentials():
-    cred = Credentials('/completely/wrong/path/openrc', None, False)
-    if cred.rc_auth_url:
-        # shouldn't get valid data unless user set environment variables
+    with patch.object(openstack, 'connect') as mock:
+        cred = Credentials('/completely/wrong/path/openrc', None, None, False)
+        if cred.rc_auth_url:
+            # shouldn't get valid data unless user set environment variables
+            assert False
+        else:
+            assert True
+    mock.assert_not_called()
+
+
+def test_clouds_file_credentials():
+    with patch.object(openstack, 'connect') as mock:
+        Credentials(None, 'openstack', None, False)
+    mock.assert_called_once()
+
+
+@patch('nfvbench.nfvbench.credentials')
+def test_is_not_admin(mock_session):
+    mock_session.Session.return_value.get.return_value.raiseError.side_effect = HTTPClientError
+    cred = Credentials(None, 'openstack', None, False)
+    if cred.is_admin:
         assert False
     else:
         assert True
+
+
+def test_is_admin():
+    with patch.object(openstack, 'connect'):
+        cred = Credentials(None, 'openstack', None, False)
+        if cred.is_admin:
+            assert True
+        else:
+            assert False
+
 
 def test_ip_block():
     ipb = IpBlock('10.0.0.0', '0.0.0.1', 256)

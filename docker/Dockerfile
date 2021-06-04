@@ -40,8 +40,6 @@ RUN apt-get update && apt-get install -y \
        && wget -O nfvbenchvm-$VM_IMAGE_VER.qcow2 http://artifacts.opnfv.org/nfvbench/images/nfvbenchvm_centos-$VM_IMAGE_VER.qcow2 \
        # Override Xtesting testcases.yaml file by NFVbench default one
        && cp xtesting/testcases.yaml /usr/local/lib/python3.8/dist-packages/xtesting/ci/testcases.yaml \
-       # Temporary override waiting for PR approval : https://gerrit.opnfv.org/gerrit/c/functest-xtesting/+/72431
-       && cp xtesting/behaveframework.py /usr/local/lib/python3.8/dist-packages/xtesting/core/behaveframework.py \
        && python3 ./docker/cleanup_generators.py \
        && rm -rf /opt/nfvbench/.git \
        # Symlink for retrocompatibility 4.x

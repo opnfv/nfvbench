@@ -60,8 +60,29 @@ tiers:
                         console:
                             - true
     -
-        name: nfvbench-demo
+        name: quick-test-10kpps
         order: 3
+        description: 'Quick nfvbench test at low packet rate'
+        testcases:
+            -
+                case_name: quick-test-10kpps
+                project_name: nfvbench
+                criteria: 100
+                blocking: true
+                clean_flag: false
+                description: ''
+                run:
+                    name: 'nfvbench_behaveframework'
+                    args:
+                        suites:
+                            - /opt/nfvbench/behave_tests/features/quick-test-10kpps.feature
+                        tags:
+                            - quick-test-10kpps
+                        console:
+                            - true
+    -
+        name: nfvbench-demo
+        order: 4
         description: 'Data Plane Performance Testing'
         testcases:
             -

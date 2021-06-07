@@ -1,0 +1,76 @@
+# NFVBench Gitlab-CI Jobs
+---
+include:
+  - project: anuket/releng
+    file: '/gitlab-templates/RTD.gitlab-ci.yml'
+  - project: anuket/releng
+    file: '/gitlab-templates/Docker.gitlab-ci.yml'
+  - project: anuket/releng
+    file: '/gitlab-templates/GoogleStorage.gitlab-ci.yml'
+
+variables:
+  DOCKER_REGISTRY: docker.io
+
+.tox-defaults: &tox-defaults
+  stage: test
+  image: python:3.6
+  before_script:
+    - pip install tox
+  cache:
+    paths:
+      - .cache/pip
+      - venv/
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event" || $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+
+pep8:
+  <<: *tox-defaults
+  stage: build
+  script:
+    tox -e pep8
+
+tox-py36:
+  <<: *tox-defaults
+  script:
+    tox -e py36
+
+verify-image:
+  stage: build
+  image: centos:8
+  before_script:
+    - dnf -y install python3-virtualenv
+    - virtualenv venv
+  script:
+    - source venv/bin/activate
+    - !reference [.gsutil-install, script]
+    - cd nfvbenchvm/dib
+    - |
+        echo -e "\e[0Ksection_start:`date +%s`:build_image\r\e[0KBuild Image"
+        bash verify-image.sh -v
+        echo -e "\e[0Ksection_end:`date +%s`:build_image\r\e[0K"
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event" || $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+
+build-image:
+  stage: deploy
+  image: centos:8
+  before_script:
+    - dnf -y install python3-virtualenv
+    - virtualenv venv
+  script:
+    - source venv/bin/activate
+    - !reference [.gsutil-install, script]
+    - cd nfvbenchvm/dib
+    - |
+        echo -e "\e[0Ksection_start:`date +%s`:build_image\r\e[0KBuild Image"
+        bash build-image.sh
+        echo -e "\e[0Ksection_end:`date +%s`:build_image\r\e[0K"
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+
+docker-build-nfvbench:
+  extends: .docker-build-and-push
+  variables:
+    DOCKER_IMAGE: "$DOCKER_ORGANIZATION/nfvbench"
+    DOCKER_BUILDCONTEXT: "docker"
+    DOCKER_FILEPATH: "docker/Dockerfile"

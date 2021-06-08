@@ -343,7 +343,7 @@ def throughput_comparison(context, old_throughput_pps=None, threshold=None, refe
                 threshold) * old_throughput_pps:
             raise AssertionError(
                 "Current run throughput {current_throughput_pps} is not over {threshold} "
-                " of previous value ({old_throughput_pps}pps)".format(
+                " of previous value ({old_throughput_pps})".format(
                     current_throughput_pps=Formatter.suffix('pps')(
                         Formatter.standard(current_throughput_pps)),
                     threshold=threshold, old_throughput_pps=Formatter.suffix('pps')(

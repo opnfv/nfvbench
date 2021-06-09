@@ -42,6 +42,10 @@ committers:
       email: 'francoisregis.menguy@orange.com'
       company: 'orange.com'
       id: 'fmenguy'
+    - name: 'Gwenael Lambrouin'
+      email: 'gwenael.lambrouin@orange.com'
+      company: 'orange.com'
+      id: 'glambrouin'
 tsc:
     # yamllint disable rule:line-length
     approval: ''

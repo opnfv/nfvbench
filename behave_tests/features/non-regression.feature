@@ -31,8 +31,7 @@ Feature: non-regression
       When NFVbench API is ready
       Then run is started and waiting for result
       And push result to database
-      And verify latency result is in same range as the previous result
-      And verify latency result is in same range as the characterization result
+      And verify latency result is lower than 1000 microseconds
 
      Examples: Frame sizes and throughput percentages
       | frame_size | throughput |

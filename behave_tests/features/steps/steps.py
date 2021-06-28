@@ -226,6 +226,42 @@ def get_latency_result_from_database(context, threshold='90%'):
     if last_result:
         compare_latency_values(context, last_result, threshold)
 
+
+@then('verify latency result is lower than {max_avg_latency_usec_str} microseconds')
+def check_latency_result_against_fixed_threshold(context, max_avg_latency_usec_str: str):
+    """Check latency result against a fixed threshold.
+
+    Check that the average latency measured during the current scenario run is
+    lower or equal to the provided fixed reference value.
+
+    Args:
+        context: The context data of the current scenario run.  It includes the
+            test results for that run.
+
+        max_avg_latency_usec_str: String representation of the reference value
+            to be used as a threshold.  This is a maximum average latency
+            expressed in microseconds.
+
+    Raises:
+        AssertionError: The latency result is strictly greater than the reference value.
+
+        ValueError: max_avg_latency_usec_str cannot be converted to float
+
+    """
+    # Get the just measured average latency (a float):
+    new_avg_latency_usec = context.synthesis['avg_delay_usec']
+
+    # Convert reference value from string to float:
+    max_avg_latency_usec = float(max_avg_latency_usec_str)
+
+    # Compare measured value to reference:
+    if new_avg_latency_usec > max_avg_latency_usec:
+        raise AssertionError("Average latency higher than max threshold: "
+                             "{avg_latency} usec > {threshold} usec".format(
+                                 avg_latency=round(new_avg_latency_usec),
+                                 threshold=round(max_avg_latency_usec)))
+
+
 @then(
     'verify result is in [{min_reference_value}pps, {max_reference_value}pps] range for throughput')
 def compare_throughput_pps_result_with_range_values(context, min_reference_value,

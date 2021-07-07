@@ -91,7 +91,7 @@ class ConfigPlugin(ConfigPluginBase):
         """Return RunSpec for given platform."""
         return specs.RunSpec(config.no_vswitch_access, openstack_spec)
 
-    def validate_config(self, config, openstack_spec):
+    def validate_config(self, cfg, openstack_spec):
         """Nothing to validate by default."""
 
     def prepare_results_config(self, cfg):

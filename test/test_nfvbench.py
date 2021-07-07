@@ -34,8 +34,8 @@ from nfvbench.traffic_client import GeneratorConfig
 from nfvbench.traffic_client import IpBlock
 from nfvbench.traffic_client import TrafficClient
 from nfvbench.traffic_client import TrafficClientException
-import nfvbench.traffic_gen.traffic_utils as traffic_utils
-import nfvbench.utils as utils
+from nfvbench.traffic_gen import traffic_utils
+from nfvbench import utils
 
 # just to get rid of the unused function warning
 no_op()

@@ -736,7 +736,8 @@ def main():
         # dump the contents of the trex log file
         if opts.show_trex_log:
             try:
-                print(open('/tmp/trex.log').read(), end="")
+                with open('/tmp/trex.log') as trex_log_file:
+                    print(trex_log_file.read(), end="")
             except FileNotFoundError:
                 print("No TRex log file found!")
             sys.exit(0)

@@ -577,9 +577,9 @@ class NFVBenchSummarizer(Summarizer):
                     lat_map['lat_' + str(percentile) + '_percentile'] = \
                         str(percentile) + ' %ile lat.'
 
-            for key in lat_map:
+            for lat_value in lat_map.values():
                 # 'append' expects a single parameter => double parentheses
-                header.append((lat_map[key], Formatter.standard))
+                header.append((lat_value, Formatter.standard))
 
         table = Table(header)
         for chain in sorted(list(chains.keys()), key=str):
@@ -633,9 +633,9 @@ class NFVBenchSummarizer(Summarizer):
                     run_specific_data['pdr'] = data['pdr']
                     run_specific_data['pdr']['drop_limit'] = self.config['measurement']['PDR']
                     del data['pdr']
-                for key in run_specific_data:
+                for data_value in run_specific_data.values():
                     data_to_send = data.copy()
-                    data_to_send.update(run_specific_data[key])
+                    data_to_send.update(data_value)
                     self.sender.record_send(data_to_send)
             self.__record_init()
 

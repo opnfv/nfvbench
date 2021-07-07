@@ -196,7 +196,6 @@ def step_impl(context, repeat=1):
         results)
 
     total_tx_rate = extract_value(context.result, "total_tx_rate")
-    context.rates[context.json['frame_sizes'][0] + '_' + context.json['flow_count']] = total_tx_rate
     overall = extract_value(context.result, "overall")
     avg_delay_usec = extract_value(overall, "avg_delay_usec")
     # create a synthesis with offered pps and latency values

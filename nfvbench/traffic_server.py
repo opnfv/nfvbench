@@ -72,8 +72,8 @@ class TRexTrafficServer(TrafficServer):
                                                                  hdrh_opt,
                                                                  mbuf_opt, cfg)]
         LOG.info(' '.join(cmd))
-        subprocess.Popen(cmd, cwd=self.trex_dir)
-        LOG.info('TRex server is running...')
+        with subprocess.Popen(cmd, cwd=self.trex_dir) as trex_process:
+            LOG.info('TRex server is running (PID: %s)...', trex_process.pid)
 
     def __load_config(self, filename):
         result = {}

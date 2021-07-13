@@ -25,6 +25,7 @@ import json
 import requests
 import subprocess
 from subprocess import DEVNULL
+from typing import Optional
 
 from nfvbench.summarizer import Formatter
 from nfvbench.traffic_gen.traffic_utils import parse_rate_str
@@ -141,21 +142,26 @@ def add_percentage_rate(context, percentage_rate):
 @when('NFVbench API is ready')
 @when('NFVbench API is ready on host {host_ip}')
 @when('NFVbench API is ready on host {host_ip} and port {port:d}')
-def start_server(context, host_ip="127.0.0.1", port=7555):
-    context.host_ip = host_ip
-    context.port = port
+def start_server(context, host_ip: Optional[str] = None, port: Optional[str] = None):
+    # NFVbench server host IP and port number have been setup from environment variables (see
+    # environment.py:before_all()).   Here we allow to override them from feature files:
+    if host_ip is not None:
+        context.host_ip = host_ip
+    if port is not None:
+        context.port = port
+
     try:
         # check if API is already available
         requests.get(
             "http://{host_ip}:{port}/status".format(host_ip=context.host_ip, port=context.port))
     except RequestException:
         cmd = ["nfvbench", "-c", context.data['config'], "--server"]
-        if host_ip != "127.0.0.1":
+        if context.host_ip != "127.0.0.1":
             cmd.append("--host")
-            cmd.append(host_ip)
-        if port != 7555:
+            cmd.append(context.host_ip)
+        if context.port != "7555":
             cmd.append("--port")
-            cmd.append(port)
+            cmd.append(context.port)
 
         subprocess.Popen(cmd, stdout=DEVNULL, stderr=subprocess.STDOUT)
 

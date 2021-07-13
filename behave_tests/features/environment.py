@@ -34,6 +34,10 @@ def before_all(context):
     context.data['NODE_NAME'] = os.getenv('NODE_NAME', 'nfvbench')
     context.data['BUILD_TAG'] = os.getenv('BUILD_TAG')
 
+    # NFVbench server host and port
+    context.host_ip = os.getenv('NFVBENCH_SERVER_HOST', '127.0.0.1')
+    context.port = os.getenv('NFVBENCH_SERVER_PORT', '7555')
+
 
 def before_feature(context, feature):
     context.rates = {}

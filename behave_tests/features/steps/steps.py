@@ -168,7 +168,11 @@ def start_server(context, host_ip: Optional[str]=None, port: Optional[int]=None)
 
 @then('run is started and waiting for result')
 @then('{repeat:d} runs are started and waiting for maximum result')
-def step_impl(context, repeat=1):
+def run_nfvbench_traffic(context, repeat=1):
+    context.logger.info(f"run_nfvbench_traffic: fs={context.json['frame_sizes'][0]} "
+                        f"fc={context.json['flow_count']} "
+                        f"rate={context.json['rate']} repeat={repeat}")
+
     results = []
     if 'json' not in context.json:
         context.json['json'] = '/var/lib/xtesting/results/' + context.CASE_NAME + \
@@ -190,7 +194,15 @@ def step_impl(context, repeat=1):
         results.append(result)
         assert result["status"] == STATUS_OK
 
+        # Log latest result:
+        total_tx_rate = extract_value(result, "total_tx_rate")
+        overall = extract_value(result, "overall")
+        avg_delay_usec = extract_value(overall, "avg_delay_usec")
+        context.logger.info(f"run_nfvbench_traffic: result #{i+1}: "
+                            f"total_tx_rate(pps)={total_tx_rate:,} "  # Add ',' thousand separator
+                            f"avg_latency_usec={round(avg_delay_usec)}")
 
+    # Keep only the result with the highest rate:
     context.result = reduce(
         lambda x, y: x if extract_value(x, "total_tx_rate") > extract_value(y,
                                                                             "total_tx_rate") else y,
@@ -202,6 +214,12 @@ def step_impl(context, repeat=1):
     # create a synthesis with offered pps and latency values
     context.synthesis['total_tx_rate'] = total_tx_rate
     context.synthesis['avg_delay_usec'] = avg_delay_usec
+
+    # Log max result only when we did two nfvbench runs or more:
+    if repeat > 1:
+        context.logger.info(f"run_nfvbench_traffic: max result: "
+                            f"total_tx_rate(pps)={total_tx_rate:,} "
+                            f"avg_latency_usec={round(avg_delay_usec)}")
 
 
 @then('extract offered rate result')

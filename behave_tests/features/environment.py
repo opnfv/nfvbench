@@ -17,6 +17,7 @@
 
 import json
 import os
+import pathlib
 import time
 
 
@@ -59,8 +60,13 @@ def before_scenario(context, scenario):
 
 
 def after_feature(context, feature):
-    if context.results:
-        with open(os.path.join(
-                '/var/lib/xtesting/results/' + context.CASE_NAME + '/campaign_result.json'), "w") \
-                as outfile:
-            json.dump(context.results, outfile)
+    if len(context.results) == 0:
+        # No result to dump
+        return
+
+    results_dir = pathlib.Path('/var/lib/xtesting/results/' + context.CASE_NAME)
+    if not results_dir.exists():
+        results_dir.mkdir()
+
+    results_file = results_dir / pathlib.Path('campaign_result.json')
+    results_file.write_text(json.dumps(context.results, indent=4))

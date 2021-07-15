@@ -43,11 +43,6 @@ def override_xtesting_project_name(context, project_name):
     context.data['PROJECT_NAME'] = project_name
 
 
-@given('TEST_DB_EXT_URL: {test_db_ext_url}')
-def override_xtesting_test_db_ext_url(context, test_db_ext_url):
-    context.data['TEST_DB_EXT_URL'] = test_db_ext_url
-
-
 @given('TEST_DB_URL: {test_db_url}')
 def override_xtesting_test_db_url(context, test_db_url):
     context.data['TEST_DB_URL'] = test_db_url

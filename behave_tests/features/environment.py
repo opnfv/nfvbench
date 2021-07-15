@@ -25,7 +25,6 @@ def before_all(context):
     context.data = {'config': os.getenv('NFVBENCH_CONFIG_PATH', '/etc/nfvbench/nfvbench.cfg')}
 
     context.data['PROJECT_NAME'] = os.getenv('PROJECT_NAME', 'nfvbench')
-    context.data['TEST_DB_EXT_URL'] = os.getenv('TEST_DB_EXT_URL')
     context.data['TEST_DB_URL'] = os.getenv('TEST_DB_URL')
     context.data['BASE_TEST_DB_URL'] = ''
     if context.data['TEST_DB_URL']:

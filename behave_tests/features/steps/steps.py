@@ -14,8 +14,6 @@
 #    under the License.
 #
 
-from functools import reduce
-
 from behave import given
 from behave import when
 from behave import then
@@ -173,7 +171,6 @@ def run_nfvbench_traffic(context, repeat=1):
                         f"fc={context.json['flow_count']} "
                         f"rate={context.json['rate']} repeat={repeat}")
 
-    results = []
     if 'json' not in context.json:
         context.json['json'] = '/var/lib/xtesting/results/' + context.CASE_NAME + \
                                '/nfvbench-' + context.tag + '-fs_' + \
@@ -181,45 +178,45 @@ def run_nfvbench_traffic(context, repeat=1):
                                context.json['flow_count'] + '-rate_' + \
                                context.json['rate'] + '.json'
     json_base_name = context.json['json']
+
+    max_total_tx_rate = None
+    # rem: don't init with 0 in case nfvbench gets crazy and returns a negative packet rate
+
     for i in range(repeat):
         if repeat > 1:
             context.json['json'] = json_base_name.strip('.json') + '-' + str(i) + '.json'
 
+        # Start nfvbench traffic and wait result:
         url = "http://{ip}:{port}/start_run".format(ip=context.host_ip, port=context.port)
         payload = json.dumps(context.json)
         r = requests.post(url, data=payload, headers={'Content-Type': 'application/json'})
         context.request_id = json.loads(r.text)["request_id"]
         assert r.status_code == 200
         result = wait_result(context)
-        results.append(result)
         assert result["status"] == STATUS_OK
 
-        # Log latest result:
+        # Extract useful metrics from result:
         total_tx_rate = extract_value(result, "total_tx_rate")
         overall = extract_value(result, "overall")
         avg_delay_usec = extract_value(overall, "avg_delay_usec")
+
+        # Log latest result:
         context.logger.info(f"run_nfvbench_traffic: result #{i+1}: "
                             f"total_tx_rate(pps)={total_tx_rate:,} "  # Add ',' thousand separator
                             f"avg_latency_usec={round(avg_delay_usec)}")
 
-    # Keep only the result with the highest rate:
-    context.result = reduce(
-        lambda x, y: x if extract_value(x, "total_tx_rate") > extract_value(y,
-                                                                            "total_tx_rate") else y,
-        results)
-
-    total_tx_rate = extract_value(context.result, "total_tx_rate")
-    overall = extract_value(context.result, "overall")
-    avg_delay_usec = extract_value(overall, "avg_delay_usec")
-    # create a synthesis with offered pps and latency values
-    context.synthesis['total_tx_rate'] = total_tx_rate
-    context.synthesis['avg_delay_usec'] = avg_delay_usec
+        # Keep only the result with the highest packet rate:
+        if max_total_tx_rate is None or total_tx_rate > max_total_tx_rate:
+            max_total_tx_rate = total_tx_rate
+            context.result = result
+            context.synthesis['total_tx_rate'] = total_tx_rate
+            context.synthesis['avg_delay_usec'] = avg_delay_usec
 
     # Log max result only when we did two nfvbench runs or more:
     if repeat > 1:
         context.logger.info(f"run_nfvbench_traffic: max result: "
-                            f"total_tx_rate(pps)={total_tx_rate:,} "
-                            f"avg_latency_usec={round(avg_delay_usec)}")
+                            f"total_tx_rate(pps)={context.synthesis['total_tx_rate']:,} "
+                            f"avg_latency_usec={round(context.synthesis['avg_delay_usec'])}")
 
 
 @then('extract offered rate result')

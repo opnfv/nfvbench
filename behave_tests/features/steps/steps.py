@@ -17,6 +17,7 @@
 from behave import given
 from behave import when
 from behave import then
+from copy import deepcopy
 from requests import RequestException
 from retry import retry
 import json
@@ -27,6 +28,9 @@ from typing import Optional
 
 from nfvbench.summarizer import Formatter
 from nfvbench.traffic_gen.traffic_utils import parse_rate_str
+
+from testapi import TestapiClient, nfvbench_input_to_str
+
 
 STATUS_ERROR = "ERROR"
 
@@ -128,6 +132,76 @@ def add_percentage_rate(context, percentage_rate):
     rate = percentage_previous_rate(context, percentage_rate)
     context.json['rate'] = rate
     context.logger.info(f"add_percentage_rate: {percentage_rate} => rate={rate}")
+
+
+@given('packet rate equal to {percentage} of max throughput of last characterization')
+def add_packet_rate(context, percentage: str):
+    """Update nfvbench run config with packet rate based on reference value.
+
+    For the already configured frame size and flow count, retrieve the max
+    throughput obtained during the latest successful characterization run.  Then
+    retain `percentage` of this value for the packet rate and update `context`.
+
+    Args:
+        context: The context data of the current scenario run.  It includes the
+            testapi endpoints to retrieve the reference values.
+
+        percentage: String representation of the percentage of the reference max
+            throughput.  Example: "70%"
+
+    Updates context:
+        context.percentage_rate: percentage of reference max throughput
+            using a string representation. Example: "70%"
+
+        context.json['rate']: packet rate in packets per second using a string
+            representation.  Example: "2000pps"
+
+    Raises:
+        ValueError: invalid percentage string
+
+        AssertionError: cannot find reference throughput value
+
+    """
+    # Validate percentage
+    if not percentage.endswith('%'):
+        raise ValueError('Invalid percentage string: "{0}"'.format(percentage))
+    percentage_float = convert_percentage_str_to_float(percentage)
+
+    # Retrieve nfvbench results report from testapi for:
+    # - the latest throughput scenario inside a characterization feature that passed
+    # - the test duration, frame size and flow count given in context.json
+    # - (optionally) the user_label and flavor_type given in context.json
+    # - the 'ndr' rate
+    testapi_params = {"project_name": context.data['PROJECT_NAME'],
+                      "case_name": "characterization"}
+    nfvbench_test_conditions = deepcopy(context.json)
+    nfvbench_test_conditions['rate'] = 'ndr'
+    testapi_client = TestapiClient(testapi_url=context.data['TEST_DB_URL'],
+                                   logger=context.logger)
+    last_result = testapi_client.find_last_result(testapi_params,
+                                                  scenario_tag="throughput",
+                                                  nfvbench_test_input=nfvbench_test_conditions)
+    if last_result is None:
+        error_msg = "No characterization result found for scenario_tag=throughput"
+        error_msg += " and nfvbench test conditions "
+        error_msg += nfvbench_input_to_str(nfvbench_test_conditions)
+        raise AssertionError(error_msg)
+
+    # From the results report, extract the max throughput in packets per second
+    total_tx_rate = extract_value(last_result["output"], "total_tx_rate")
+    context.logger.info("add_packet_rate: max throughput of last characterization (pps): "
+                        f"{total_tx_rate:,}")
+
+    # Compute the desired packet rate
+    rate = round(total_tx_rate * percentage_float)
+    context.logger.info(f"add_packet_rate: percentage={percentage} rate(pps)={rate:,}")
+
+    # Build rate string using a representation understood by nfvbench
+    rate_str = str(rate) + "pps"
+
+    # Update context
+    context.percentage_rate = percentage
+    context.json['rate'] = rate_str
 
 
 """When steps."""
@@ -476,6 +550,22 @@ def latency_comparison(context, old_latency=None, threshold=None, reference_valu
 
 
 def get_result_from_input_values(input, result):
+    """Check test conditions in scenario results input.
+
+    Check whether the input parameters of a behave scenario results record from
+    testapi match the input parameters of the latest test.  In other words,
+    check that the test results from testapi come from a test done under the
+    same conditions (frame size, flow count, rate, ...)
+
+    Args:
+        input: input dict of a results dict of a behave scenario from testapi
+
+        result: dict of nfvbench params used during the last test
+
+    Returns:
+        True if test conditions match, else False.
+
+    """
     # Select required keys (other keys can be not set or unconsistent between scenarios)
     required_keys = ['duration_sec', 'frame_sizes', 'flow_count', 'rate']
     if 'user_label' in result:

@@ -27,14 +27,14 @@ Feature: non-regression
       Given 10 sec run duration
       And <frame_size> frame size
       And 100k flow count
-      And <throughput> rate of previous scenario
+      And packet rate equal to <percentage> of max throughput of last characterization
       When NFVbench API is ready
       Then run is started and waiting for result
       And push result to database
       And verify latency result is lower than 1000 microseconds
 
      Examples: Frame sizes and throughput percentages
-      | frame_size | throughput |
+      | frame_size | percentage |
       | 64         | 70%        |
       | 64         | 90%        |
       | 768        | 70%        |

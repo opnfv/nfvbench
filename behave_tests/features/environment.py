@@ -17,6 +17,7 @@
 
 import json
 import os
+import logging
 import pathlib
 import time
 
@@ -45,6 +46,22 @@ def before_feature(context, feature):
     context.start_time = time.time()
     context.CASE_NAME = feature.name
 
+    # Create results dir if needed
+    results_dir = pathlib.Path('/var/lib/xtesting/results/' + context.CASE_NAME)
+    if not results_dir.exists():
+        results_dir.mkdir()
+
+    # Setup a second logger to be able to understand why a test passed or failed
+    # (The main logger is used by behave itself)
+    context.logger = logging.getLogger('behave_tests')
+    context.logger.setLevel(logging.INFO)
+    fh = logging.FileHandler(filename=results_dir / pathlib.Path('behave_tests.log'),
+                             mode='w')  # Re-create the file at the beginning of the feature
+    fh.setFormatter(logging.Formatter('%(asctime)s - %(levelname)s - %(message)s'))
+    context.logger.addHandler(fh)
+
+    context.logger.info('before_feature: ' + feature.name)
+
 
 def before_scenario(context, scenario):
     context.tag = scenario.tags[0]
@@ -57,6 +74,8 @@ def before_scenario(context, scenario):
         context.json['flavor_type'] = loopvm_flavor
     context.synthesis = {}
 
+    context.logger.info('before_scenario: ' + scenario.name)
+
 
 def after_feature(context, feature):
     if len(context.results) == 0:
@@ -64,8 +83,5 @@ def after_feature(context, feature):
         return
 
     results_dir = pathlib.Path('/var/lib/xtesting/results/' + context.CASE_NAME)
-    if not results_dir.exists():
-        results_dir.mkdir()
-
     results_file = results_dir / pathlib.Path('campaign_result.json')
     results_file.write_text(json.dumps(context.results, indent=4))

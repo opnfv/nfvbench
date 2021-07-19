@@ -127,6 +127,7 @@ def add_percentage_rate(context, percentage_rate):
     context.percentage_rate = percentage_rate
     rate = percentage_previous_rate(context, percentage_rate)
     context.json['rate'] = rate
+    context.logger.info(f"add_percentage_rate: {percentage_rate} => rate={rate}")
 
 
 """When steps."""
@@ -272,12 +273,18 @@ def check_latency_result_against_fixed_threshold(context, max_avg_latency_usec_s
     # Convert reference value from string to float:
     max_avg_latency_usec = float(max_avg_latency_usec_str)
 
+    # Log what we test:
+    context.logger.info("check_latency_result_against_fixed_threshold(usec): "
+                        "{value}<={ref}?".format(
+                            value=round(new_avg_latency_usec),
+                            ref=round(max_avg_latency_usec)))
+
     # Compare measured value to reference:
     if new_avg_latency_usec > max_avg_latency_usec:
         raise AssertionError("Average latency higher than max threshold: "
-                             "{avg_latency} usec > {threshold} usec".format(
-                                 avg_latency=round(new_avg_latency_usec),
-                                 threshold=round(max_avg_latency_usec)))
+                             "{value} usec > {ref} usec".format(
+                                 value=round(new_avg_latency_usec),
+                                 ref=round(max_avg_latency_usec)))
 
 
 @then(

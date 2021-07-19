@@ -143,10 +143,11 @@ def start_server(context, host_ip: Optional[str]=None, port: Optional[int]=None)
     if port is not None:
         context.port = port
 
+    nfvbench_test_url = "http://{ip}:{port}/status".format(ip=context.host_ip, port=context.port)
+
     try:
         # check if API is already available
-        requests.get(
-            "http://{host_ip}:{port}/status".format(host_ip=context.host_ip, port=context.port))
+        requests.get(nfvbench_test_url)
     except RequestException:
         cmd = ["nfvbench", "-c", context.data['config'], "--server"]
         if context.host_ip != "127.0.0.1":
@@ -158,7 +159,8 @@ def start_server(context, host_ip: Optional[str]=None, port: Optional[int]=None)
 
         subprocess.Popen(cmd, stdout=DEVNULL, stderr=subprocess.STDOUT)
 
-    test_nfvbench_api(context)
+    context.logger.info("start_server: test nfvbench API: " + nfvbench_test_url)
+    test_nfvbench_api(nfvbench_test_url)
 
 
 """Then steps."""
@@ -330,9 +332,9 @@ def push_result_database(context):
 
 
 @retry(AssertionError, tries=24, delay=5.0, logger=None)
-def test_nfvbench_api(context):
+def test_nfvbench_api(nfvbench_test_url: str):
     try:
-        r = requests.get("http://{ip}:{port}/status".format(ip=context.host_ip, port=context.port))
+        r = requests.get(nfvbench_test_url)
         assert r.status_code == 200
         assert json.loads(r.text)["error_message"] == "no pending NFVbench run"
     except RequestException as exc:

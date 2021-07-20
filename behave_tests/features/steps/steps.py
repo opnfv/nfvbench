@@ -137,6 +137,21 @@ def add_percentage_rate(context, percentage_rate):
 @when('NFVbench API is ready on host {host_ip}')
 @when('NFVbench API is ready on host {host_ip} and port {port:d}')
 def start_server(context, host_ip: Optional[str] = None, port: Optional[str] = None):
+    """Start nfvbench server if needed and wait until it is ready.
+
+    Quickly check whether nfvbench HTTP server is ready by reading the "/status"
+    page.  If not, start the server locally.  Then wait until nfvbench API is
+    ready by polling the "/status" page.
+
+    This code is useful when behave and nfvbench run on the same machine.  In
+    particular, it is needed to run behave tests with nfvbench Docker container.
+
+    There is currently no way to prevent behave from starting automatically
+    nfvbench server when this is not desirable, for instance when behave is
+    started using ansible-role-nfvbench.  The user or the orchestration layer
+    should make sure nfvbench API is ready before starting behave tests.
+
+    """
     # NFVbench server host IP and port number have been setup from environment variables (see
     # environment.py:before_all()).   Here we allow to override them from feature files:
     if host_ip is not None:
@@ -145,11 +160,14 @@ def start_server(context, host_ip: Optional[str] = None, port: Optional[str] = N
         context.port = port
 
     nfvbench_test_url = "http://{ip}:{port}/status".format(ip=context.host_ip, port=context.port)
+    context.logger.info("start_server: test nfvbench API on URL: " + nfvbench_test_url)
 
     try:
         # check if API is already available
         requests.get(nfvbench_test_url)
     except RequestException:
+        context.logger.info("nfvbench server not running")
+
         cmd = ["nfvbench", "-c", context.data['config'], "--server"]
         if context.host_ip != "127.0.0.1":
             cmd.append("--host")
@@ -158,9 +176,11 @@ def start_server(context, host_ip: Optional[str] = None, port: Optional[str] = N
             cmd.append("--port")
             cmd.append(context.port)
 
+        context.logger.info("Start nfvbench server with command: " + " ".join(cmd))
+
         subprocess.Popen(cmd, stdout=DEVNULL, stderr=subprocess.STDOUT)
 
-    context.logger.info("start_server: test nfvbench API: " + nfvbench_test_url)
+    # Wait until nfvbench API is ready
     test_nfvbench_api(nfvbench_test_url)
 
 

@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "3374e8c8_cfdc6dd0",
+        "filename": "behave_tests/features/non-regression.feature",
+        "patchSetId": 1
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 7741
+      },
+      "writtenOn": "2021-07-22T14:08:32Z",
+      "side": 1,
+      "message": "Sub-microsecond latency does not make sense in our context, I prefer to keep 1000 (but see my other comment).",
+      "parentUuid": "5824baca_f61992b7",
+      "revId": "349eedc106b10a3a5789d85670feb3315a1dfd7a",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "315c90c6_cb980b2e",
         "filename": "behave_tests/features/steps/steps.py",
         "patchSetId": 1
@@ -30,6 +48,24 @@
       "writtenOn": "2021-07-22T09:42:49Z",
       "side": 1,
       "message": "Hello,\nIf you want float and avoid ValueError, you can specify the parameter type in the step (https://behave.readthedocs.io/en/stable/parse_builtin_types.html).\nFor float, I suggest to use: {max_avg_latency_usec:f}",
+      "revId": "349eedc106b10a3a5789d85670feb3315a1dfd7a",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "796d10ab_d672cd83",
+        "filename": "behave_tests/features/steps/steps.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 230,
+      "author": {
+        "id": 7741
+      },
+      "writtenOn": "2021-07-22T14:08:32Z",
+      "side": 1,
+      "message": "Ok, but I will use the \"g\" type instead of \"f\": \"General number format (either d, f or e)\". The output type is still a float, but it allows to write either 1000 or 1000.0 in the feature file",
+      "parentUuid": "315c90c6_cb980b2e",
       "revId": "349eedc106b10a3a5789d85670feb3315a1dfd7a",
       "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
       "unresolved": true

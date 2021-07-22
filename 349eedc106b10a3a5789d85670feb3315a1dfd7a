@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5824baca_f61992b7",
+        "filename": "behave_tests/features/non-regression.feature",
+        "patchSetId": 1
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 7465
+      },
+      "writtenOn": "2021-07-22T09:42:49Z",
+      "side": 1,
+      "message": "We expect float in step management, I suggest to write it as a float in the feature file\n1000.0",
+      "revId": "349eedc106b10a3a5789d85670feb3315a1dfd7a",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "315c90c6_cb980b2e",
+        "filename": "behave_tests/features/steps/steps.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 230,
+      "author": {
+        "id": 7465
+      },
+      "writtenOn": "2021-07-22T09:42:49Z",
+      "side": 1,
+      "message": "Hello,\nIf you want float and avoid ValueError, you can specify the parameter type in the step (https://behave.readthedocs.io/en/stable/parse_builtin_types.html).\nFor float, I suggest to use: {max_avg_latency_usec:f}",
+      "revId": "349eedc106b10a3a5789d85670feb3315a1dfd7a",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": true
+    }
+  ]
+}

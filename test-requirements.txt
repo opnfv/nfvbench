@@ -2,14 +2,15 @@
 # of appearance. Changing the order has an impact on the overall integration
 # process, which may cause wedges in the gate later.
 
-hacking<0.11,>=0.10.0
+hacking
 
 coverage>=3.6
 discover
+flake8>=3.3.0
 python-subunit>=0.0.18
 scapy>=2.3.1
 sphinx>=1.4.0
-sphinx_rtd_theme>=0.1.9
+sphinx_rtd_theme>=0.2.4
 oslosphinx>=2.5.0  # Apache-2.0
 oslotest>=1.10.0  # Apache-2.0
 testrepository>=0.0.18

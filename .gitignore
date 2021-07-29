@@ -1,5 +1,6 @@
 .DS_store
 *.pyc
+*~
 .idea
 .tox
 .cache

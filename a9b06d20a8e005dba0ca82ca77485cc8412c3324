@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "79c34d67_85c77375",
+        "filename": ".gitlab-ci.yml",
+        "patchSetId": 1
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 7741
+      },
+      "writtenOn": "2021-07-29T11:13:14Z",
+      "side": 1,
+      "message": "Currently, we also need tox-pip-version python package. Could you add this to pip install?",
+      "revId": "a9b06d20a8e005dba0ca82ca77485cc8412c3324",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": true
+    }
+  ]
+}

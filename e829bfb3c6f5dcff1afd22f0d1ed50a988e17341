@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9f747ad6_1af409dc",
+        "filename": "docs/testing/developer/devguide/testing-nfvbench.rst",
+        "patchSetId": 1
+      },
+      "lineNbr": 23,
+      "author": {
+        "id": 7465
+      },
+      "writtenOn": "2021-07-30T09:06:58Z",
+      "side": 1,
+      "message": "CI generally speaking (jenkins or gitlab-ci in future)",
+      "range": {
+        "startLine": 23,
+        "startChar": 15,
+        "endLine": 23,
+        "endChar": 25
+      },
+      "revId": "e829bfb3c6f5dcff1afd22f0d1ed50a988e17341",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": true
+    }
+  ]
+}

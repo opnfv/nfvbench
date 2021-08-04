@@ -16,6 +16,24 @@
       "revId": "a9b06d20a8e005dba0ca82ca77485cc8412c3324",
       "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "89146ef2_e3c77c75",
+        "filename": ".gitlab-ci.yml",
+        "patchSetId": 1
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 1451
+      },
+      "writtenOn": "2021-08-04T17:00:44Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "79c34d67_85c77375",
+      "revId": "a9b06d20a8e005dba0ca82ca77485cc8412c3324",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": false
     }
   ]
 }

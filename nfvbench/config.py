@@ -23,7 +23,7 @@ def config_load(file_name, from_cfg=None, whitelist_keys=None):
     The config file content taking precedence in case of duplicate
     """
     try:
-        with open(file_name) as fileobj:
+        with open(file_name, encoding="utf-8") as fileobj:
             cfg = AttrDict(yaml.safe_load(fileobj))
     except IOError:
         raise Exception("Configuration file at '{}' was not found. Please use correct path "

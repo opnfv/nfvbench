@@ -761,7 +761,7 @@ class TRex(AbstractTrafficGenerator):
         after = None
         last = None
         try:
-            with open('/tmp/trex.log', 'r') as trex_log:
+            with open('/tmp/trex.log', 'r', encoding="utf-8") as trex_log:
                 for _line in trex_log:
                     line = _line.strip()
                     if line.startswith('Usage:'):
@@ -912,7 +912,7 @@ class TRex(AbstractTrafficGenerator):
                         break
                     last_size = size
                     time.sleep(1)
-                with open(logpath, 'r') as f:
+                with open(logpath, 'r', encoding="utf-8") as f:
                     message = f.read()
             else:
                 message = e.message

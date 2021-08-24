@@ -721,7 +721,7 @@ def main():
             sys.exit(0)
 
         if opts.summary:
-            with open(opts.summary) as json_data:
+            with open(opts.summary, encoding="utf-8") as json_data:
                 result = json.load(json_data)
                 if opts.user_label:
                     result['config']['user_label'] = opts.user_label
@@ -736,7 +736,7 @@ def main():
         # dump the contents of the trex log file
         if opts.show_trex_log:
             try:
-                with open('/tmp/trex.log') as trex_log_file:
+                with open('/tmp/trex.log', encoding="utf-8") as trex_log_file:
                     print(trex_log_file.read(), end="")
             except FileNotFoundError:
                 print("No TRex log file found!")

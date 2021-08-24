@@ -500,7 +500,7 @@ class ChainVnf(object):
             vnf_gateway1_cidr = g1cidr
             vnf_gateway2_cidr = g2cidr
 
-        with open(BOOT_SCRIPT_PATHNAME, 'r') as boot_script:
+        with open(BOOT_SCRIPT_PATHNAME, 'r', encoding="utf-8") as boot_script:
             content = boot_script.read()
         vm_config = {
             'forwarder': config.vm_forwarder,

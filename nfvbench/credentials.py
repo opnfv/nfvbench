@@ -138,7 +138,7 @@ class Credentials(object):
         if openrc_file:
             if isinstance(openrc_file, str):
                 if os.path.exists(openrc_file):
-                    with open(openrc_file) as rc_file:
+                    with open(openrc_file, encoding="utf-8") as rc_file:
                         self.__parse_openrc(rc_file)
                 else:
                     LOG.error('Error: rc file does not exist %s', openrc_file)

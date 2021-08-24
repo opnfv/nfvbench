@@ -78,7 +78,7 @@ class TRexTrafficServer(TrafficServer):
     def __load_config(self, filename):
         result = {}
         if os.path.exists(filename):
-            with open(filename, 'r') as stream:
+            with open(filename, 'r', encoding="utf-8") as stream:
                 try:
                     result = yaml.safe_load(stream)
                 except yaml.YAMLError as exc:
@@ -90,7 +90,7 @@ class TRexTrafficServer(TrafficServer):
         yaml.safe_load(result)
         if os.path.exists(filename):
             os.remove(filename)
-        with open(filename, 'w') as f:
+        with open(filename, 'w', encoding="utf-8") as f:
             f.write(result)
         return filename
 

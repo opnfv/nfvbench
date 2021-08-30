@@ -5,11 +5,13 @@ include:
     file: '/gitlab-templates/RTD.gitlab-ci.yml'
   - project: anuket/releng
     file: '/gitlab-templates/Docker.gitlab-ci.yml'
-  - project: anuket/releng
-    file: '/gitlab-templates/GoogleStorage.gitlab-ci.yml'
+#  - project: anuket/releng
+#    file: '/gitlab-templates/GoogleStorage.gitlab-ci.yml'
 
 variables:
   DOCKER_REGISTRY: docker.io
+  GS_URL: "artifacts.opnfv.org/$CI_PROJECT_NAME"
+  WORKSPACE: $CI_PROJECT_DIR
 
 .tox-defaults: &tox-defaults
   stage: test
@@ -22,6 +24,13 @@ variables:
       - venv/
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event" || $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+
+.gsutil-install: &gsutil-install
+  script:
+    - yum -y install python3-pip
+    - python3 -m pip install -U pip
+    - python3 -m pip install gsutil
+    - echo "$GSUTIL_CONFIG" > ~/.boto
 
 pep8:
   <<: *tox-defaults
@@ -36,9 +45,9 @@ tox-py36:
 
 verify-image:
   stage: build
-  image: centos:8
+  image: centos:7
   before_script:
-    - dnf -y install python3-virtualenv
+    - yum -y install python-virtualenv qemu-img kpartx sudo e2fsprogs
     - virtualenv venv
   script:
     - source venv/bin/activate
@@ -53,9 +62,9 @@ verify-image:
 
 build-image:
   stage: deploy
-  image: centos:8
+  image: centos:7
   before_script:
-    - dnf -y install python3-virtualenv
+    - yum -y install python-virtualenv qemu-img kpartx sudo e2fsprogs
     - virtualenv venv
   script:
     - source venv/bin/activate

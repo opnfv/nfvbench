@@ -3,7 +3,8 @@
 # A shell script to build the VPP VM image or NFVbench+TRex VM image using diskinage-builder
 #
 # The following packages must be installed prior to using this script:
-# sudo apt-get -y install python-virtualenv qemu-utils kpartx
+# Ubuntu: sudo apt-get -y install python-virtualenv qemu-utils kpartx
+# CentOS: sudo yum install -y python3-virtualenv qemu-img kpartx
 
 usage() {
     echo "Usage: $0 [-l] [-g] [-v]"

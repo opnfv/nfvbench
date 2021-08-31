@@ -73,6 +73,7 @@ def before_scenario(context, scenario):
     if loopvm_flavor:
         context.json['flavor_type'] = loopvm_flavor
     context.synthesis = {}
+    context.percentage_rate = None
 
     context.logger.info('before_scenario: ' + scenario.name)
 

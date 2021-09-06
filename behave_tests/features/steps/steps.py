@@ -269,11 +269,19 @@ def run_nfvbench_traffic(context, repeat=1):
                         f"rate={context.json['rate']} repeat={repeat}")
 
     if 'json' not in context.json:
+        # Build filename for nfvbench results in JSON format
         context.json['json'] = '/var/lib/xtesting/results/' + context.CASE_NAME + \
-                               '/nfvbench-' + context.tag + '-fs_' + \
-                               context.json['frame_sizes'][0] + '-fc_' + \
-                               context.json['flow_count'] + '-rate_' + \
-                               context.json['rate'] + '.json'
+                               '/nfvbench-' + context.tag + \
+                               '-fs_' + context.json['frame_sizes'][0] + \
+                               '-fc_' + context.json['flow_count']
+        if context.percentage_rate is not None:
+            # Add rate as a percentage, eg '-rate_70%'
+            context.json['json'] += '-rate_' + context.percentage_rate
+        else:
+            # Add rate in bits or packets per second, eg '-rate_15Gbps' or '-rate_10kpps'
+            context.json['json'] += '-rate_' + context.json['rate']
+        context.json['json'] += '.json'
+
     json_base_name = context.json['json']
 
     max_total_tx_rate = None

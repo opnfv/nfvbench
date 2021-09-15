@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3da45632_1e84ca45",
+        "filename": ".gitlab-ci.yml",
+        "patchSetId": 3
+      },
+      "lineNbr": 27,
+      "author": {
+        "id": 7465
+      },
+      "writtenOn": "2021-09-15T06:59:33Z",
+      "side": 1,
+      "message": "Proposal:\nKeep the Google Storage part as a template in a separate file locally\nIf Anuket template is updated we can easily update the path to Anuket file instead of reverting lines",
+      "revId": "65b6fd07e6586815c39972b79ae0c4141205e7f4",
+      "serverId": "bbac25d2-bf60-4904-9ba8-a72fc000d6c5",
+      "unresolved": true
+    }
+  ]
+}

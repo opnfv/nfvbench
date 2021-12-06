@@ -227,9 +227,21 @@ nfvbenchvm config file with management interface:
     INTF_MAC_MGMT=FA:16:3E:06:11:8A
     INTF_MGMT_CIDR=172.20.56.228/2
     INTF_MGMT_IP_GW=172.20.56.225
+    INTF_MGMT_MTU=1500
 
 .. note:: `INTF_MGMT_IP_GW` and `INTF_MGMT_CIDR` parameters are used by the VM to automatically configure virtual interface and route to allow an external access through SSH.
 
+.. note:: ``INTF_MGMT_MTU`` allows to specify the MTU of the management
+          interface in bytes.
+
+          If ``INTF_MGMT_MTU`` is not specified, the MTU will be configured to
+          the conservative value of 1500: this will reduce the risk to get an
+          unmanageable VM.
+
+          ``INTF_MGMT_MTU`` can also be set to the special value ``auto``: in
+          that case, the MTU will not be configured and it will keep the value
+          set by the hypervisor (default nfvbench behavior up to version
+          5.0.3).
 
 Using pre-created direct-physical ports on openstack, mac addresses value are only known when VM is deployed. In this case, you can pass the port name in config:
 

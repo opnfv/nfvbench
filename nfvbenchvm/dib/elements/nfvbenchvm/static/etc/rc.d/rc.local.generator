@@ -86,6 +86,24 @@ if [ $INTF_MGMT_CIDR ] && [ $INTF_MGMT_IP_GW ]; then
         logger "NFVBENCHVM ERROR: Cannot find eth port for management port"
         return 1
     fi
+
+    # By default, configure the MTU of the management interface to the
+    # conservative value of 1500: this will reduce the risk to get an
+    # unmanageable VM in some setups.
+    #
+    # To set the MTU to a different value, configure the INTF_MGMT_MTU variable
+    # in /etc/nfvbenchvm.conf.  If INTF_MGMT_MTU is set to the special value
+    # "auto", the MTU will not be configured and it will keep the value set by
+    # the hypervisor ("legacy" nfvbenchvm behavior).  If INTF_MGMT_MTU is unset,
+    # the MTU will be set to 1500.  In other cases, the MTU will be set to the
+    # value of INTF_MGMT_MTU.
+    #
+    if [[ -z "$INTF_MGMT_MTU" ]]; then
+        ip link set $ETH_PORT mtu 1500
+    elif [[ "$INTF_MGMT_MTU" != "auto" ]]; then
+        ip link set $ETH_PORT mtu $INTF_MGMT_MTU
+    fi
+
     ip addr add $INTF_MGMT_CIDR dev $ETH_PORT
     ip link set $ETH_PORT up
     ip route add default via $INTF_MGMT_IP_GW dev $ETH_PORT

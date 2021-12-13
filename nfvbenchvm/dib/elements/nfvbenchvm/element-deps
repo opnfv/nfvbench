@@ -1,4 +1,5 @@
 vm
+block-device-mbr
 cloud-init-datasources
 install-static
 package-installs

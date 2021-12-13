@@ -19,7 +19,7 @@ rm -rf /opt/trex/$TREX_VER/automation/trex_control_plane/interactive/trex
 cd /opt
 git clone https://gerrit.opnfv.org/gerrit/nfvbench
 cd nfvbench/
-pip3 install . --use-deprecated=legacy-resolver
+python3 -m pip install . --use-deprecated=legacy-resolver
 cp xtesting/testcases.yaml /usr/local/lib/python3.6/site-packages/xtesting/ci/testcases.yaml
 python3 ./docker/cleanup_generators.py
 rm -rf /opt/nfvbench/.git

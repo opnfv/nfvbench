@@ -13,9 +13,22 @@ Pre-requisites
 --------------
 - must run on Linux
 - the following packages must be installed prior to using this script:
+    - python3 (+ python3-venv on Ubuntu)
+    - python3-pip
     - git
-    - qemu-utils
+    - qemu-img (CentOs) or qemu-utils (Ubuntu)
     - kpartx
+
+.. note:: the image build process is based on `diskimage-builder
+          <https://docs.openstack.org/diskimage-builder/latest/index.html>`_
+          that will be installed in a Python virtual environment by nfvbenchvm
+          build script build-image.sh.
+
+.. note:: build-image.sh uses the `gsutil <https://pypi.org/project/gsutil/>`_
+          tool to interact with Google cloud storage (to check if the images
+          exist and to upload the images).  This is normally only needed in the
+          context of OPNFV build infrastructure, and build-image.sh can be used
+          without that tool in development environments.
 
 Build the image
 ---------------

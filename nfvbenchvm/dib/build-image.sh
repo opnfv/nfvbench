@@ -3,7 +3,8 @@
 # A shell script to build the VPP VM image or NFVbench+TRex VM image using diskinage-builder
 #
 # The following packages must be installed prior to using this script:
-# sudo apt-get -y install python-virtualenv qemu-utils kpartx
+# Ubuntu: sudo apt-get -y install python3 python3-venv qemu-utils kpartx
+# CentOS: sudo yum install -y python3 qemu-img kpartx
 
 usage() {
     echo "Usage: $0 [-l] [-g] [-v]"
@@ -77,9 +78,9 @@ function build_image {
         if [ -d dib-venv ]; then
            . dib-venv/bin/activate
         else
-           virtualenv dib-venv
+           python3 -m venv dib-venv
            . dib-venv/bin/activate
-           pip install diskimage-builder
+           pip install diskimage-builder==3.16.0
         fi
 
         # Add nfvbenchvm_centos elements directory to the DIB elements path
@@ -110,8 +111,11 @@ function build_image {
            export TREX_VER=$(awk '/ENV TREX_VER/ {print $3}' ../../docker/Dockerfile | sed 's/"//g' | sed 's/\r//g')
         fi
 
+        # Specify CentOS version
+        export DIB_RELEASE=7
+
         echo "Building $1.qcow2..."
-        time disk-image-create -o $1 centos7 nfvbenchvm
+        time disk-image-create -o $1 centos nfvbenchvm
     fi
 
     ls -l $1.qcow2

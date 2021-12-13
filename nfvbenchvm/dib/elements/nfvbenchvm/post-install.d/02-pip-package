@@ -1,8 +1,5 @@
 #!/bin/bash
 
-cd /tmp
-wget https://bootstrap.pypa.io/get-pip.py
-python3 get-pip.py
-
-pip3 install setuptools wheel pbr
-pip3 install pyyaml
+python3 -m pip install --upgrade pip
+python3 -m pip install setuptools wheel pbr
+python3 -m pip install pyyaml

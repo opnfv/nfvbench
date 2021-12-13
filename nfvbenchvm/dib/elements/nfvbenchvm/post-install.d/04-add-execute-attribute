@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# Stop on error
+set -euo pipefail
+
 chmod +x /etc/rc.d/rc.local
 chmod +x /etc/sysconfig/network-scripts/ifcfg-eth0
 chmod +x /etc/profile.d/nfvbench.sh

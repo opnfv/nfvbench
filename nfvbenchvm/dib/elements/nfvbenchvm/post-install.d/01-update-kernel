@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# Stop on error
+set -euo pipefail
+
 if [ $DIB_USE_ELREPO_KERNEL != "True" ]; then
     exit 0
 fi

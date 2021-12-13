@@ -1,3 +1,6 @@
 #!/bin/bash
 
+# Stop on error
+set -euo pipefail
+
 yum erase -y python-devel libyaml-devel numactl-devel kernel-devel kernel-headers kernel-lt-headers kernel-lt-devel gcc git python3-dev libpython3.6-dev

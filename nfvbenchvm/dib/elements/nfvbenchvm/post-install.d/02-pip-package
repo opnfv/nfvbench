@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# Stop on error
+set -euo pipefail
+
 python3 -m pip install --upgrade pip
 python3 -m pip install setuptools wheel pbr
 python3 -m pip install pyyaml

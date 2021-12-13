@@ -6,6 +6,9 @@
 # Ubuntu: sudo apt-get -y install python3 python3-venv qemu-utils kpartx
 # CentOS: sudo yum install -y python3 qemu-img kpartx
 
+# Stop on error (see https://wizardzines.com/comics/bash-errors/)
+set -euo pipefail
+
 usage() {
     echo "Usage: $0 [-l] [-g] [-v]"
     echo "   -l    build NFVbench loop VM image"

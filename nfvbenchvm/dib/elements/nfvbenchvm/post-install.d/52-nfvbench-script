@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# Make sure the disk image build fails if nfvbench installation fails
+set -euo pipefail
+
 if [ $DIB_DEV_IMAGE != "generator" ]; then
     exit 0
 fi

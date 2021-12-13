@@ -24,7 +24,23 @@ rm -rf /opt/trex/$TREX_VER/automation/trex_control_plane/interactive/trex
 
 # NFVbench installation
 cd /opt
-git clone https://gerrit.opnfv.org/gerrit/nfvbench
+if [[ "${DIB_NFVBENCH_CODE_ORIGIN}" == "static" ]]; then
+    # nfvbench code has been copied by the install-static element to
+    # /opt/nfvbench without the .git/ directory.  But pip will need that .git/
+    # directory to compute nfvbench version, so will now finish the incomplete
+    # job of install-static:
+    STATIC_NFVBENCH_CODE="$(dirname $0)/../static/opt/nfvbench"
+    [ -d "${STATIC_NFVBENCH_CODE}" ] || {
+        echo "Error: directory ${STATIC_NFVBENCH_CODE} missing."
+        echo "    You requested a build from local nfvbench code with"
+        echo "    DIB_NFVBENCH_CODE_ORIGIN=static, but you likely forgot"
+        echo "    to clone nfvbench code in elements/nfvbenchvm/static/opt/nfvbench"
+        exit 1
+    }
+    rsync -lr "${STATIC_NFVBENCH_CODE}"/ /opt/nfvbench/
+else
+    git clone https://gerrit.opnfv.org/gerrit/nfvbench
+fi
 cd nfvbench/
 python3 -m pip install . --use-deprecated=legacy-resolver
 cp xtesting/testcases.yaml /usr/local/lib/python3.6/site-packages/xtesting/ci/testcases.yaml

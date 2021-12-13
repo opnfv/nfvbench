@@ -11,8 +11,8 @@ set -euo pipefail
 
 DEBUG=no
 verify_only=0
-generator_only=0
-loopvm_only=0
+build_generator=0
+build_loopvm=0
 __prefix__=""
 
 # Artifact URL
@@ -22,6 +22,9 @@ gs_url=artifacts.opnfv.org/nfvbench/images
 __version__=0.15
 loopvm_image_name=nfvbenchvm_centos-$__version__
 generator_image_name=nfvbenchvm_centos-generator-$__version__
+
+# Default values for nfvbenchvm dib element variables
+export DIB_NFVBENCH_CODE_ORIGIN=opnfv-gerrit
 
 
 # ----------------------------------------------------------------------------
@@ -38,6 +41,8 @@ OPTIONS
     -l: build NFVbench loop VM image
     -g: build NFVbench generator image
     -v: verify only (build but do not push to google storage)
+    -s: use local nfvbench code instead of cloning from OPNFV gerrit
+        (only relevant for NFVbench generator image)
 
     -t: enable debug trace (set -x + DIB_DEBUG_TRACE=1)
     -d: start debug shell in image chroot in case of build error
@@ -46,16 +51,19 @@ EOF
     exit 1
 }
 
-while getopts ":lgvtdh" opt; do
+while getopts ":lgvstdh" opt; do
     case $opt in
         l)
-            loopvm_only=1
+            build_loopvm=1
             ;;
         g)
-            generator_only=1
+            build_generator=1
             ;;
         v)
             verify_only=1
+            ;;
+        s)
+            export DIB_NFVBENCH_CODE_ORIGIN=static
             ;;
         t)
             set -x
@@ -74,6 +82,42 @@ while getopts ":lgvtdh" opt; do
             ;;
     esac
 done
+
+
+# Build all VM images if the image to build is not specified on the CLI
+if [[ $build_generator -eq 0 ]] && [[ $build_loopvm -eq 0 ]]; then
+    build_generator=1
+    build_loopvm=1
+fi
+
+if [[ "${DIB_NFVBENCH_CODE_ORIGIN}" == "static" ]] && [[ $build_generator -eq 0 ]]; then
+    echo "Error: option -s is only relevant to the build of the generator image"
+    exit 1
+fi
+
+
+# ----------------------------------------------------------------------------
+# Copy local nfvbench code to elements/nfvbenchvm/static/opt/nfvbench
+# ----------------------------------------------------------------------------
+
+function copy_local_nfvbench_code_to_static_dir {
+    echo "Copy local nfvbench code to elements/nfvbenchvm/static/opt"
+    # Create elements/nfvbenchvm/static/opt/ directory if it does not exist and
+    # move there
+    pushd $(dirname $0)/elements/nfvbenchvm/static
+    [ -d opt ] || mkdir opt
+    cd opt
+
+    # Remove nfvbench code if it is already there
+    [ -d nfvbench ] && rm -rf nfvbench
+
+    # Use git to "copy" the local nfvbench code.
+    # This will include all the committed changes of the current branch.
+    git clone ../../../../../.. nfvbench
+
+    # Go back to the current directory when this function was called
+    popd
+}
 
 
 # ----------------------------------------------------------------------------
@@ -172,18 +216,31 @@ function build_image {
 # Main program
 # ----------------------------------------------------------------------------
 
-if [ ! $generator_only -eq 1 ] && [ ! $loopvm_only -eq 1 ]; then
-   echo "Build loop VM image"
-   build_image $loopvm_image_name
-   echo "Build generator image"
-   build_image $generator_image_name
-else
-    if [ $loopvm_only -eq 1 ]; then
-       echo "Build loop VM image"
-       build_image $loopvm_image_name
+if [ $build_loopvm -eq 1 ]; then
+    echo "Build loop VM image"
+    build_image $loopvm_image_name
+fi
+
+if [ $build_generator -eq 1 ]; then
+    echo "Build generator image"
+
+    if [[ "${DIB_NFVBENCH_CODE_ORIGIN}" == "static" ]]; then
+        echo "Use local nfvbench code"
+        copy_local_nfvbench_code_to_static_dir
+
+        # Append nfvbench version number to the image name:
+        # during development, this is useful to distinguish the development
+        # images from the latest published image.
+        #
+        # To avoid confusion, we use the same versioning as nfvbench (see
+        # nfvbench/__init__.py), although "git describe" would give us a better
+        # number with respect to uniqueness.  So we will typically get something
+        # like "5.0.4.dev31" where "5.0.4" is the latest annotated tag ("5.0.3")
+        # plus one and where dev31 indicates the number of commits (31) since
+        # that tag.
+        nfvbench_version=$(python -c 'import pbr.version; print(pbr.version.VersionInfo("nfvbench").version_string_with_vcs())')
+        generator_image_name="${generator_image_name}-${nfvbench_version}"
     fi
-    if [ $generator_only -eq 1 ]; then
-       echo "Build generator image"
-       build_image $generator_image_name
-    fi
+
+    build_image $generator_image_name
 fi

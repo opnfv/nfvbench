@@ -4,6 +4,7 @@ NFVBENCH VM IMAGES FOR OPENSTACK
 This repo will build two centos 7 images with:
     - testpmd and VPP installed for loop VM use case
     - NFVbench and TRex installed for generator VM use case
+
 These VMs will come with a pre-canned user/password: nfvbench/nfvbench
 
 BUILD INSTRUCTIONS
@@ -19,7 +20,7 @@ Pre-requisites
     - qemu-img (CentOs) or qemu-utils (Ubuntu)
     - kpartx
 
-.. note:: the image build process is based on `diskimage-builder
+.. note:: The image build process is based on `diskimage-builder
           <https://docs.openstack.org/diskimage-builder/latest/index.html>`_
           that will be installed in a Python virtual environment by nfvbenchvm
           build script build-image.sh.
@@ -35,12 +36,31 @@ Build the image
 - cd dib
 - update the version number for the image (if needed) by modifying __version__ in build-image.sh
 - setup your http_proxy if needed
-- to build loop VM image only:
-    - `bash build-image.sh -l`
-- to build generator VM image only:
-    - `bash build-image.sh -g`
-- to build both images only:
-    - `bash build-image.sh`
+- run ``build-image.sh`` to build the images.  A few examples:
+
+    - to build all the images and publish the code to Google cloud storage:
+        - ``bash build-image.sh``
+    - to build and publish only the loop VM:
+        - ``bash build-image.sh -l``
+    - to build and publish only the generator VM:
+        - ``bash build-image.sh -g``
+    - to build the generator VM without publishing it:
+        - ``bash build-image.sh -gv``
+
+.. note:: Run ``bash build-image.sh`` -h to see all options available.
+
+.. note:: By default, the generator VM image embeds the latest nfvbench version
+          found on the master branch of OPNFV Gerrit repository
+          https://gerrit.opnfv.org/gerrit/nfvbench.
+
+          During development phases, it is also possible to build the image with
+          all the committed changes found in the current working copy of
+          nfvbench (local code).  To do that, run the image build with the ``-s``
+          option, for instance: ``bash build-image.sh -gvs``.
+
+          In that case, the version of the generator VM image will be extended
+          with nfvbench development version number to be able to distinguish the
+          development images from the latest published image.
 
 LOOP VM IMAGE INSTANCE AND CONFIG
 =================================
@@ -245,7 +265,7 @@ To check NFVbench is up and running use REST request:
 
 .. code-block:: bash
 
-curl -XGET '<management_ip>:<port>/status'
+    curl -XGET '<management_ip>:<port>/status'
 
 Example of answer:
 
@@ -263,7 +283,7 @@ To start a test run using NFVbench API use this type of REST request:
 
 .. code-block:: bash
 
-curl -XPOST '<management_ip>:<port>/start_run' -H "Content-Type: application/json" -d @nfvbenchconfig.json
+    curl -XPOST '<management_ip>:<port>/start_run' -H "Content-Type: application/json" -d @nfvbenchconfig.json
 
 Example of return when the submission is successful:
 
@@ -283,7 +303,7 @@ To start a test run using Xtesting python library and NFVbench API use this type
 
 .. code-block:: bash
 
-run_tests -t nfvbench-demo
+    run_tests -t nfvbench-demo
 
 .. note:: `-t` option determine which test case to be runned by Xtesting
  (see `xtesting/testcases.yaml` file content to see available list of test cases)

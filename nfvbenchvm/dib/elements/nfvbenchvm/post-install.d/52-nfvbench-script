@@ -47,8 +47,10 @@ cp xtesting/testcases.yaml /usr/local/lib/python3.6/site-packages/xtesting/ci/te
 python3 ./docker/cleanup_generators.py
 rm -rf /opt/nfvbench/.git
 rm -rf /opt/nfvbench/nfvbench
+rm -rf /opt/nfvbench/behave_tests
 # symlink to NFVbench sources
 ln -s /usr/local/lib/python3.6/site-packages/nfvbench /opt/nfvbench/nfvbench
+ln -s /usr/local/lib/python3.6/site-packages/behave_tests /opt/nfvbench/behave_tests
 # persist env variables
 echo "export TREX_VER=\"$TREX_VER\"" >> /etc/profile.d/nfvbench.sh
 echo "export TREX_EXT_LIBS=\"/opt/trex/$TREX_VER/external_libs\"" >> /etc/profile.d/nfvbench.sh

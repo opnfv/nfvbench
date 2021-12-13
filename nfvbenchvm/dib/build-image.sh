@@ -9,45 +9,11 @@
 # Stop on error (see https://wizardzines.com/comics/bash-errors/)
 set -euo pipefail
 
-usage() {
-    echo "Usage: $0 [-l] [-g] [-v]"
-    echo "   -l    build NFVbench loop VM image"
-    echo "   -g    build NFVbench generator image"
-    echo "   -v    verify only (build but do not push to google storage)"
-    exit 1
-}
-
+DEBUG=no
 verify_only=0
 generator_only=0
 loopvm_only=0
 __prefix__=""
-# ----------------------------------------------------------------------------
-# Parse command line options and configure the script
-# ----------------------------------------------------------------------------
-
-while getopts ":hglv" opt; do
-    case $opt in
-        h)
-            usage
-            exit 0
-            ;;
-        g)
-            generator_only=1
-            ;;
-        l)
-            loopvm_only=1
-            ;;
-        v)
-            verify_only=1
-            ;;
-        ?)
-            usage
-            exit 1
-            ;;
-    esac
-done
-
-set -e
 
 # Artifact URL
 gs_url=artifacts.opnfv.org/nfvbench/images
@@ -56,6 +22,63 @@ gs_url=artifacts.opnfv.org/nfvbench/images
 __version__=0.15
 loopvm_image_name=nfvbenchvm_centos-$__version__
 generator_image_name=nfvbenchvm_centos-generator-$__version__
+
+
+# ----------------------------------------------------------------------------
+# Parse command line options and configure the script
+# ----------------------------------------------------------------------------
+
+usage() {
+    cat <<EOF
+$(basename $0) - build NFVbench VM images
+Usage:
+    $(basename $0) [OPTIONS]
+
+OPTIONS
+    -l: build NFVbench loop VM image
+    -g: build NFVbench generator image
+    -v: verify only (build but do not push to google storage)
+
+    -t: enable debug trace (set -x + DIB_DEBUG_TRACE=1)
+    -d: start debug shell in image chroot in case of build error
+    -h: show this help message
+EOF
+    exit 1
+}
+
+while getopts ":lgvtdh" opt; do
+    case $opt in
+        l)
+            loopvm_only=1
+            ;;
+        g)
+            generator_only=1
+            ;;
+        v)
+            verify_only=1
+            ;;
+        t)
+            set -x
+            export DIB_DEBUG_TRACE=1
+            ;;
+        d)
+            DEBUG=yes
+            ;;
+        h)
+            usage
+            exit 0
+            ;;
+        ?)
+            usage
+            exit 1
+            ;;
+    esac
+done
+
+
+# ----------------------------------------------------------------------------
+# Configure and start the nfvbenchvm image build
+# ----------------------------------------------------------------------------
 
 function build_image {
     # if image exists skip building
@@ -76,7 +99,6 @@ function build_image {
     if [ -f $1.qcow2 ]; then
         echo "Image $1.qcow2 already exists locally"
     else
-
         # install diskimage-builder
         if [ -d dib-venv ]; then
            . dib-venv/bin/activate
@@ -117,6 +139,13 @@ function build_image {
         # Specify CentOS version
         export DIB_RELEASE=7
 
+        # Debug on error: if an error occurs during the build, disk-image-create
+        # will drop us in a Bash inside the chroot, and we will be able to inspect
+        # the current state of the image.
+        if [[ "${DEBUG}" == "yes" ]]; then
+            export break=after-error
+        fi
+
         echo "Building $1.qcow2..."
         time disk-image-create -o $1 centos nfvbenchvm
     fi
@@ -138,6 +167,10 @@ function build_image {
     fi
 }
 
+
+# ----------------------------------------------------------------------------
+# Main program
+# ----------------------------------------------------------------------------
 
 if [ ! $generator_only -eq 1 ] && [ ! $loopvm_only -eq 1 ]; then
    echo "Build loop VM image"

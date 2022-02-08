@@ -36,10 +36,10 @@ tox-py36:
 
 verify-image:
   stage: build
-  image: centos:8
+  image: centos:7
   before_script:
-    - dnf -y install python3-virtualenv
-    - virtualenv venv
+    - yum -y install python3 qemu-img kpartx sudo e2fsprogs
+    - python3 -m venv venv
   script:
     - source venv/bin/activate
     - !reference [.gsutil-install, script]
@@ -53,10 +53,10 @@ verify-image:
 
 build-image:
   stage: deploy
-  image: centos:8
+  image: centos:7
   before_script:
-    - dnf -y install python3-virtualenv
-    - virtualenv venv
+    - yum -y install python3 qemu-img kpartx sudo e2fsprogs
+    - python3 -m venv venv
   script:
     - source venv/bin/activate
     - !reference [.gsutil-install, script]

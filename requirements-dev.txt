@@ -1,7 +1,7 @@
 -r requirements.txt
 docutils==0.14.0
 flake8>=3.3.0
-pylint>=1.7.1
+pylint==2.10.2
 sphinx>=1.4.0
 sphinx_rtd_theme>=0.2.4
 tox>=2.3.0

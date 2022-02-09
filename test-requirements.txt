@@ -17,4 +17,4 @@ testrepository>=0.0.18
 testscenarios>=0.4
 testtools>=1.4.0
 pytest>=3.2.2
-pylint>=1.7.1
+pylint==2.10.2

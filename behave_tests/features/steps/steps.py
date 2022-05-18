@@ -623,5 +623,5 @@ def get_last_result(context, reference=None, page=None):
                 return tagged_result
     if last_results["pagination"]["current_page"] < last_results["pagination"]["total_pages"]:
         page = last_results["pagination"]["current_page"] + 1
-        return get_last_result(context, page)
+        return get_last_result(context, reference, page)
     return None

@@ -14,7 +14,6 @@
 #    under the License.
 #
 
-import json
 import logging
 import requests
 
@@ -118,19 +117,31 @@ class TestapiClient:
         Perform an HTTP GET request on testapi, check status code and return JSON
         results as dictionary.
 
-        Args: testapi_url: a complete URL to request testapi results (with base
-            endpoint and parameters)
+        Args:
+            testapi_url: a complete URL to request testapi results (with base
+                endpoint and parameters)
 
         Returns:
             The JSON document from testapi as a Python dictionary
 
         Raises:
+            * requests.exceptions.ConnectionError in case of network problem
+              when trying to establish a connection with the TestAPI database
+              (DNS failure, refused connection, ...)
 
+            * requests.exceptions.ConnectTimeout in case of timeout during the
+              request.
+
+            * requests.exception.HTTPError if the HTTP request returned an
+              unsuccessful status code.
+
+            * another exception derived from requests.exceptions.RequestException
+              in case of problem during the HTTP request.
         """
         response = requests.get(testapi_url)
-        assert response.status_code == 200  # TODO: better error message
-        results = json.loads(response.text)
-        return results
+        # raise an HTTPError if the HTTP request returned an unsuccessful status code:
+        response.raise_for_status()
+        return response.json()
 
 
 def equal_test_conditions(testapi_input, nfvbench_input):

@@ -29,7 +29,7 @@ from typing import Optional
 from nfvbench.summarizer import Formatter
 from nfvbench.traffic_gen.traffic_utils import parse_rate_str
 
-from testapi import TestapiClient, nfvbench_input_to_str
+from behave_tests.features.steps.testapi import TestapiClient, nfvbench_input_to_str
 
 
 STATUS_ERROR = "ERROR"
@@ -176,8 +176,7 @@ def add_packet_rate(context, percentage: str):
                       "case_name": "characterization"}
     nfvbench_test_conditions = deepcopy(context.json)
     nfvbench_test_conditions['rate'] = 'ndr'
-    testapi_client = TestapiClient(testapi_url=context.data['TEST_DB_URL'],
-                                   logger=context.logger)
+    testapi_client = TestapiClient(testapi_url=context.data['TEST_DB_URL'])
     last_result = testapi_client.find_last_result(testapi_params,
                                                   scenario_tag="throughput",
                                                   nfvbench_test_input=nfvbench_test_conditions)
@@ -185,6 +184,7 @@ def add_packet_rate(context, percentage: str):
         error_msg = "No characterization result found for scenario_tag=throughput"
         error_msg += " and nfvbench test conditions "
         error_msg += nfvbench_input_to_str(nfvbench_test_conditions)
+        context.logger.error(error_msg)
         raise AssertionError(error_msg)
 
     # From the results report, extract the max throughput in packets per second
@@ -551,34 +551,6 @@ def latency_comparison(context, old_latency=None, threshold=None, reference_valu
                     max_reference_value=Formatter.standard(reference_values[1])))
 
 
-def get_result_from_input_values(input, result):
-    """Check test conditions in scenario results input.
-
-    Check whether the input parameters of a behave scenario results record from
-    testapi match the input parameters of the latest test.  In other words,
-    check that the test results from testapi come from a test done under the
-    same conditions (frame size, flow count, rate, ...)
-
-    Args:
-        input: input dict of a results dict of a behave scenario from testapi
-
-        result: dict of nfvbench params used during the last test
-
-    Returns:
-        True if test conditions match, else False.
-
-    """
-    # Select required keys (other keys can be not set or unconsistent between scenarios)
-    required_keys = ['duration_sec', 'frame_sizes', 'flow_count', 'rate']
-    if 'user_label' in result:
-        required_keys.append('user_label')
-    if 'flavor_type' in result:
-        required_keys.append('flavor_type')
-    subset_input = dict((k, input[k]) for k in required_keys if k in input)
-    subset_result = dict((k, result[k]) for k in required_keys if k in result)
-    return subset_input == subset_result
-
-
 def extract_value(obj, key):
     """Pull all values of specified key from nested JSON."""
     arr = []
@@ -600,28 +572,58 @@ def extract_value(obj, key):
     return results[0]
 
 
-def get_last_result(context, reference=None, page=None):
+def get_last_result(context, reference: bool = False):
+    """Look for a previous result in TestAPI database.
+
+    Search TestAPI results from newest to oldest and return the first result
+    record matching the context constraints.  Log an overview of the results
+    found (max rate pps, avg delay usec, test conditions, date of measurement).
+
+    The result record test case must match the current test case
+    ('characterization' or 'non-regression') unless `reference` is set to True.
+
+    The result record scenario tag must match the current scenario tag
+    ('throughput' or 'latency').
+
+    Args:
+        context: behave context including project name, test case name, traffic
+            configuration (frame size, flow count, test duration), type of the
+            compute node under test (via loop VM flavor_type) and platform (via
+            user_label).
+
+        reference: when True, look for results with the 'characterization' test
+            case name instead of the current test case name.
+
+    Returns:
+        a JSON dictionary with the results, ie a dict with the keys "input",
+            "output" and "synthesis" when the scenario tag is 'throughput' or
+            'latency'
+    """
     if reference:
         case_name = 'characterization'
     else:
         case_name = context.CASE_NAME
-    url = context.data['TEST_DB_URL'] + '?project={project_name}&case={case_name}'.format(
-        project_name=context.data['PROJECT_NAME'], case_name=case_name)
-    if context.data['INSTALLER_TYPE']:
-        url += '&installer={installer_name}'.format(installer_name=context.data['INSTALLER_TYPE'])
-    if context.data['NODE_NAME']:
-        url += '&pod={pod_name}'.format(pod_name=context.data['NODE_NAME'])
-    url += '&criteria=PASS'
-    if page:
-        url += '&page={page}'.format(page=page)
-    last_results = requests.get(url)
-    assert last_results.status_code == 200
-    last_results = json.loads(last_results.text)
-    for result in last_results["results"]:
-        for tagged_result in result["details"]["results"][context.tag]:
-            if get_result_from_input_values(tagged_result["input"], context.json):
-                return tagged_result
-    if last_results["pagination"]["current_page"] < last_results["pagination"]["total_pages"]:
-        page = last_results["pagination"]["current_page"] + 1
-        return get_last_result(context, reference, page)
-    return None
+    testapi_params = {"project_name": context.data['PROJECT_NAME'],
+                      "case_name": case_name}
+    testapi_client = TestapiClient(testapi_url=context.data['TEST_DB_URL'])
+    last_result = testapi_client.find_last_result(testapi_params,
+                                                  scenario_tag=context.tag,
+                                                  nfvbench_test_input=context.json)
+    if last_result is None:
+        error_msg = "get_last_result: No result found in TestAPI database:"
+        error_msg += f" case_name={case_name} scenario_tag={context.tag} "
+        error_msg += nfvbench_input_to_str(context.json)
+        context.logger.error(error_msg)
+        raise AssertionError(error_msg)
+
+    # Log an overview of the last result (latency and max throughput)
+    measurement_date = last_result["output"]["result"]["date"]
+    total_tx_rate = extract_value(last_result["output"], "total_tx_rate")
+    avg_delay_usec = extract_value(extract_value(last_result["output"], "overall"),
+                                   "avg_delay_usec")
+    context.logger.info(f"get_last_result: case_name={case_name} scenario_tag={context.tag}"
+                        f' measurement_date="{measurement_date}"'
+                        f" total_tx_rate(pps)={total_tx_rate:,}"
+                        f" avg_latency_usec={round(avg_delay_usec)}")
+
+    return last_result

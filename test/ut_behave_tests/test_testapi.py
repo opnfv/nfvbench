@@ -109,3 +109,24 @@ class TestTestapiClient(unittest.TestCase):
         with self.assertRaises(ValueError):
             client.find_last_result(testapi_params, scenario_tag="throughput",
                                     nfvbench_test_input=nfvbench_test_input)
+
+    def test_flavor_is_ignored(self):
+        """Check that lookup in TestAPI does not filter on the flavor_type."""
+        client = TestapiClient("http://127.0.0.1:8000/api/v1/results", get_logger())
+        testapi_params = {"project_name": "nfvbench", "case_name": "characterization"}
+        nfvbench_test_input = {"frame_sizes": ['64'],
+                               "flow_count": "100k",
+                               "duration_sec": '10',
+                               "rate": "ndr",
+                               "user_label": "amical_tc18_loopback",
+                               "flavor_type": "no_such_flavor"}
+        last_result = client.find_last_result(testapi_params,
+                                              scenario_tag="throughput",
+                                              nfvbench_test_input=nfvbench_test_input)
+        self.assertIsNotNone(last_result)
+        self.assertEqual(16765582, last_result["synthesis"]["total_tx_rate"])
+        self.assertEqual(25, round(last_result["synthesis"]["avg_delay_usec"]))
+
+        self.mock_requests.get.assert_called_once_with(
+            "http://127.0.0.1:8000/api/v1/results?"
+            "project=nfvbench&case=characterization&criteria=PASS&page=1")

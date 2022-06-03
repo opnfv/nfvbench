@@ -48,7 +48,7 @@ class TestapiClient:
                 to filter the testapi results.  The following keys are currently
                 supported:
                 - mandatory keys: 'duration_sec', 'frame_sizes', 'flow_count', 'rate'
-                - optional keys: 'user_label', 'flavor_type'
+                - optional keys: 'user_label'
 
         Returns:
             None if no result matching the filters can be found, else a dictionary
@@ -159,7 +159,7 @@ def equal_test_conditions(testapi_input, nfvbench_input):
 
     The following dict keys are currently supported:
         - mandatory keys: 'duration_sec', 'frame_sizes', 'flow_count', 'rate'
-        - optional keys: 'user_label', 'flavor_type'
+        - optional keys: 'user_label'
 
     Optional keys are taken into account only when they can be found in
     `nfvbench_input`, else they are ignored.
@@ -172,8 +172,6 @@ def equal_test_conditions(testapi_input, nfvbench_input):
     required_keys = ['duration_sec', 'frame_sizes', 'flow_count', 'rate']
     if 'user_label' in nfvbench_input:
         required_keys.append('user_label')
-    if 'flavor_type' in nfvbench_input:
-        required_keys.append('flavor_type')
 
     try:
         testapi_subset = {k: testapi_input[k] for k in required_keys}
@@ -191,7 +189,7 @@ def nfvbench_input_to_str(nfvbench_input: dict) -> str:
         nfvbench_input: dict of nfvbench test parameters
     """
     string = ""
-    for key in ['user_label', 'flavor_type', 'frame_sizes', 'flow_count', 'rate', 'duration_sec']:
+    for key in ['user_label', 'frame_sizes', 'flow_count', 'rate', 'duration_sec']:
         if key in nfvbench_input:
             string += f"{key}={nfvbench_input[key]} "
     return string

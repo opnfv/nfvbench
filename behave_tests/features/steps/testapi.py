@@ -15,21 +15,21 @@
 #
 
 import json
+import logging
 import requests
 
 
 class TestapiClient:
-    def __init__(self, testapi_url: str, logger):
+    __test__ = False  # Hint for pytest: TestapiClient is not a test class.
+
+    def __init__(self, testapi_url: str):
         """
         Args:
             testapi_url: testapi URL as a string, for instance
                 "http://172.20.73.203:8000/api/v1/results"
-
-            logger: reference to behave_tests logger.
-
         """
         self._base_url = testapi_url
-        self._logger = logger
+        self._logger = logging.getLogger("behave_tests")
 
     def find_last_result(self, testapi_params, scenario_tag: str, nfvbench_test_input):
         """Search testapi database and return latest result matching filters.

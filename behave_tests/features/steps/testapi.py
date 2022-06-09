@@ -19,6 +19,8 @@ import requests
 
 
 class TestapiClient:
+    __test__ = False  # Hint for pytest: TestapiClient is not a test class.
+
     def __init__(self, testapi_url: str, logger):
         """
         Args:

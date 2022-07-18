@@ -182,6 +182,29 @@ else
     logger "NFVBENCHVM ERROR: VM MAC Addresses missing in $NFVBENCH_CONF"
 fi
 
+wait_vpp_service() {
+    # Wait for at most wait_max=$1 seconds until VPP service is ready.  Exit
+    # with code 1 if timeout is reached.
+    # 
+    # Because VPP systemd unit has Type=simple, systemctl will report the
+    # service to be active has soon as it is forked.  This does not mean that
+    # the service is ready, and actually it takes some times before vppctl can
+    # succesfully connect to VPP client socket /run/vpp/cli.sock.
+    local wait_max=$1
+
+    local wait_time=0
+    while ! vppctl show int; do
+        if [[ $wait_time -ge $wait_max ]]; then
+            # Log error to both system log and standard error output
+            logger -s "NFVBENCHVM ERROR: VPP service still not ready after $wait_max seconds." \
+                      "Exiting $(basename $0)."
+            exit 1
+        fi
+        sleep 1
+        wait_time=$(( wait_time + 1 ))
+    done
+}
+
 if [ $PCI_ADDRESS_1 ] && [ $PCI_ADDRESS_2 ]; then
     logger "NFVBENCHVM: Using pci $PCI_ADDRESS_1 ($INTF_MAC1)"
     logger "NFVBENCHVM: Using pci $PCI_ADDRESS_2 ($INTF_MAC2)"
@@ -223,12 +246,22 @@ if [ $PCI_ADDRESS_1 ] && [ $PCI_ADDRESS_2 ]; then
         sed -i "s/{{WORKER_CORES}}/$WORKER_CORES/g" /etc/vpp/startup.conf
         sed -i "s/{{VIF_MQ_SIZE}}/${VIF_MQ_SIZE}/g" /etc/vpp/startup.conf
         sed -i "s/{{NUM_MBUFS}}/${NUM_MBUFS}/g" /etc/vpp/startup.conf
-        service vpp start
-        sleep 10
+        systemctl start vpp
+        # Wait until VPP service is ready for at most 30 seconds
+        wait_vpp_service 30
 
-        INTFS=`vppctl show int | grep Ethernet | xargs`
-        INTF_1=`echo $INTFS | awk '{ print $1 }'`
-        INTF_2=`echo $INTFS | awk '{ print $4 }'`
+        VPPCTL_OUTPUT=$(vppctl show int)
+        INTFS=$(echo "$VPPCTL_OUTPUT" | grep Ethernet | xargs)
+        INTF_1=$(echo $INTFS | awk '{ print $1 }')
+        INTF_2=$(echo $INTFS | awk '{ print $4 }')
+        if [[ -z "$INTF_1" ]] || [[ -z "$INTF_2" ]]; then
+            # Log error to both system log and standard error output
+            logger -s "NFVBENCHVM DEBUG: \"vppctl show int\" output:"
+            logger -s "NFVBENCHVM DEBUG: $VPPCTL_OUTPUT"
+            logger -s "NFVBENCHVM ERROR: vppctl does not show the two Ethernet interfaces we expect." \
+                      "Exiting $(basename $0)."
+            exit 1
+        fi
         if [ -z "${TG_MAC1}" ]; then
             # vm.conf does not support lines commented with #, so
             # we need to remove the line to set the static ARP entry.
@@ -249,7 +282,7 @@ if [ $PCI_ADDRESS_1 ] && [ $PCI_ADDRESS_2 ]; then
         sed -i "s/{{TG_NET2}}/${TG_NET2//\//\/}/g" /etc/vpp/vm.conf
         sed -i "s/{{TG_GATEWAY1_IP}}/${TG_GATEWAY1_IP}/g" /etc/vpp/vm.conf
         sed -i "s/{{TG_GATEWAY2_IP}}/${TG_GATEWAY2_IP}/g" /etc/vpp/vm.conf
-        service vpp restart
+        systemctl restart vpp
         logger "NFVBENCHVM: vpp service restarted"
     else
         echo "ERROR: Unknown forwarder value. Accepted values: testpmd or vpp"

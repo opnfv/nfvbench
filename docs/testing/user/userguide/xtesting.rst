@@ -6,7 +6,7 @@ NFVbench Xtesting test cases and Xtesting CI integration
 --------------------------------------------------------
 
 NFVbench can leverages on `Xtesting CI <https://galaxy.ansible.com/collivier/xtesting>`_ and the common test case execution proposed by `Xtesting <https://xtesting.readthedocs.io/en/latest/>`_.
-Thanks to a simple test case list, this tool deploys anywhere plug-and-play `CI/CD toolchains in a few commands <https://wiki.opnfv.org/pages/viewpage.action?pageId=32015004>`_.
+Thanks to a simple test case list, this tool deploys anywhere plug-and-play `CI/CD toolchains in a few commands <https://github.com/collivier/ansible-role-xtesting/blob/master/README.md>`_.
 In addition, it supports multiple components such as Jenkins and Gitlab CI (test schedulers) and multiple deployment models such as all-in-one or centralized services.
 
 NFVbench using Xtesting and Xtesting CI will permit:

@@ -1541,7 +1541,7 @@ class ChainManager(object):
             hypervisor = self.get_hypervisor_from_mac(dst_mac)
             if hypervisor:
                 LOG.info('Found hypervisor for EXT chain: %s', hypervisor.hypervisor_hostname)
-                return[':' + hypervisor.hypervisor_hostname]
+                return [':' + hypervisor.hypervisor_hostname]
         # no openstack = no chains
         return []
 

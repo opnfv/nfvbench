@@ -1,0 +1,7 @@
+Verified+1: jenkins-ci <jenkins-opnfv-ci@opnfv.org>
+Code-Review+2: Gwenael Lambrouin <gwenael.lambrouin@orange.com>
+Submitted-by: Gwenael Lambrouin <gwenael.lambrouin@orange.com>
+Submitted-at: Wed, 02 Nov 2022 13:21:43 +0000
+Reviewed-on: https://gerrit.opnfv.org/gerrit/c/nfvbench/+/73598
+Project: nfvbench
+Branch: refs/heads/master

@@ -11,3 +11,4 @@ NFVbench Release Notes
    :maxdepth: 1
 
    release-notes
+   nfvbenchvm-release-notes

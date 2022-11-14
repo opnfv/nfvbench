@@ -14,6 +14,8 @@ This container includes the following parts:
 - NFVbench orchestration
 - NFVbench test VM (qcow2)
 
+.. _nfvbench-artefact-versioning:
+
 Versioning
 ----------
 These 3 parts are versioned independently and the Dockerfile will determine the combination of versions that

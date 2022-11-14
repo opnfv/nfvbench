@@ -19,9 +19,10 @@ __prefix__=""
 gs_url=artifacts.opnfv.org/nfvbench/images
 
 # image version number
-__version__=0.15
-loopvm_image_name=nfvbenchvm_centos-$__version__
-generator_image_name=nfvbenchvm_centos-generator-$__version__
+__loopvm_version__=0.16
+__generator_version__=0.15
+loopvm_image_name=nfvbenchvm_centos-$__loopvm_version__
+generator_image_name=nfvbenchvm_centos-generator-$__generator_version__
 
 # Default values for nfvbenchvm dib element variables
 export DIB_NFVBENCH_CODE_ORIGIN=opnfv-gerrit

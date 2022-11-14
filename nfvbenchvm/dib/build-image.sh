@@ -19,7 +19,7 @@ __prefix__=""
 gs_url=artifacts.opnfv.org/nfvbench/images
 
 # image version number
-__version__=0.15
+__version__=0.16
 loopvm_image_name=nfvbenchvm_centos-$__version__
 generator_image_name=nfvbenchvm_centos-generator-$__version__
 

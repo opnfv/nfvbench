@@ -2,26 +2,26 @@
 # of appearance. Changing the order has an impact on the overall integration
 # process, which may cause wedges in the gate later.
 
-pbr>=3.1.1
+pbr!=2.1.0 # Apache-2.0
 
 attrdict>=2.0.0
 bitmath>=1.3.1.1
-paramiko>=1.14.0
-prettytable>=0.7.2
-pytz>=2016.4
-six==1.15.0
-python-glanceclient==3.2.2
-python-neutronclient>=7.3.0
-python-novaclient>=17.3.0
-python-openstackclient>=5.4.0
-python-keystoneclient>=4.2.0
-pyyaml>=3.11
-pyzmq>=15.3.0
-requests>=2.13.0
-tabulate>=0.7.5
-flask>=0.12
+paramiko # LGPLv2.1+
+PrettyTable # BSD
+pytz # MIT
+six # MIT
+python-glanceclient # Apache-2.0
+python-neutronclient # Apache-2.0
+python-novaclient # Apache-2.0
+python-openstackclient # Apache-2.0
+python-keystoneclient!=2.1.0 # Apache-2.0
+PyYAML # MIT
+pyzmq # LGPL+BSD
+requests!=2.20.0,!=2.24.0 # Apache-2.0
+tabulate # MIT
+Flask!=0.11 # BSD
 fluent-logger>=0.5.3
-netaddr>=0.7.19
+netaddr # BSD
 xtesting>=0.92.0
 hdrhistogram>=0.8.0
 behave>=1.2.6

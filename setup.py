@@ -13,27 +13,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from setuptools.command.test import test
-from setuptools import setup
-import sys
+# THIS FILE IS MANAGED BY THE GLOBAL REQUIREMENTS REPO - DO NOT EDIT
+import setuptools
 
-
-class Tox(test):
-    def initialize_options(self):
-        test.initialize_options(self)
-        self.tox_args = None
-
-    def finalize_options(self):
-        test.finalize_options(self)
-        self.test_args = []
-        self.test_suite = True
-
-    def run_tests(self):
-        import tox
-        sys.exit(tox.cmdline())
-
-
-if __name__ == '__main__':
-    setup(setup_requires=['pbr'], pbr=True,
-          tests_require=['tox'],
-          cmdclass={'test': Tox})
+setuptools.setup(
+    setup_requires=['pbr>=2.0.0'],
+    pbr=True)

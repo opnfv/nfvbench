@@ -628,7 +628,7 @@ class GeneratorConfig(object):
             self.intf_speed = gen_config.intf_speed
         else:
             self.intf_speed = "auto"
-        if self.intf_speed == "auto" or self.intf_speed == "0":
+        if self.intf_speed in ("auto", "0"):
             # interface speed is discovered/provided by the traffic generator
             self.intf_speed = 0
         else:

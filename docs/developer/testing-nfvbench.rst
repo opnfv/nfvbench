@@ -20,10 +20,9 @@ format.
 
 What tox should do is specified in a ``tox.ini`` file located at the project root.
 
-tox is used in continuous integration (jenkins-ci today, gitlab-ci in the near
-future): all the actions performed by tox must succeed before a patchset can be
-merged.  As a developer, it is also useful to run tox locally to detect and fix
-the issues before pushing the code for review.
+tox is used in continuous integration: all the actions performed by tox must
+succeed before a patchset can be merged.  As a developer, it is also useful to
+run tox locally to detect and fix the issues before pushing the code for review.
 
 .. _tox: https://tox.wiki/en/latest/
 
@@ -35,7 +34,7 @@ Using tox on a developer's machine
 Requirement: |python-version|
 -----------------------------
 
-.. |python-version| replace:: Python 3.6
+.. |python-version| replace:: Python 3.8
 
 The current version of Python used by NFVbench is |python-version|.  In
 particular, this means that |python-version| is used:
@@ -58,7 +57,10 @@ tox installation
 
 Install tox with::
 
-    $ pip install tox tox-pip-version
+    $ pip install tox==3.21.4
+
+.. note:: tox 3.21.4 is the version that comes with Ubuntu 22.04 and that can be
+          found on gerrit.opnfv.org build servers.
 
 
 Running tox
@@ -70,7 +72,7 @@ In nfvbench root directory, simply run tox with::
 
 If all goes well, tox shows a green summary such as::
 
-    py36: commands succeeded
+    py38: commands succeeded
     pep8: commands succeeded
     lint: commands succeeded
     docs: commands succeeded

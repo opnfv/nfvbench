@@ -179,9 +179,9 @@ To replace existing testcases.yaml file, using Xtesting CI add the volume mappin
       - /usr/src/kernels:/usr/src/kernels -v /dev:/dev
       - /home/opnfv/nfvbench/config:/etc/nfvbench
       - /home/opnfv/nfvbench/results:/var/lib/xtesting/results
-      - /home/opnfv/nfvbench/xtesting/testcases.yaml:/usr/local/lib/python3.6/dist-packages/xtesting/ci/testcases.yaml
+      - /home/opnfv/nfvbench/xtesting/testcases.yaml:/usr/local/lib/python3.8/dist-packages/xtesting/ci/testcases.yaml
 
-* ``/home/opnfv/nfvbench/xtesting/testcases.yaml:/usr/local/lib/python3.6/dist-packages/xtesting/ci/testcases.yaml`` : volume mapping to pass testcases.yaml file between the host and the docker space. Host path required testcases.yaml file inside.
+* ``/home/opnfv/nfvbench/xtesting/testcases.yaml:/usr/local/lib/python3.8/dist-packages/xtesting/ci/testcases.yaml`` : volume mapping to pass testcases.yaml file between the host and the docker space. Host path required testcases.yaml file inside.
 
 
 To replace existing testcases.yaml file, using NFVbench container:

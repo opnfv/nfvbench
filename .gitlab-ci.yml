@@ -13,9 +13,9 @@ variables:
 
 .tox-defaults: &tox-defaults
   stage: test
-  image: python:3.6
+  image: python:3.8
   before_script:
-    - pip install tox tox-pip-version
+    - pip install tox==3.21.4
   cache:
     paths:
       - .cache/pip
@@ -29,10 +29,10 @@ pep8:
   script:
     tox -e pep8
 
-tox-py36:
+tox-py38:
   <<: *tox-defaults
   script:
-    tox -e py36
+    tox -e py38
 
 verify-image:
   stage: build

@@ -1,8 +1,11 @@
+# Python requirements to setup a development environment to be able to do
+# anything directly or with tox: run unit tests, run code quality checks, build
+# the docs, ...
+
+-c https://opendev.org/openstack/requirements/raw/branch/stable/yoga/upper-constraints.txt
 -r requirements.txt
-docutils==0.14.0
-flake8>=3.3.0
-pylint==2.10.2
-sphinx>=1.4.0
-sphinx_rtd_theme>=0.2.4
-tox>=2.3.0
-mock>=2.0.0
+-r test-requirements.txt
+-r docs/requirements.txt
+
+# Install tox with the same version as on OPNFV build servers
+tox==3.21.4

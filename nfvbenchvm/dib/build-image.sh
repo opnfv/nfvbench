@@ -130,7 +130,7 @@ function build_image {
     echo "Checking if image exists in google storage..."
     if  command -v gsutil >/dev/null; then
        if gsutil -q stat gs://$gs_url/$1.qcow2; then
-           echo "Image already exists at http://$gs_url/$1.qcow2"
+           echo "Image already exists at https://$gs_url/$1.qcow2"
            echo "Build is skipped"
            exit 0
        fi
@@ -204,7 +204,7 @@ function build_image {
         if command -v gsutil >/dev/null; then
             echo "Uploading $1.qcow2..."
             gsutil cp $1.qcow2 gs://$gs_url/$1.qcow2
-            echo "You can access to image at http://$gs_url/$1.qcow2"
+            echo "You can access to image at https://$gs_url/$1.qcow2"
         else
             echo "Cannot upload new image to the OPNFV artifact repository (gsutil not available)"
             exit 1

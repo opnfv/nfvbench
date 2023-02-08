@@ -22,10 +22,10 @@ Online Documentation
 --------------------
 The latest version of the NFVbench documentation is available online at:
 
-https://opnfv-nfvbench.readthedocs.io/en/latest/testing/user/userguide/index.html
+https://docs.anuket.io/projects/nfvbench/en/latest/index.html
 
 Contact Information
 -------------------
-Inquiries and questions: send an email to opnfv-tech-discuss@lists.opnfv.org with a Subject line starting with "#nfvbench"
+Inquiries and questions: send an email to anuket-tech-discuss@lists.anuket.io with a Subject line starting with "#nfvbench"
 
-Open issues or submit an issue or enhancement request: https://jira.opnfv.org/projects/NFVBENCH/issues (this requires an OPNFV Linux Foundation login).
+Open issues or submit an issue or enhancement request: https://jira-old.opnfv.org/projects/NFVBENCH/issues (this requires an OPNFV Linux Foundation login).

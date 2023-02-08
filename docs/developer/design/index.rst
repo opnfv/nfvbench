@@ -3,9 +3,15 @@
 .. http://creativecommons.org/licenses/by/4.0
 .. (c) Cisco Systems, Inc
 
-.. toctree::
-   :maxdepth: 3
+=====================
+NFVbench Design Notes
+=====================
 
-   overview/index
-   design/index
-   building/index
+.. toctree::
+   :maxdepth: 2
+
+   overview
+   design
+   versioning
+   traffic_desc
+   ndrpdr

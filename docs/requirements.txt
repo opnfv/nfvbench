@@ -1,2 +1,7 @@
-lfdocs-conf
-sphinx_opnfv_theme
+# Python dependencies needed to build and check nfvbench documentation
+
+sphinx # BSD
+piccolo_theme
+
+# Extract nfvbench version from git
+pbr

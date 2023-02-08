@@ -25,7 +25,7 @@ future): all the actions performed by tox must succeed before a patchset can be
 merged.  As a developer, it is also useful to run tox locally to detect and fix
 the issues before pushing the code for review.
 
-.. _tox: https://tox.readthedocs.io/en/latest/
+.. _tox: https://tox.wiki/en/latest/
 
 
 

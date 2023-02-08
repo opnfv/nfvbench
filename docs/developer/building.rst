@@ -4,7 +4,7 @@
 .. http://creativecommons.org/licenses/by/4.0
 .. (c) Cisco Systems, Inc
 
-Building containers and VM images
+Building Containers and VM Images
 =================================
 
 NFVbench is delivered as Docker container which is built using the Dockerfile under the docker directory.

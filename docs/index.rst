@@ -3,9 +3,13 @@
 .. http://creativecommons.org/licenses/by/4.0
 .. (c) Cisco Systems, Inc
 
-.. toctree::
-   :maxdepth: 1
 
-   development/index
-   release/release-notes/index
-   testing/index
+NFVbench |release| Documentation
+================================
+
+.. toctree::
+   :maxdepth: 2
+
+   release-notes/index
+   user/index
+   developer/index

@@ -12,12 +12,12 @@ project_lead: &opnfv_nfvbench_ptl
 primary_contact: *opnfv_nfvbench_ptl
 issue_tracking:
     type: 'jira'
-    url: 'https://jira.opnfv.org/projects/NFVBENCH'
+    url: 'https://jira-old.opnfv.org/projects/NFVBENCH'
     key: 'NFVBENCH'
 mailing_list:
     type: 'mailman2'
-    url: 'opnfv-tech-discuss@lists.opnfv.org'
-    tag: '[nfvbench]'
+    url: 'anuket-tech-discuss@lists.anuket.io'
+    tag: '#nfvbench'
 realtime_discussion:
     type: irc
     server: 'freenode.net'

@@ -15,8 +15,8 @@ The NFVbench tool provides an automated way to measure the network performance f
 It is designed to be easy to install and easy to use by non experts (no need to be an expert in traffic generators and data plane performance testing).
 
 
-Table of Content
-----------------
+Table of Contents
+
 .. toctree::
    :maxdepth: 3
 

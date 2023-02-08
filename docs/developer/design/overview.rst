@@ -3,12 +3,9 @@
 .. http://creativecommons.org/licenses/by/4.0
 .. (c) Cisco Systems, Inc
 
-.. contents::
-   :depth: 3
-   :local:
+Overview
+--------
 
-Introduction
-----------------
 NFVbench is a python application that is designed to run in a compact and portable format inside a container and on production pods.
 As such it only uses open sourec software with minimal hardware requirements (just a NIC card that is DPDK compatible).
 Traffic generation is handled by TRex on 2 physical ports (2x10G or higher) forming traffic loops up to VNF level and following
@@ -18,6 +15,7 @@ to VNF(s) and back.
 Configuration of benchmarks is through a yaml configuraton file and command line arguments.
 
 Results are available in different formats:
+
 - text output with tabular results
 - json result in file or in REST reply (most detailed)
 

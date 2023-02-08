@@ -2,8 +2,8 @@
 .. http://creativecommons.org/licenses/by/4.0
 .. (c) Cisco Systems, Inc
 
-RELEASE NOTES
-+++++++++++++
+NFVbench Release Notes
+++++++++++++++++++++++
 
 Release 3.6.2
 =============

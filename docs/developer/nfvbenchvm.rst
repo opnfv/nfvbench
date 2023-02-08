@@ -1,3 +1,6 @@
+.. Copyright 2016 - 2023, Cisco Systems, Inc. and the NFVbench project contributors
+.. SPDX-License-Identifier: CC-BY-4.0
+
 NFVBENCH VM IMAGES FOR OPENSTACK
 ++++++++++++++++++++++++++++++++
 
@@ -49,9 +52,9 @@ Build the image
 
 .. note:: Run ``bash build-image.sh`` -h to see all options available.
 
-.. note:: By default, the generator VM image embeds the latest nfvbench version
-          found on the master branch of OPNFV Gerrit repository
-          https://gerrit.opnfv.org/gerrit/nfvbench.
+.. note:: By default, the generator VM image embeds the latest nfvbench code
+          found at the time of the build on the master branch of NFVbench Git
+          repository on OPNFV Gerrit instance (latest commit).
 
           During development phases, it is also possible to build the image with
           all the committed changes found in the current working copy of
@@ -268,6 +271,7 @@ By default, NFVbench will be started in server mode (`--server`) and will act as
 NFVbench VM will be accessible through SSH or HTTP using the management interface IP.
 
 NFVbench API endpoint is : `http://<management_ip>:<port>`
+
 .. note:: by default port value is 7555
 
 Get NFVbench status

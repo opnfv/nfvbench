@@ -848,6 +848,8 @@ Check on the TRex window that the following log appears just after capture is st
     Writing up to 10000 packets to '/tmp/nfvb/record.pcap'       [SUCCESS]
     Removing PCAP capture 8 from server                          [SUCCESS]
 
+.. _user-info:
+
 User info data
 --------------
 

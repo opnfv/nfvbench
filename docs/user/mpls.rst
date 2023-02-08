@@ -1,3 +1,6 @@
+.. Copyright 2016 - 2023, Cisco Systems, Inc. and the NFVbench project contributors
+.. SPDX-License-Identifier: CC-BY-4.0
+
 ==========================
 MPLS encapsulation feature
 ==========================

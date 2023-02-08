@@ -61,6 +61,7 @@ size of the L2 header - including the VLAN tag if applicable.
 IMIX Support
 ------------
 In the case of IMIX, each direction is made of 4 streams:
+
 - 1 latency stream
 - 1 stream for each IMIX frame size
 

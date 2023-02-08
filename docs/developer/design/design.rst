@@ -1,19 +1,15 @@
-
-
-.. contents::
-   :depth: 3
-   :local:
-
 .. This work is licensed under a Creative Commons Attribution 4.0 International
 .. License.
 .. http://creativecommons.org/licenses/by/4.0
 .. (c) Cisco Systems, Inc
 
 
-Introduction
-------------
+*******************
+NFVbench components
+*******************
 
 NFVbench can be decomposed in the following components:
+
 - Configuration
 - Orchestration:
 
@@ -22,13 +18,14 @@ NFVbench can be decomposed in the following components:
   - Results analysis
 
 Configuration
--------------
+=============
 This component is in charge of getting the configuration options from the user and consolidate them with
 the default configuration into a running configuration.
 
 default configuration + user configuration options = running configuration
 
 User configuration can come from:
+
 - CLI configuration shortcut arguments (e.g --frame-size)
 - CLI configuration file (--config [file])
 - CLI configuration string (--config [string])
@@ -36,6 +33,7 @@ User configuration can come from:
 - custom platform pluging
 
 The precedence order for configuration is (from highest precedence to lowest precedence)
+
 - CLI configuration or REST configuration
 - custom platform plugin
 - default configuration
@@ -46,7 +44,7 @@ with default platform options which can be either hardcoded or calculated at run
 A custom platform plugin class is a child of the parent class nfvbench.config_plugin.ConfigPlugin.
 
 Orchestration
--------------
+=============
 Once the configuration is settled, benchmark orchestration is managed by the ChainRunner class (nfvbench.chain_runner.ChainRunner).
 The chain runner will take care of orchestrating the staging, traffic generation and results analysis.
 
@@ -63,6 +61,7 @@ Traffic Generation
 ------------------
 The traffic generation component is in charge of contrilling the TRex traffic generator using its python API.
 It includes tasks such as:
+
 - traffic check end to end to make sure the packet path is clear in both directions before starting a benchmark
 - programming the TRex traffic flows based on requested parameters
 - fixed rate control

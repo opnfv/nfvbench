@@ -1,3 +1,6 @@
+.. Copyright 2016 - 2023, Cisco Systems, Inc. and the NFVbench project contributors
+.. SPDX-License-Identifier: CC-BY-4.0
+
 NFVbench Kibana visualization: overview
 =======================================
 
@@ -31,7 +34,7 @@ Example of a scatter plot chart:
 
 Vega offers the possibility to add another graph as a new layer of current graph.
 This solution is used to combine NFVbench results and theoretical line rate.
-Using ``extra_encapsulation_bytes`` in --user-info property (see `User info data section <https://opnfv-nfvbench.readthedocs.io/en/latest/testing/user/userguide/advanced.html#user-info-data>`_),
+Using ``extra_encapsulation_bytes`` in --user-info property (see :ref:`user-info`),
 the theoretical max value (for bps and pps) will be calculated and can be used in graph through ``theoretical_tx_rate_bps`` and ``theoretical_tx_rate_pps`` properties.
 
 Example of chart with theoretical value (red line):

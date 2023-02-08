@@ -3,14 +3,14 @@
 .. http://creativecommons.org/licenses/by/4.0
 .. (c) Cisco Systems, Inc
 
-===============================
-OPNFV NFVbench Euphrates Design
-===============================
+************************
+NFVbench Developer Guide
+************************
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 3
 
-   design
-   versioning
-   traffic_desc
-   ndrpdr
+   building
+   nfvbenchvm
+   testing-nfvbench
+   design/index

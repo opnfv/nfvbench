@@ -66,4 +66,4 @@ Upon start, NFVbench will:
 Please note: ``l3_router`` option is also compatible with external routers. In this case NFVBench will use ``EXT`` chain.
 
 .. note:: Using a long NFVbench run test, end-to-end connectivity can be lost depending on ARP stale time SUT configuration.
-To avoid this issue, activate Gratuitous ARP stream using ``--gratuitous-arp`` or ``-garp`` option.
+          To avoid this issue, activate Gratuitous ARP stream using ``--gratuitous-arp`` or ``-garp`` option.
